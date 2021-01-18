@@ -17,16 +17,12 @@ io.on("connection", (socket) => {
     // Confirm a connection
     console.log("New client connection")
 
-    app.get("/", (req,res) => {
-        let response = res
-        response.send("Central Server Ready!! What are you doing here???")
-    })
-
-    app.get("/summary", (req, res) => {
-        let response = res
+    // statistics event listener
+    socket.on('statistics', function(data) {
+        console.log('event caught from client -> ', data);
         axios.get("http://localhost:5555/statistics/")
         .then((feedback) => {
-            //console.log(feedback.data.totalFareSuccessful)
+        //console.log(feedback.data.totalFareSuccessful)
 
             let statistics = {
                 totalFareSuccessful: feedback.data.totalFareSuccessful,
@@ -41,41 +37,50 @@ io.on("connection", (socket) => {
                 totalNewPassengerToday: feedback.data.totalNewPassengerToday
             }
 
-            response.json(statistics)
-            socket.emit("statistics", statistics)
+            console.log(statistics)
+
+            //response.json(statistics)
+            socket.emit("statistics-response", statistics)
             
+        
         }).catch((error) => {
             console.log(error)
         })
-    })
-
+    });
+    
     // Get the driver list:
-    app.get("/driver-list", (req, res) => {
-        let response = res
+    socket.on("getDrivers", function(data) {
+        console.log(`getDriver event from client ${data}`)
         axios.get("http://localhost:5556/driver-data")
         .then((feedback) => {
             let driverList = new Object(feedback.data)
-            response.json(driverList)
+            
+            socket.emit("getDrivers-response", driverList)
+
         }).catch((error) => {
             console.log(error)
         })
-
     })
-
-    // Get the Passenger list
-    app.get("/passenger-list", (req, res) => {
-        let response = res 
+    
+    // Get the passenger list
+    socket.on("getPassengers", function (data) {
+        console.log("Requesting passengers: ", data)
         axios.get("http://localhost:5557/passenger-data")
         .then((feedback) => {
-            let passengerList = new Object(feedback.data)
-            response.json(passengerList)
+        let passengerList = new Object(feedback.data)
+        
+        socket.emit("getPassengers-feedback", passengerList)
+        
         }).catch((error) => {
-            console.log(error)
+        console.log(error)
         })
     })
+    // Get the Passenger list
+    
+    
 
 })
 
 server.listen(PORT, () => {
-    console.log(`Central server up and running!!`)
+    console.log(`Central server up and running at port ${ PORT }!!`)
 })
