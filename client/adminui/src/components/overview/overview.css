@@ -1,0 +1,86 @@
+.left-column {
+    grid-area: left-column;
+    background-color: white;
+    width: 200px;
+}
+.right-column {
+    grid-area: right-column;
+    background-color: rgba(255, 255, 255, 0.733);
+    margin-left: 15px;
+}
+
+.wrapper {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    
+    grid-template-areas: 
+    "left-column right-column";
+    gap: 10px;
+}
+
+.content {
+    display: flex;
+    flex-wrap: wrap;
+}
+.content  div {
+    background-color: rgba(177, 167, 167, 0.527);
+    margin: 10px 15px 5px 30px;
+    padding: 5px 5px 1px 1px;
+    text-align: center;
+    border-radius: 4px;
+    width: 40%;
+}
+
+h5 {
+    font-style: italic;
+
+}
+
+.table{
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    width: 65%;
+    background-color: rgb(29, 121, 128);
+    color: white;
+    font-size: large;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    border-collapse: collapse;
+}
+tbody {
+    padding: 5px;
+}
+td {
+    padding: 2px;
+
+}
+th {
+    padding: 8px;
+}
+
+tbody :hover, thead :hover{
+    background-color: rgb(57, 243, 11);
+}
+#table {
+    margin-top: 15px;
+    margin-bottom: auto;
+}
+table, th, td {
+    border: 0.5px solid rgb(56, 55, 39);
+    
+}
+
+#table2{
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    width: 60%;
+    background-color: rgb(117, 125, 133);
+    color: rgb(0, 0, 0);
+    font-size: large;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    border-collapse: collapse;
+    
+    
+}
+ 

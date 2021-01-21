@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express")
 const app = express()
 const axios = require("axios")
@@ -13,6 +14,7 @@ app.use(cors())
 
 const PORT = process.env.PORT || 5558
 
+
 io.on("connection", (socket) => {
     // Confirm a connection
     console.log("New client connection")
@@ -20,7 +22,7 @@ io.on("connection", (socket) => {
     // statistics event listener
     socket.on('statistics', function(data) {
         console.log('event caught from client -> ', data);
-        axios.get("http://localhost:5555/statistics/")
+        axios.get(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/statistics`)
         .then((feedback) => {
         //console.log(feedback.data.totalFareSuccessful)
 
@@ -34,7 +36,9 @@ io.on("connection", (socket) => {
                 totalFareCancelledToday: feedback.data.totalFareCancelledToday,
                 totalTripCancelledToday: feedback.data.totalTripCancelledToday,
                 totalNewDriverToday: feedback.data.totalNewDriverToday,
-                totalNewPassengerToday: feedback.data.totalNewPassengerToday
+                totalNewPassengerToday: feedback.data.totalNewPassengerToday,
+                totalCash: feedback.data.totalCash,
+                totalWallet: feedback.data.totalWallet
             }
 
             console.log(statistics)
@@ -51,7 +55,7 @@ io.on("connection", (socket) => {
     // Get the driver list:
     socket.on("getDrivers", function(data) {
         console.log(`getDriver event from client ${data}`)
-        axios.get("http://localhost:5556/driver-data")
+        axios.get(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/driver-data`)
         .then((feedback) => {
             let driverList = new Object(feedback.data)
             
@@ -65,7 +69,7 @@ io.on("connection", (socket) => {
     // Get the passenger list
     socket.on("getPassengers", function (data) {
         console.log("Requesting passengers: ", data)
-        axios.get("http://localhost:5557/passenger-data")
+        axios.get(`${process.env.ROOT_URL}:${process.env.PASSENGER_ROOT}/passenger-data`)
         .then((feedback) => {
         let passengerList = new Object(feedback.data)
         
