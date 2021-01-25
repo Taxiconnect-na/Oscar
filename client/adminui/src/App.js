@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Route } from "react-router-dom"
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom"
 
 //Import components
 import Overview from "./components/overview/overview"
@@ -8,8 +8,10 @@ import DriverRegistration from "./components/driverRegistration/driverRegistrati
 function App() {
   return (
    <Router>
-     <Route path="/summary" exact component={Overview} />
-     <Route path="/driver-registration" component={DriverRegistration} />
+     
+        <Route path="/" exact component={Overview} />
+        <Route path="/driver-registration"  component={DriverRegistration} />
+     
    </Router>
 
   );
