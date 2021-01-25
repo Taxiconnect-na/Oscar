@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import io from 'socket.io-client'
 import Sidebar from '../sidebar/sidebar'
 import './overview.css' 
-import 'bootstrap/dist/css/bootstrap.min.css'
+
 
 function Overview() {
     // Initialize statistics state

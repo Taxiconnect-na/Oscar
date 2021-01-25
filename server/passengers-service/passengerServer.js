@@ -44,6 +44,7 @@ clientMongo.connect(function(err) {
         let response = res
         response.json(passengerDataList)
     })
+    
 })
 
 app.listen(PORT, () => {

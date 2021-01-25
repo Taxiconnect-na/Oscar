@@ -11,7 +11,7 @@ function Sidebar() {
                 <Menu iconShape="square">
                     
                     <Link to="/summary" > <MenuItem>Summary</MenuItem> </Link>
-                    <MenuItem>Register Driver </MenuItem>
+                    <Link to="/driver-registration"><MenuItem>Register Driver </MenuItem> </Link>
                     <MenuItem>Drivers</MenuItem>
                     <MenuItem>Users</MenuItem>
                     

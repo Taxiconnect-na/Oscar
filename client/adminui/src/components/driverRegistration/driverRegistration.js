@@ -1,0 +1,359 @@
+import React, { Fragment, useState } from 'react'
+import axios from 'axios'
+import DatePicker from 'react-datepicker'
+import './driverRegistration.css'
+import Sidebar from '../sidebar/sidebar'
+
+const left_form_style = {
+    border: "1px solid blue",
+    padding: 25
+}
+const right_form_style = {
+    border: "1px solid blue",
+    padding: 25
+}
+const DriverRegistration = () => {
+
+        let [name, setName] = useState('')
+        let [surname, setSurname] = useState('')
+        let [title, setTitle] = useState('')
+        let [personal_id_number, setPersonalIdNumber] = useState('')
+        let [phone_number, setPhoneNumber] = useState('')
+        let [email, setEmail] = useState('')
+        //let [password, setPassword] = useState('')
+        let [operation_clearances, setOperationClearances] = useState('')
+        let [delivery_provider, setDeliveryProvider] = useState('')
+        //  Files :
+        let [profile_picture, setProfilePicture] = useState('')
+        let [profile_picture_name, setProfilePictureName] = useState('Profile picture') 
+
+        let [driver_licence_doc, setDriverLicenceDoc] = useState('')
+        let [driver_licence_doc_name, setDriverLicenceDocName] = useState("Driver's licence") 
+
+        let [copy_id_paper, setCopyIdPaper] = useState('')
+        let [copy_id_paper_name, setCopyIdPaperName] = useState('Personal ID')
+
+        let [copy_white_paper, setCopyWhitepaper] = useState('')
+        let [copy_white_paper_name, setCopyWhitepaperName] = useState('White paper')
+
+        let [copy_public_permit, setCopyPublicPermit] = useState('')
+        let [copy_public_permit_name, setCopyPublicPermitName] = useState('Public permit')
+
+        let [copy_blue_paper, setCopyBluePaper] = useState('')
+        let [copy_blue_paper_name, setCopyBluePaperName] = useState('Blue paper')
+        let [blue_paper_expiration, setBluePaperExpiration] = useState(new Date())
+        //  Bank Details :
+        let [bank_name, setBankName] = useState('')
+        let [account_number, setAccountNmber] = useState('')
+        let [branch_number, setBranchNumber] = useState('')
+        let [branch_name, setBranchName] = useState('')
+
+       /* const deliveryProviderList = [
+            {
+                label:"ebikesForAfrica",
+                value:"ebikesForAfrica"
+            },
+            {
+                label:"deliveryGuy",
+                value:"deliveryGuy"
+            },
+            {
+                label:"twoPointDelivery",
+                value:"twoPointDelivery"
+            }
+        ] */
+
+        const onSubmit = async (e) => {
+            e.preventDefault()
+            // Crete a formData to contain all submitted information
+            const formData = new FormData()
+            formData.append('name', name)
+            formData.append('surname', surname)
+            formData.append('title', title)
+            formData.append('personal_id_number', personal_id_number)
+            formData.append('phone_number', phone_number)
+            formData.append('email', email)
+            //formData.append('password', password)
+            formData.append('operation_clearances', operation_clearances)
+            formData.append('delivery_provider', delivery_provider)
+
+            if (formData.get('operation_clearances') === "Ride") {
+                formData.set('delivery_provider', "")
+            }
+
+            formData.append('profile_picture', profile_picture)
+            formData.append('driver_licence_doc', driver_licence_doc)
+            formData.append('copy_id_paper', copy_id_paper)
+            formData.append('copy_white_paper', copy_white_paper)
+            formData.append('copy_public_permit', copy_public_permit)
+            formData.append('copy_blue_paper', copy_blue_paper)
+            formData.append('blue_paper_expiration', blue_paper_expiration)
+            formData.append('bank_name', bank_name)
+            formData.append('account_number', account_number)
+            formData.append('branch_number', branch_number)
+            formData.append('branch_name', branch_name)
+
+            console.log(formData.get('title'))
+            console.log(formData.get('delivery_provider'))
+            console.log(formData.get('operation_clearances'))
+            console.log(formData.get('copy_id_paper'))
+            
+            // Send data to server
+            try {
+                const res = await axios.post('http://localhost:5556/upload', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    } 
+                })
+            
+                console.log(res.data)
+                alert("Successfully submitted")
+    
+                
+            } catch(err) {
+                console.log(err)
+                alert("There was an error with the server")
+            }   
+        }
+
+        return (
+            <div>
+            <div className="wrapper"> 
+                <div className="left-column">
+                    <Sidebar />
+                </div>
+                <div className="right-column">
+                    <Fragment >
+                        <h1 style={{ textAlign: "center", marginBottom: 5, backgroundColor: "#179eb3" }}>
+                            Driver Registration</h1>
+                        <form onSubmit={onSubmit}> 
+                        <div id="wrapper">
+                            <div className="literal-info" style={left_form_style}>
+                            <div className="form-group ml-4">
+                                <label>Operation clearance </label>
+                                <select
+                                    required
+                                    className="form-control "
+                                    style={{ width: 350 }}
+                                    value={operation_clearances}
+                                    onChange={(e) => { setOperationClearances(e.target.value) }}>
+                                        <option></option>
+                                <option key="Ride" value="Ride">Ride</option>
+                                <option key="Delivery" value="Delivery">Delivery</option>
+                                </select>
+                            </div>
+                            <div className="form-group ml-4" style={{ display: operation_clearances=="Delivery"? 
+                            'block':'none' }}>
+                                <label>Delivery Provider </label>
+                                <select
+                                    className="form-control"
+                                    value={delivery_provider}
+                                    onChange={(e) => { setDeliveryProvider(e.target.value) }}>
+                                        <option></option>
+                                        <option value="ebikesForAfrica">ebikesForAfrica</option>
+                                        <option value="deliveryGuy">deliveryGuy</option>
+                                        <option value="twoPointDelivery">twoPointDelivery</option>
+                                
+                                </select>
+                            </div>
+                            <div className="form-group ml-4">
+                                    <label>Name: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        style={{ width: 350 }}
+                                        value={ name }
+                                        onChange={(e) => { setName(e.target.value)}}
+                                        />
+                            </div>
+                            <div className="form-group ml-4">
+                                    <label>Surname: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        value={ surname }
+                                        onChange={(e) => { setSurname(e.target.value) }}
+                                        style={{ width: 350 }}
+                                        />
+                            </div>
+                            
+                            <div className="form-group ml-4">
+                                <label>Title: </label>
+                                <select
+                                    required
+                                    className="form-control"
+                                    style={{ width: 350 }}
+                                    value={ title }
+                                    onChange={(e) => { setTitle(e.target.value) }}>
+                                        <option></option>
+                                <option key="Mr" value="Mr">Mr</option>
+                                <option key="Ms." value="Ms.">Ms.</option>
+                                <option key="Mrs" value="Mrs">Mrs</option>
+                                <option key="Miss" value="Miss">Miss</option>
+
+                                </select>
+                            </div>
+
+                            <div className="form-group ml-4">
+                                    <label>Personal ID number: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        style={{ width: 350 }}
+                                        value={ personal_id_number }
+                                        onChange={(e) => { setPersonalIdNumber(e.target.value) }}
+                                        />
+                            </div>
+                            <div className="form-group ml-4">
+                                    <label>Phone Number: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        style={{ width: 350 }}
+                                        value={ phone_number }
+                                        onChange={(e) => { setPhoneNumber(e.target.value) }}
+                                        />
+                            </div>
+                            <div className="form-group ml-4">
+                                    <label>Email: </label>
+                                    <input type="email"
+                                        required
+                                        className="form-control"
+                                        style={{ width: 350 }}
+                                        value={ email }
+                                        onChange={(e) => { setEmail(e.target.value) }}
+                                        />
+                            </div>
+                            </div>
+                            
+                            <div className="files-info-bank" style={right_form_style}>
+                                <div> <h3>Upload files</h3></div>
+                                <div className="custom-file" >
+                                    <input type="file" className="custom-file-input" id="customFile" 
+                                        onChange={(e) => { 
+                                            setProfilePicture(e.target.files[0])
+                                            setProfilePictureName(e.target.files[0].name)
+                                        }} />
+                                    <label className="custom-file-label" htmlFor="customFile">
+                                        {profile_picture_name}
+                                    </label> 
+                                </div>
+                                <div className="custom-file mt-2" >
+                                    <input type="file" className="custom-file-input" id="customFile" 
+                                        onChange={(e) => { 
+                                            setDriverLicenceDoc(e.target.files[0])
+                                            setDriverLicenceDocName(e.target.files[0].name)
+                                        }} />
+                                    <label className="custom-file-label" htmlFor="customFile">
+                                        {driver_licence_doc_name}
+                                    </label> 
+                                </div>
+                                <div className="custom-file mt-2">
+                                    <input type="file" className="custom-file-input" id="customFile"
+                                        onChange={(e) => { 
+                                            setCopyIdPaper(e.target.files[0])
+                                            setCopyIdPaperName(e.target.files[0].name)
+                                        }} />
+                                    <label className="custom-file-label" htmlFor="customFile">
+                                        {copy_id_paper_name}
+                                    </label> 
+                                </div>
+                                <div className="custom-file mt-2">
+                                    <input type="file" className="custom-file-input" id="customFile"
+                                        onChange={(e) => { 
+                                            setCopyWhitepaper(e.target.files[0])
+                                            setCopyWhitepaperName(e.target.files[0].name)
+                                        }} />
+                                    <label className="custom-file-label" htmlFor="customFile">
+                                        {copy_white_paper_name}
+                                    </label> 
+                                </div>
+                                <div className="custom-file mt-2">
+                                    <input type="file" className="custom-file-input" id="customFile"
+                                        onChange={(e) => { 
+                                            setCopyPublicPermit(e.target.files[0])
+                                            setCopyPublicPermitName(e.target.files[0].name)
+                                        }} />
+                                    <label className="custom-file-label" htmlFor="customFile">
+                                        {copy_public_permit_name}
+                                    </label> 
+                                </div>
+                                <div className="custom-file mt-2">
+                                    <input type="file" className="custom-file-input" id="customFile"
+                                        onChange={(e) => { 
+                                            setCopyBluePaper(e.target.files[0])
+                                            setCopyBluePaperName(e.target.files[0].name)
+                                        }} />
+                                    <label className="custom-file-label" htmlFor="customFile">
+                                        {copy_blue_paper_name}
+                                    </label> 
+                                </div>
+                                <div className="form-group">
+                                    <label>Blue paper expiration date: </label>
+                                    <div>
+                                        <DatePicker
+                                            selected={blue_paper_expiration}
+                                            onChange={(date) => {setBluePaperExpiration(date)}} 
+                                        />
+                                    </div>
+                                </div>
+                                <br></br>
+                                <div style={{ marginTop: 6 }}> <h3> Bank Details</h3></div>
+                                <div className="form-group">
+                                    <label>Bank name: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        value={ bank_name }
+                                        onChange={(e) => { setBankName(e.target.value) }}
+                                        />
+                                </div>
+                                <div className="form-group">
+                                    <label>Account number: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        value={ account_number }
+                                        onChange={(e) => { setAccountNmber(e.target.value) }}
+                                        />
+                                </div>
+                                <div className="form-group">
+                                    <label>Branch number: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        value={ branch_number }
+                                        onChange={(e) => { setBranchNumber(e.target.value) }}
+                                        />
+                                </div>
+                                <div className="form-group">
+                                    <label>Branch name: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        value={ branch_name }
+                                        onChange={(e) => { setBranchName(e.target.value) }}
+                                        />
+                                </div>
+
+                            </div>
+
+                            <div className="submit-registration">
+                            <input
+                            style = {{ backgroundColor: 'green'}}
+                            type="submit"
+                            value="Register"
+                            className="btn btn-primary btn-block mt-4"
+                            />
+                            </div>
+                        </div>
+                        </form>
+                    </Fragment>
+                </div>
+            </div>   
+            </div>
+        )
+    
+}
+
+export default DriverRegistration

@@ -1,0 +1,25 @@
+.literal-info {
+    grid-area: literal-info;
+    padding: 3px;
+}
+.files-info-bank {
+    grid-area: files-info-bank;
+    padding: 3px;
+}
+.submit-registration {
+    grid-area: submit-registration;
+    margin-bottom: 20px;
+    margin-left: 300px;
+    margin-right: 300px;
+}
+
+#wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    grid-template-areas: 
+    "literal-info files-info-bank "
+    "submit-registration submit-registration";
+    gap: 40px;
+}
+
