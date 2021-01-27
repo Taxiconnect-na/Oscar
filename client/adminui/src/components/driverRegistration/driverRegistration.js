@@ -5,12 +5,20 @@ import './driverRegistration.css'
 import Sidebar from '../sidebar/sidebar'
 
 const left_form_style = {
-    border: "1px solid blue",
-    padding: 25
+    border: "1px solid #698dc7",
+    borderWidth: 4,
+    borderRadius: 20,
+    padding: 25,
+    marginLeft: 20,
+    marginTop: 25
 }
 const right_form_style = {
-    border: "1px solid blue",
-    padding: 25
+    border: "1px solid #698dc7",
+    borderWidth: 4,
+    borderRadius: 20,
+    padding: 30,
+    marginRight: 25,
+    marginTop: 25
 }
 const DriverRegistration = () => {
 
@@ -288,7 +296,7 @@ const DriverRegistration = () => {
                                         {copy_blue_paper_name}
                                     </label> 
                                 </div>
-                                <div className="form-group">
+                                <div className="form-group mt-3">
                                     <label>Blue paper expiration date: </label>
                                     <div>
                                         <DatePicker

@@ -97,7 +97,7 @@ function Overview() {
                     </div>
                     
                     <div id="table">
-                        <table className="table">
+                        <table className="table" style={{ textAlign: "center", width: 500, margin:"auto"}}>
                             <thead className="thead-light">
                                 <tr>
                                     <th colSpan="2">New Sign Up</th>
@@ -139,7 +139,7 @@ function Overview() {
                     </div>
 
                     <div id="table">
-                        <table className="table" id="table2">
+                        <table className="table" id="table2" style={{ textAlign: "center", width: 800, margin:"auto"}}>
                             <thead className="thead-light">
                                 <tr>
                                     <th colSpan="2">Processed</th>

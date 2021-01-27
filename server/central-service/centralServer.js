@@ -51,8 +51,23 @@ io.on("connection", (socket) => {
             console.log(error)
         })
     });
-    
-    // Get the driver list:
+
+    // Get rides (in progress and completed)
+    socket.on("getRideOverview", function(data) {
+        if ((data !== undefinned) && (data != null ) ) {
+            console.log(`getRideOverview emitted: ${data}`)
+            axios.get(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/ride-overview`)
+            .then((feedback) => {
+            let rideOverview = feedback.data
+
+            socket.emit("getRideOverview-response", rideOverview)
+            })
+        }
+        
+    })
+
+
+    // Get the driver list: 
     socket.on("getDrivers", function(data) {
         console.log(`getDriver event from client ${data}`)
         axios.get(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/driver-data`)

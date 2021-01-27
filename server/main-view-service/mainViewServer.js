@@ -13,43 +13,6 @@ const clientMongo = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
-/*
-app.get("/successful-total-fare-trip", (req, res) => {
-    var response = res
-    //response.send("Successful stuff total")
-
-    MongoClient.connect(uri, function(err, client) {
-        if (err) throw err
-        var dbase = client.db("Taxiconnect")
-        // Query for completed trips
-        let completedCheck = { isArrivedToDestination: true}
-        dbase.collection("rides_deliveries_requests").find(completedCheck).toArray()
-        .then((result) => {
-            let fare_array = []
-            const Sum = arr => arr.reduce((num1,num2) => num1+num2, 0)
-            result.map((ride) => {fare_array.push(Number(ride['fare']))})
-            total_fare = Sum(fare_array)
-            //console.log(`Total fare: ${total_fare}`)
-            //total rides
-            total_rides = result.length
-            //console.log(`total rides: ${total_rides}`)
-
-            // Object to be returned
-            responseObject = {
-                "totalFareSuccessful": total_fare,
-                "totalTripSuccessful": total_rides
-            }
-
-            response.json(responseObject)
-        })
-        .catch((err) => console.log(err))
-        //client.close()
-    })
-    
-})
-  
-------------------------------------------------------------------
-*/
 
 function GetTotal(collectionName, query, resolve) {
   //var completedCheck = { isArrivedToDestination: true}
@@ -258,6 +221,120 @@ function activelyGet_allThe_stats(
     });
 }
 
+
+/**
+ * @function getRideOverview
+ * @param collectionRidesDeliveryData : collection of all rides and delivery requests
+ * @param collectionPassengers_profiles : collection of all passenger profiles
+ */
+
+function getRideOverview(collectionRidesDeliveryData, 
+  collectionPassengers_profiles,
+  resolve ) {
+    collectionRidesDeliveryData
+      .find({ride_mode:"RIDE"})
+      .toArray()
+      .then((result) => {
+          // Initialize the list of all trips
+          //console.log(result)
+          let alltrips =result.map((trip) => {
+              return new Promise((res0) => {
+                 
+              // Get the following for each trip
+                const passengers_number = trip.passengers_number
+                const request_type = trip.request_type
+                const date_time = trip.date_requested
+                const isPickedUp = trip.ride_state_vars.inRideToDestination
+                const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
+                const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                const connect_type = trip.connect_type
+                const payment_method = trip.payment_method
+                const amount = trip.fare
+                const destinations = trip.destinationData
+                //console.log(trip.client_id)
+                // Request for corresponding passenger
+                query = {
+                    user_fingerprint: trip.client_id
+                }
+                // Make Database request of corrresponding passenger
+
+                collectionPassengers_profiles
+                .find(query)
+                .toArray()
+                .then((user)=> {
+                    // initialize the trip details object
+                    const tripDetails = {}
+                    if (user[0]){
+                        const name = user[0]["name"]
+                        const surname = user[0]["surname"]
+                        const gender = user[0]["gender"]
+                        const cellphone = user[0]["phone_number"]
+                      
+                        //create the Object containing collected data
+                        tripDetails.passengers_number = passengers_number
+                        tripDetails.request_type = request_type
+                        tripDetails.date_time = date_time
+                        tripDetails.isPickedUp = isPickedUp
+                        tripDetails.isDroppedPassenger = isDroppedPassenger
+                        tripDetails.isDroppedDriver = isDroppedDriver
+                        tripDetails.connect_type = connect_type
+                        tripDetails.payment_method = payment_method 
+                        tripDetails.amount = amount 
+                        tripDetails.destinations = destinations
+                        tripDetails.name = name 
+                        tripDetails.surname = surname
+                        tripDetails.gender = gender
+                        tripDetails.cellphone = cellphone 
+                        // Add trip detail to final response 
+                        res0(tripDetails)
+                      
+                    } else {
+                        //! Set the passenger details to "not found" if fingerprint is 
+                        //!   unknown(suspecious case)
+                        const name = "not found"
+                        const surname = "not found"
+                        const gender = "not found"
+                        const cellphone = "not found"
+
+                        tripDetails.passengers_number = passengers_number
+                        tripDetails.request_type = request_type
+                        tripDetails.date_time = date_time
+                        tripDetails.isPickedUp = isPickedUp
+                        tripDetails.isDroppedPassenger = isDroppedPassenger
+                        tripDetails.isDroppedDriver = isDroppedDriver
+                        tripDetails.connect_type = connect_type
+                        tripDetails.payment_method = payment_method 
+                        tripDetails.amount = amount 
+                        tripDetails.destinations = destinations
+                        tripDetails.name = name 
+                        tripDetails.surname = surname
+                        tripDetails.gender = gender
+                        tripDetails.cellphone = cellphone 
+                        // Add trip detail to final response 
+                        res0(tripDetails)
+                    }
+
+                }).catch((error) => {
+                    console.log(error)
+                })
+              });
+          })
+          // Get all added objects from res0
+          Promise.all(alltrips).then(
+              (result) => {
+                  console.log(`${result.length} rides found`)
+                  resolve(result)
+              },
+              (error) => {
+                  console.log(error)
+              }
+          )
+
+      })
+      .catch((err) => console.log(err))
+}
+
+
 clientMongo.connect(function (err) {
   //if (err) throw err;
 
@@ -312,7 +389,32 @@ clientMongo.connect(function (err) {
       }
     );
   });
+
+  /**
+   * 2. API responsible for getting rides 
+   * !except cancelled rides
+   */
+  app.get("/ride-overview", (req,res) => {
+    console.log("Ride overview API called!!")
+    new Promise((res) => {
+      getRideOverview(
+        collectionRidesDeliveryData, 
+        collectionPassengers_profiles,
+        res )
+    }).then(
+      (result) => {
+        console.log(result)
+        res.send(result)
+      },
+      (error) => {
+        console.log(error)
+        res.send({ response: "error", flag: "Something went wrong, could be Invalid parameters"})
+      }
+    )
+
+  })
 });
+
 
 app.listen(PORT, () => {
   console.log(`Main view server up and running at port ${PORT}`);
