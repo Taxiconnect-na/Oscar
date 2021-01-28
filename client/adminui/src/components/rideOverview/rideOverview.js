@@ -3,24 +3,51 @@ import io from 'socket.io-client'
 import "./rideOverview.css"
 import Sidebar from "../sidebar/sidebar"
 
+/**
+ * 
+ * @function RideRow : Returns single ride details
+ */
+
 const RideRow = (props) => {
+    let statepick
+    let statepickword
+    let statedrop
+    
+    if (props.ride.isDroppedPassenger===true) {
+        statedrop = "YES"
+    } else {
+        statedrop = "NO"
+    }
+
+    if (props.ride.isPickedUp === true) {
+        statepick = {backgroundColor:"green"}
+        statepickword = "YES"
+    } else {
+        statepick = {backgroundColor:"red"}
+        statepickword = "NO"
+    }
+    const dest = () =>{
+        return props.ride.destinations.map((d) => {
+            return <ul><li>{d.location_name}</li></ul>
+        })
+    }
     return(
         <>
-        <tr>
+        <tr style ={{ backgroundColor: "#ebd113"}}>
             <td>2</td>
             <td>XN034</td>
-            <td>rtyer{ props.ride.passengers_number}</td>
-            <td>retyre{ props.ride.request_type}</td>
-            <td>ert{ props.ride.date_time }</td>
-            <td>rty{ props.ride.date_time }</td>
-            <td>ert{ props.ride.isPickedUp }</td>
-            <td>etr{ props.ride.isDroppedPassenger}, { props.ride.isDroppedDriver}</td>
-            <td>ert{ props.ride.connect_type }</td>
-            <td><button className="btn btn-outline-info btn-sm">more</button></td>    
+            <td>{ props.ride.passengers_number}</td>
+            <td>{ props.ride.request_type}</td>
+            <td>{ props.ride.date_time }</td>
+            <td>{ props.ride.date_time }</td>
+            <td style={ statepick }>{ statepickword }</td>
+            <td>{ statedrop } { props.ride.isDroppedDriver}</td>
+            <td>{ props.ride.connect_type }</td>
+            <td><button className="btn btn-outline-info btn-sm" >more</button></td>    
         </tr>
         <tr >
             <td className="data-table" >
-                <table className="table " id="iner-table">
+                <table className="table" style={{ textAlign: "center"}} id="iner-table">
                     <thead className="thead-light">
                         <tr>
                             <th colSpan="8">Passenger info</th>
@@ -38,14 +65,14 @@ const RideRow = (props) => {
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="td-second">ert{ props.ride.name }</td>
-                            <td className="td-second">ru{props.ride.surname }</td>
-                            <td className="td-second">ryn{ props.ride.cellphone }</td>
-                            <td className="td-second">qe{ props.ride.gender }</td>
-                            <td className="td-second">qef{ props.ride.payment_method }</td>
+                            <td className="td-second">{ props.ride.name }</td>
+                            <td className="td-second">{props.ride.surname }</td>
+                            <td className="td-second">{ props.ride.cellphone }</td>
+                            <td className="td-second">{ props.ride.gender }</td>
+                            <td className="td-second">{ props.ride.payment_method }</td>
                             <td className="td-second">N$ { props.ride.amount }</td>
                             <td className="td-second">fq{ props.ride.amount}</td>
-                            <td className="td-second">qre{ props.ride.amount}</td>
+                            <td className="td-second">{dest()}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -60,23 +87,9 @@ const RideRow = (props) => {
 
 function RideOverview() {
 
-   /* tripDetails.passengers_number = passengers_number
-    tripDetails.request_type = request_type
-    tripDetails.date_time = date_time
-    tripDetails.isPickedUp = isPickedUp
-    tripDetails.isDroppedPassenger = isDroppedPassenger
-    tripDetails.isDroppedDriver = isDroppedDriver
-    tripDetails.connect_type = connect_type
-    tripDetails.payment_method = payment_method 
-    tripDetails.amount = amount 
-    tripDetails.destinations = destinations
-    tripDetails.name = name 
-    tripDetails.surname = surname
-    tripDetails.gender = gender
-    tripDetails.cellphone = cellphone */
 
     let [rides, setRides] = useState([])   // Main ride list of objects
-    let [passengers_number, setPassengersNumber] = useState(0)
+    /*let [passengers_number, setPassengersNumber] = useState(0)
     let [request_type, setRequestType] = useState(0)
     let [date_time, setDateTime] = useState(0)
     let [isPickedUp, setIsPickedUp] = useState(false)
@@ -89,8 +102,9 @@ function RideOverview() {
     let [name, setName] = useState('')
     let [surname, setSurname] = useState('')
     let [gender, setGender] = useState('')
-    let [cellphone, setCellphone] = useState('')
-    let ENDPOINT = 'localhost:5558'
+    let [cellphone, setCellphone] = useState('')  */
+    
+    let ENDPOINT = 'localhost:5558' 
 
     useEffect(() => {
         let socket = io(ENDPOINT, { transports: ["websocket", "polling", "flashsocket"]})
