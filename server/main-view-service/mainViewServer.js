@@ -251,6 +251,7 @@ function getRideOverview(collectionRidesDeliveryData,
                 const payment_method = trip.payment_method
                 const amount = trip.fare
                 const destinations = trip.destinationData
+                //const origin = trip.pickup_location_infos.suburb
                 //console.log(trip.client_id)
                 // Request for corresponding passenger
                 query = {
@@ -285,6 +286,7 @@ function getRideOverview(collectionRidesDeliveryData,
                         tripDetails.surname = surname
                         tripDetails.gender = gender
                         tripDetails.cellphone = cellphone 
+                        //tripDetails.origin = origin
                         // Add trip detail to final response 
                         res0(tripDetails)
                       
@@ -310,11 +312,12 @@ function getRideOverview(collectionRidesDeliveryData,
                         tripDetails.surname = surname
                         tripDetails.gender = gender
                         tripDetails.cellphone = cellphone 
+                        //tripDetails.origin = origin
                         // Add trip detail to final response 
                         res0(tripDetails)
                     }
 
-                }).catch((error) => {
+                }).catch((error) => { 
                     console.log(error)
                 })
               });

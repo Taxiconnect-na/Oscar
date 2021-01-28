@@ -54,13 +54,16 @@ io.on("connection", (socket) => {
 
     // Get rides (in progress and completed)
     socket.on("getRideOverview", function(data) {
-        if ((data !== undefinned) && (data != null ) ) {
+        if ((data !== undefined) && (data != null ) ) {
             console.log(`getRideOverview emitted: ${data}`)
             axios.get(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/ride-overview`)
             .then((feedback) => {
             let rideOverview = feedback.data
 
             socket.emit("getRideOverview-response", rideOverview)
+            })
+            .catch((error) => {
+                console.log(error)
             })
         }
         
