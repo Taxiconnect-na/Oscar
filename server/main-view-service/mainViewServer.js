@@ -251,7 +251,7 @@ function getRideOverview(collectionRidesDeliveryData,
                 const payment_method = trip.payment_method
                 const amount = trip.fare
                 const destinations = trip.destinationData
-                //const origin = trip.pickup_location_infos.suburb
+                //const origin = trip.pickup_location_infos.location_name
                 //console.log(trip.client_id)
                 // Request for corresponding passenger
                 query = {
@@ -338,6 +338,126 @@ function getRideOverview(collectionRidesDeliveryData,
 }
 
 
+
+function getDeliveryOverview(collectionRidesDeliveryData, 
+  collectionPassengers_profiles,
+  resolve ) {
+    collectionRidesDeliveryData
+      .find({ride_mode:"DELIVERY"})
+      .toArray()
+      .then((result) => {
+          // Initialize the list of all trips
+          //console.log(result)
+          let alltrips =result.map((trip) => {
+              return new Promise((res0) => {
+                 
+              // Get the following for each trip
+                const delivery_receiver = trip.delivery_infos.receiverName_delivery
+                const delivery_phone = trip.delivery_infos.receiverPhone_delivery
+                
+                const request_type = trip.request_type
+                const date_time = trip.date_requested
+                const isPickedUp = trip.ride_state_vars.inRideToDestination
+                const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
+                const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                const payment_method = trip.payment_method
+                const amount = trip.fare
+                const destinations = trip.destinationData
+                
+                const origin = trip.pickup_location_infos.location_name
+                //console.log(trip.client_id)
+                // Request for corresponding passenger
+                query = {
+                    user_fingerprint: trip.client_id
+                }
+                // Make Database request of corrresponding passenger
+
+                collectionPassengers_profiles
+                .find(query)
+                .toArray()
+                .then((user)=> {
+                    // initialize the trip details object
+                    const tripDetails = {}
+                    if (user[0]){
+
+                        const name = user[0]["name"]
+                        const surname = user[0]["surname"]
+                        const gender = user[0]["gender"]
+                        const cellphone = user[0]["phone_number"]
+                      
+                        //create the Object containing collected data
+                        if (delivery_receiver != false) {
+                          tripDetails.delivery_receiver = delivery_receiver
+                        }
+                        if (delivery_phone != false) {
+                          tripDetails.delivery_phone = delivery_phone
+                        }
+                        tripDetails.request_type = request_type
+                        tripDetails.date_time = date_time
+                        tripDetails.isPickedUp = isPickedUp
+                        tripDetails.isDroppedPassenger = isDroppedPassenger
+                        tripDetails.isDroppedDriver = isDroppedDriver
+                        //tripDetails.connect_type = connect_type
+                        tripDetails.payment_method = payment_method 
+                        tripDetails.amount = amount 
+                        tripDetails.destinations = destinations
+                        tripDetails.name = name 
+                        tripDetails.surname = surname
+                        tripDetails.gender = gender
+                        tripDetails.cellphone = cellphone 
+                        tripDetails.origin = origin
+                        // Add trip detail to final response 
+                        res0(tripDetails)
+                      
+                    } else {
+                        //! Set the sender details to "not found" if fingerprint is 
+                        //!   unknown(suspecious case)
+                        const name = "not found"
+                        const surname = "not found"
+                        const gender = "not found"
+                        const cellphone = "not found"
+
+                        //tripDetails.passengers_number = passengers_number
+                        tripDetails.request_type = request_type
+                        tripDetails.date_time = date_time
+                        tripDetails.isPickedUp = isPickedUp
+                        tripDetails.isDroppedPassenger = isDroppedPassenger
+                        tripDetails.isDroppedDriver = isDroppedDriver
+                        //tripDetails.connect_type = connect_type
+                        tripDetails.payment_method = payment_method 
+                        tripDetails.amount = amount 
+                        tripDetails.destinations = destinations
+                        tripDetails.name = name 
+                        tripDetails.surname = surname
+                        tripDetails.gender = gender
+                        tripDetails.cellphone = cellphone 
+                        tripDetails.origin = origin
+                        // Add trip detail to final response 
+                        res0(tripDetails)
+                    }
+
+                }).catch((error) => { 
+                    console.log(error)
+                })
+              });
+          })
+          // Get all added objects from res0
+          Promise.all(alltrips).then(
+              (result) => {
+                  console.log(`${result.length}Deliveries found`)
+                  resolve(result)
+              },
+              (error) => {
+                  console.log(error)
+              }
+          )
+
+      })
+      .catch((err) => console.log(err))
+}
+
+
+
 clientMongo.connect(function (err) {
   //if (err) throw err;
 
@@ -352,7 +472,7 @@ clientMongo.connect(function (err) {
   const collectionRidesDeliveryDataCancelled = dbMongo.collection(
     "cancelled_rides_deliveries_requests"
   );
-
+    
   //? INITIALIZE EXPRESS ONCE
   app
     .get("/", (req, res) => {
@@ -401,6 +521,25 @@ clientMongo.connect(function (err) {
     console.log("Ride overview API called!!")
     new Promise((res) => {
       getRideOverview(
+        collectionRidesDeliveryData, 
+        collectionPassengers_profiles,
+        res )
+    }).then(
+      (result) => {
+        console.log(result)
+        res.send(result)
+      },
+      (error) => {
+        console.log(error)
+        res.send({ response: "error", flag: "Something went wrong, could be Invalid parameters"})
+      }
+    )
+
+  })
+  app.get("/delivery-overview", (req,res) => {
+    console.log("Delivery overview API called delivery!!")
+    new Promise((res) => {
+      getDeliveryOverview(
         collectionRidesDeliveryData, 
         collectionPassengers_profiles,
         res )

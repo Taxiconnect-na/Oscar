@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom"
 import Overview from "./components/overview/overview"
 import DriverRegistration from "./components/driverRegistration/driverRegistration"
 import RideOverview from "./components/rideOverview/rideOverview"
+import DeliveryOverview from "./components/deliveryOverview/deliveryOverview"
 
 function App() {
   return (
@@ -12,7 +13,8 @@ function App() {
      
         <Route path="/" exact component={Overview} />
         <Route path="/driver-registration"  component={DriverRegistration} />
-        <Route path= "/ride-overview" component={RideOverview} />
+        <Route path= "/trip-overview/rides" component={RideOverview} />
+        <Route path ="/trip-overview/deliveries" component={DeliveryOverview} />
    </Router>
 
   );

@@ -68,6 +68,23 @@ io.on("connection", (socket) => {
         }
         
     })
+    
+    // Get Deliveries (in progress and completed)
+    socket.on("getDeliveryOverview", function(data) {
+        if ((data !== undefined) && (data != null ) ) {
+            console.log(`getDeliveryOverview emitted: ${data}`)
+            axios.get(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/delivery-overview`)
+            .then((feedback) => {
+            let deliveryOverview = feedback.data
+
+            socket.emit("getDeliveryOverview-response", deliveryOverview)
+            })
+            .catch((error) => {
+                console.log(error)
+            })
+        }
+        
+    })
 
 
     // Get the driver list: 

@@ -10,7 +10,11 @@ function Sidebar() {
             <ProSidebar>
                 <Menu iconShape="square">
                     <MenuItem><Link to="/">Summary</Link></MenuItem> 
-                    <MenuItem><Link to="/driver-registration">Register Driver</Link></MenuItem> 
+                    <MenuItem><Link to="/driver-registration">Register Driver</Link></MenuItem>
+                    <SubMenu title="Trip Overview">
+                        <MenuItem><Link to="/trip-overview/rides">Rides</Link></MenuItem>
+                        <MenuItem><Link to="/trip-overview/deliveries">Deliveries</Link></MenuItem>
+                    </SubMenu>
                     <MenuItem><Link>Drivers</Link></MenuItem>
                     <MenuItem><Link>Users </Link></MenuItem>
                 </Menu>

@@ -1,27 +1,27 @@
 import React, {useState, useEffect} from "react"
 import io from 'socket.io-client'
-import "./rideOverview.css"
+import "./deliveryOverview.css"
 import Sidebar from "../sidebar/sidebar"
 
 /**
  * 
- * @function RideRow : Returns single ride details
+ * @function DeliveryRow : Returns single ride details
  */
 
-const RideRow = (props) => {
+const DeliveryRow = (props) => {
     let statepick
     let statepickword
     let statedrop
     let [details, setDetails] = useState(false)
     let detailButton = details? "less":"more"
     
-    if (props.ride.isDroppedPassenger===true) {
+    if (props.delivery.isDroppedPassenger===true) {
         statedrop = "YES"
     } else {
         statedrop = "NO"
     }
 
-    if (props.ride.isPickedUp === true) {
+    if (props.delivery.isPickedUp === true) {
         statepick = {backgroundColor:"green"}
         statepickword = "YES"
     } else {
@@ -30,23 +30,22 @@ const RideRow = (props) => {
     }
     // Create a list of available destinations
     const dest = () =>{
-        return props.ride.destinations.map((d) => {
+        return props.delivery.destinations.map((d) => {
             return <ul><li>{d.location_name}</li></ul>
         })
     }
-    
     return(
         <>
         <tr style ={{ backgroundColor: "#ebd113"}}>
             <td>2</td>
-            <td>XN034</td>
-            <td>{ props.ride.passengers_number}</td>
-            <td>{ props.ride.request_type}</td>
-            <td>{ props.ride.date_time }</td>
-            <td>{ props.ride.date_time }</td>
+            <td>YN067D</td>
+            <td>{ props.delivery.origin}</td>
+            <td>{ props.delivery.request_type}</td>
+            <td>{ props.delivery.date_time }</td>
+            <td>{ props.delivery.date_time }</td>
             <td style={ statepick }>{ statepickword }</td>
             <td>{ statedrop }</td>
-            <td>{ props.ride.connect_type }</td>
+            <td>{ props.delivery.delivery_receiver } ({props.delivery.delivery_phone})</td>
             <td><button className="btn btn-outline-info btn-sm" onClick={ () => {
                     setDetails(!details)  
             }}>{ detailButton }</button></td>    
@@ -56,7 +55,7 @@ const RideRow = (props) => {
                 <table className="table" style={{ textAlign: "center"}} id="iner-table">
                     <thead className="thead-light">
                         <tr>
-                            <th colSpan="8">Passenger info</th>
+                            <th colSpan="8">Requestor info</th>
                         </tr>
                         <tr>
                             <th>Name</th>
@@ -71,13 +70,13 @@ const RideRow = (props) => {
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="td-second">{ props.ride.name }</td>
-                            <td className="td-second">{props.ride.surname }</td>
-                            <td className="td-second">{ props.ride.cellphone }</td>
-                            <td className="td-second">{ props.ride.gender }</td>
-                            <td className="td-second">{ props.ride.payment_method }</td>
-                            <td className="td-second">N$ { props.ride.amount }</td>
-                            <td className="td-second">fq{ props.ride.amount}</td>
+                            <td className="td-second">{ props.delivery.name }</td>
+                            <td className="td-second">{props.delivery.surname }</td>
+                            <td className="td-second">{ props.delivery.cellphone }</td>
+                            <td className="td-second">{ props.delivery.gender }</td>
+                            <td className="td-second">{ props.delivery.payment_method }</td>
+                            <td className="td-second">N$ { props.delivery.amount }</td>
+                            <td className="td-second">fq{ props.delivery.amount}</td>
                             <td className="td-second">{dest()}</td>
                         </tr>
                     </tbody>
@@ -91,10 +90,10 @@ const RideRow = (props) => {
 }
 
 
-function RideOverview() {
+function DeliveryOverview() {
 
 
-    let [rides, setRides] = useState([])   // Main ride list of objects
+    let [deliveries, setDeliveries] = useState([])   // Main ride list of objects
     /*let [passengers_number, setPassengersNumber] = useState(0)
     let [request_type, setRequestType] = useState(0)
     let [date_time, setDateTime] = useState(0)
@@ -115,20 +114,20 @@ function RideOverview() {
     useEffect(() => {
         let socket = io(ENDPOINT, { transports: ["websocket", "polling", "flashsocket"]})
         const interval = setInterval(() => {
-            console.log("kaputo@taxiconnect")
-            socket.on("getRideOverview-response", (data) => {
+            console.log("kaputo@taxiconnect-delivery")
+            socket.on("getDeliveryOverview-response", (data) => {
                 if ((data !== undefined) && (data != null)) {
                     /* Do something
                     data.map((ride) => {
                         console.log(ride)
                     }) */
-                    setRides(data)
+                    setDeliveries(data)
                 } else {
                     console.log(data.error) // data.error ?
                     alert("Something went wrong while retrieving Data")
                 }
             })
-            socket.emit("getRideOverview", {data: "Get ride-overview Data!"})
+            socket.emit("getDeliveryOverview", {data: "Get delivery-overview Data!"})
         },1000)
 
         return( () => {
@@ -137,13 +136,13 @@ function RideOverview() {
     
     }, [
         // re-render whenever any of these changes
-        rides,
+        deliveries,
         ENDPOINT
     ])
 
-    const rideList = () => {
-        return rides.map( currentRide => {
-            return <RideRow ride={currentRide}  />
+    const DeliveryList = () => {
+        return deliveries.map( currentDelivery => {
+            return <DeliveryRow delivery={currentDelivery}  />
         })
     }
 
@@ -161,24 +160,24 @@ function RideOverview() {
                 <Sidebar />
                 </div>
                 <div className="right-column" >
-                    <h1 style={ title_style }> Rides Overview </h1>
+                    <h1 style={ title_style }> Deliveries Overview </h1>
                     <table className="table" style={{ textAlign: "center"}}>
                         <thead className="thead-light">
                             <tr>
                                 <th>#</th>
                                 <th>Taxi number</th>
-                                <th>Passengers</th>
+                                <th>Origin</th>
                                 <th>Request type</th>
                                 <th>Date</th>
                                 <th>Time requested</th>
-                                <th>Client picked up</th>
-                                <th>client dropped off</th>
-                                <th>Connect type</th>
+                                <th>Item picked up</th>
+                                <th>Item dropped off</th>
+                                <th>Receiver</th>
                                 <th>...</th>
                             </tr>
                         </thead>
                         <tbody>
-                            { rideList() }
+                            { DeliveryList() }
                         </tbody>
                     </table>
                 </div>
@@ -193,4 +192,4 @@ function RideOverview() {
     )
 }
 
-export default RideOverview
+export default DeliveryOverview
