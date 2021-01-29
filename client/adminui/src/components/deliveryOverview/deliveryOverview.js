@@ -66,6 +66,7 @@ const DeliveryRow = (props) => {
                             <th>Amount</th>
                             <th>From</th>
                             <th>Destination(s)</th>
+                            <th>Wished pick up time</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,6 +79,7 @@ const DeliveryRow = (props) => {
                             <td className="td-second">N$ { props.delivery.amount }</td>
                             <td className="td-second">fq{ props.delivery.amount}</td>
                             <td className="td-second">{dest()}</td>
+                            <td className="td-second">{props.delivery.wished_pickup_time }</td>
                         </tr>
                     </tbody>
                 </table>
@@ -94,6 +96,9 @@ function DeliveryOverview() {
 
 
     let [deliveries, setDeliveries] = useState([])   // Main ride list of objects
+    let [inProgress, setInProgress] = useState(true)
+    let [scheduled, setScheduled] = useState(false)
+    let [completed, setCompleted] = useState(false)
     /*let [passengers_number, setPassengersNumber] = useState(0)
     let [request_type, setRequestType] = useState(0)
     let [date_time, setDateTime] = useState(0)
@@ -140,9 +145,41 @@ function DeliveryOverview() {
         ENDPOINT
     ])
 
-    const DeliveryList = () => {
+    const deliveryListInProgress = () => {
         return deliveries.map( currentDelivery => {
-            return <DeliveryRow delivery={currentDelivery}  />
+            if ( currentDelivery.isAccepted && currentDelivery.isPickedUp 
+                && !currentDelivery.isDroppedPassenger ) {
+                
+                return <DeliveryRow delivery={currentDelivery}  />
+            } else { 
+                //! Do nothing (Do not add the delivery to the list if not in progress)
+             }
+            
+        })
+    }
+
+    const deliveryListScheduled = () => {
+        return deliveries.map( currentDelivery => {
+            if ( currentDelivery.request_type === "scheduled") {
+                
+                return <DeliveryRow delivery={currentDelivery}  />
+            } else { 
+                //! Do nothing (Do not add the delivery to the list if not scheduled)
+             }
+        })
+    }
+
+    const deliveryListCompleted = () => {
+        return deliveries.map( currentDelivery => {
+            if ( currentDelivery.isAccepted && currentDelivery.isPickedUp 
+                && (currentDelivery.isDroppedPassenger || currentDelivery.isDroppedDriver) ) {
+                
+                return <DeliveryRow delivery={currentDelivery}  />
+            } else { 
+                //! Do nothing --> Do not add the delivery to the list if not completed
+                //! the delivery is completed upon confirmation of either driver or receiver
+                //! Further display difference of both shall be done upon rendering of the row
+             }
         })
     }
 
@@ -150,6 +187,11 @@ function DeliveryOverview() {
         textAlign: "center",
         marginTop: 10,
         marginBottom: 15
+    }
+    const subtitle_style = {
+        textAlign: "center",
+        marginTop: 5,
+        marginBottom: 10
     }
     return(
        
@@ -161,32 +203,95 @@ function DeliveryOverview() {
                 </div>
                 <div className="right-column" >
                     <h1 style={ title_style }> Deliveries Overview </h1>
-                    <table className="table" style={{ textAlign: "center"}}>
-                        <thead className="thead-light">
-                            <tr>
-                                <th>#</th>
-                                <th>Taxi number</th>
-                                <th>Origin</th>
-                                <th>Request type</th>
-                                <th>Date</th>
-                                <th>Time requested</th>
-                                <th>Item picked up</th>
-                                <th>Item dropped off</th>
-                                <th>Receiver</th>
-                                <th>...</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            { DeliveryList() }
-                        </tbody>
-                    </table>
+                    <button className="btn btn-outline-info btn-sm " onClick={ () => {
+                    setScheduled (false)
+                    setCompleted(false)
+                    setInProgress(true)  
+                    }}>Deliveries in progress</button>
+
+                    <button className="btn btn-outline-info btn-sm" onClick={ () => {
+                    setInProgress (false)
+                    setCompleted(false)
+                    setScheduled(true)  
+                    }}>Scheduled Deliveries</button>
+
+                    <button className="btn btn-outline-info btn-sm" onClick={ () => {
+                    setInProgress (false)
+                    setCompleted(true)
+                    setScheduled(false)  
+                    }}>Completed Deliveries</button>
+
+                    <div style = {{ display: inProgress? "":"none" }}>
+                        <h3 style={ subtitle_style }>Deliveries in progress </h3>
+                        <table className="table" style={{ textAlign: "center"}}>
+                            <thead className="thead-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Taxi number</th>
+                                    <th>Origin</th>
+                                    <th>Request type</th>
+                                    <th>Date</th>
+                                    <th>Time requested</th>
+                                    <th>Item picked up</th>
+                                    <th>Item dropped off</th>
+                                    <th>Receiver</th>
+                                    <th>...</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                { deliveryListInProgress () }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style = {{ display: scheduled? "":"none" }}>
+                        <h3 style={ subtitle_style }>Scheduled deliveries </h3>
+                        <table className="table" style={{ textAlign: "center"}}>
+                            <thead className="thead-light">
+                                <tr>
+                                    <th>##</th>
+                                    <th>Taxi number</th>
+                                    <th>Origin</th>
+                                    <th>Request type</th>
+                                    <th>Date</th>
+                                    <th>Time requested</th>
+                                    <th>Item picked up</th>
+                                    <th>Item dropped off</th>
+                                    <th>Receiver</th>
+                                    <th>...</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                { deliveryListScheduled() }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style = {{ display: completed? "":"none" }}>
+                        <h3 style={ subtitle_style }>Completed deliveries </h3>
+                        <table className="table" style={{ textAlign: "center"}}>
+                            <thead className="thead-light">
+                                <tr>
+                                    <th>###</th>
+                                    <th>Taxi number</th>
+                                    <th>Origin</th>
+                                    <th>Request type</th>
+                                    <th>Date</th>
+                                    <th>Time requested</th>
+                                    <th>Item picked up</th>
+                                    <th>Item dropped off</th>
+                                    <th>Receiver</th>
+                                    <th>...</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                { deliveryListCompleted() }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-
-
-
-            
-            
+   
         </div>
     
     )

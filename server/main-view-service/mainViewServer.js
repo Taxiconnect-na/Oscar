@@ -244,6 +244,8 @@ function getRideOverview(collectionRidesDeliveryData,
                 const passengers_number = trip.passengers_number
                 const request_type = trip.request_type
                 const date_time = trip.date_requested
+                const wished_pickup_time = trip.wished_pickup_time
+                const isAccepted = trip.ride_state_vars.isAccepted
                 const isPickedUp = trip.ride_state_vars.inRideToDestination
                 const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
                 const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
@@ -275,6 +277,8 @@ function getRideOverview(collectionRidesDeliveryData,
                         tripDetails.passengers_number = passengers_number
                         tripDetails.request_type = request_type
                         tripDetails.date_time = date_time
+                        tripDetails.isAccepted = isAccepted
+                        tripDetails.wished_pickup_time = wished_pickup_time
                         tripDetails.isPickedUp = isPickedUp
                         tripDetails.isDroppedPassenger = isDroppedPassenger
                         tripDetails.isDroppedDriver = isDroppedDriver
@@ -301,6 +305,8 @@ function getRideOverview(collectionRidesDeliveryData,
                         tripDetails.passengers_number = passengers_number
                         tripDetails.request_type = request_type
                         tripDetails.date_time = date_time
+                        tripDetails.isAccepted = isAccepted
+                        tripDetails.wished_pickup_time = wished_pickup_time
                         tripDetails.isPickedUp = isPickedUp
                         tripDetails.isDroppedPassenger = isDroppedPassenger
                         tripDetails.isDroppedDriver = isDroppedDriver
@@ -356,7 +362,9 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                 const delivery_phone = trip.delivery_infos.receiverPhone_delivery
                 
                 const request_type = trip.request_type
+                const isAccepted = trip.ride_state_vars.isAccepted
                 const date_time = trip.date_requested
+                const wished_pickup_time = trip.wished_pickup_time
                 const isPickedUp = trip.ride_state_vars.inRideToDestination
                 const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
                 const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
@@ -393,6 +401,8 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                           tripDetails.delivery_phone = delivery_phone
                         }
                         tripDetails.request_type = request_type
+                        tripDetails.isAccepted = isAccepted
+                        tripDetails.wished_pickup_time = wished_pickup_time
                         tripDetails.date_time = date_time
                         tripDetails.isPickedUp = isPickedUp
                         tripDetails.isDroppedPassenger = isDroppedPassenger
@@ -419,6 +429,8 @@ function getDeliveryOverview(collectionRidesDeliveryData,
 
                         //tripDetails.passengers_number = passengers_number
                         tripDetails.request_type = request_type
+                        tripDetails.isAccepted = isAccepted
+                        tripDetails.wished_pickup_time = wished_pickup_time
                         tripDetails.date_time = date_time
                         tripDetails.isPickedUp = isPickedUp
                         tripDetails.isDroppedPassenger = isDroppedPassenger

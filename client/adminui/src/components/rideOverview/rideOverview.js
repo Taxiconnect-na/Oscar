@@ -67,6 +67,7 @@ const RideRow = (props) => {
                             <th>Amount</th>
                             <th>From</th>
                             <th>Destination(s)</th>
+                            <th>Wished pick up time</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -79,14 +80,13 @@ const RideRow = (props) => {
                             <td className="td-second">N$ { props.ride.amount }</td>
                             <td className="td-second">fq{ props.ride.amount}</td>
                             <td className="td-second">{dest()}</td>
+                            <td className="td-second">{props.ride.wished_pickup_time }</td>
                         </tr>
                     </tbody>
                 </table>
             </td>
         </tr>
        </>
-        
-
     )
 }
 
@@ -95,6 +95,9 @@ function RideOverview() {
 
 
     let [rides, setRides] = useState([])   // Main ride list of objects
+    let [inProgress, setInProgress] = useState(true)
+    let [scheduled, setScheduled] = useState(false)
+    let [completed, setCompleted] = useState(false)
     /*let [passengers_number, setPassengersNumber] = useState(0)
     let [request_type, setRequestType] = useState(0)
     let [date_time, setDateTime] = useState(0)
@@ -141,9 +144,40 @@ function RideOverview() {
         ENDPOINT
     ])
 
-    const rideList = () => {
+    const rideListInProgress = () => {
         return rides.map( currentRide => {
-            return <RideRow ride={currentRide}  />
+            if ( currentRide.isAccepted && currentRide.isPickedUp 
+                && !currentRide.isDroppedPassenger ) {
+                
+                return <RideRow ride={currentRide}  />
+            } else { 
+                //! Do nothing (Do not add the ride to the list if not in progress)
+             }
+        })
+    }
+
+    const rideListScheduled = () => {
+        return rides.map( currentRide => {
+            if ( currentRide.request_type === "scheduled") {
+                
+                return <RideRow ride={currentRide}  />
+            } else { 
+                //! Do nothing (Do not add the ride to the list if not scheduled)
+             }
+        })
+    }
+
+    const rideListCompleted = () => {
+        return rides.map( currentRide => {
+            if ( currentRide.isAccepted && currentRide.isPickedUp 
+                && (currentRide.isDroppedPassenger || currentRide.isDroppedDriver) ) {
+                
+                return <RideRow ride={currentRide}  />
+            } else { 
+                //! Do nothing --> Do not add the ride to the list if not completed
+                //! the ride is completed upon confirmation of either driver or passenger
+                //! Further display difference of both shall be done upon rendering of the row
+             }
         })
     }
 
@@ -151,6 +185,11 @@ function RideOverview() {
         textAlign: "center",
         marginTop: 10,
         marginBottom: 15
+    }
+    const subtitle_style = {
+        textAlign: "center",
+        marginTop: 5,
+        marginBottom: 10
     }
     return(
        
@@ -162,25 +201,92 @@ function RideOverview() {
                 </div>
                 <div className="right-column" >
                     <h1 style={ title_style }> Rides Overview </h1>
-                    <table className="table" style={{ textAlign: "center"}}>
-                        <thead className="thead-light">
-                            <tr>
-                                <th>#</th>
-                                <th>Taxi number</th>
-                                <th>Passengers</th>
-                                <th>Request type</th>
-                                <th>Date</th>
-                                <th>Time requested</th>
-                                <th>Client picked up</th>
-                                <th>client dropped off</th>
-                                <th>Connect type</th>
-                                <th>...</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            { rideList() }
-                        </tbody>
-                    </table>
+                    <button className="btn btn-outline-info btn-sm " onClick={ () => {
+                    setScheduled (false)
+                    setCompleted(false)
+                    setInProgress(true)  
+                    }}>Rides in progress</button>
+
+                    <button className="btn btn-outline-info btn-sm" onClick={ () => {
+                    setInProgress (false)
+                    setCompleted(false)
+                    setScheduled(true)  
+                    }}>Scheduled rides</button>
+
+                    <button className="btn btn-outline-info btn-sm" onClick={ () => {
+                    setInProgress (false)
+                    setCompleted(true)
+                    setScheduled(false)  
+                    }}>Completed rides</button>
+
+                        <div style = {{ display: inProgress? "":"none" }}>
+                            <h3 style={ subtitle_style }>Rides in progress </h3>
+                            <table className="table" style={{ textAlign: "center"}}>
+                                <thead className="thead-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Taxi number</th>
+                                        <th>Passengers</th>
+                                        <th>Request type</th>
+                                        <th>Date</th>
+                                        <th>Time requested</th>
+                                        <th>Client picked up</th>
+                                        <th>client dropped off</th>
+                                        <th>Connect type</th>
+                                        <th>...</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    { rideListInProgress() }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style = {{ display: scheduled? "":"none" }}>
+                            <h3 style={ subtitle_style }>Scheduled rides </h3>
+                            <table className="table" style={{ textAlign: "center"}}>
+                                <thead className="thead-light">
+                                    <tr>
+                                        <th>##</th>
+                                        <th>Taxi number</th>
+                                        <th>Passengers</th>
+                                        <th>Request type</th>
+                                        <th>Date</th>
+                                        <th>Time requested</th>
+                                        <th>Client picked up</th>
+                                        <th>client dropped off</th>
+                                        <th>Connect type</th>
+                                        <th>...</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    { rideListScheduled() }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style = {{ display: completed? "":"none" }}>
+                            <h3 style={ subtitle_style }>Completed rides</h3>
+                            <table className="table" style={{ textAlign: "center"}}>
+                                <thead className="thead-light">
+                                    <tr>
+                                        <th>###</th>
+                                        <th>Taxi number</th>
+                                        <th>Passengers</th>
+                                        <th>Request type</th>
+                                        <th>Date</th>
+                                        <th>Time requested</th>
+                                        <th>Client picked up</th>
+                                        <th>client dropped off</th>
+                                        <th>Connect type</th>
+                                        <th>...</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    { rideListCompleted() }
+                                </tbody>
+                            </table>
+                        </div>
                 </div>
             </div>
 
