@@ -4,6 +4,104 @@ import "./rideOverview.css"
 import Sidebar from "../sidebar/sidebar"
 
 /**
+ * @function GetCashWallet : Returns the total money of trips in progress, scheduled and completed
+ *                          Of a given array of rides (cash and delivery returned)
+ * @param {array} arrayData : An array of rides from either an API or Database of rides with known
+ *                            keys. 
+ * 
+ */
+
+function GetCashWallet(arrayData, resolve) {
+  
+    let fare_array = [];
+    let fare_array_cash = [];
+    let fare_array_wallet = [];
+    const Sum = (arr) => arr.reduce((num1, num2) => num1 + num2, 0);
+    
+    arrayData.map((ride) => {
+        fare_array.push(Number(ride["amount"]));
+
+        // Get rides with CASH as payment method
+        let payment_method = ride["payment_method"].toUpperCase().trim();
+        if (/CASH/i.test(payment_method)) {
+        // if (payment_method ==="CASH") /CASH/ makes sure of spacing
+        fare_array_cash.push(Number(ride["amount"]));
+        } else {
+        fare_array_wallet.push(Number(ride["amount"]));
+        }
+    });
+    
+    let totalCash = Sum(fare_array_cash);
+    let totalWallet = Sum(fare_array_wallet);
+    let totalCashWallet = totalCash + totalWallet;
+    let CashWalletObject = { totalCash, totalWallet, totalCashWallet };
+
+    resolve(CashWalletObject)
+
+    //return CashWalletObject
+}
+
+/**
+ * @function progressScheduledCompleted : Returns the total count and money of trips in progress, 
+ *                                        scheduled and completed
+ *                          Of a given array of rides (cash and delivery returned)
+ * @param {array} arrayData : An array of rides from either an API or Database of rides with known
+ *                            keys. 
+ * 
+ */
+
+function progressScheduledCompleted(arrayData, resolve) {
+    
+    let progress = arrayData.filter(current => {
+        return current.isAccepted && current.isPickedUp
+            && !current.isArrivedToDestination
+    })
+
+    let scheduled = arrayData.filter(current => {
+        let Value = current.request_type === "scheduled"
+        return Value
+    })
+    let completed = arrayData.filter( current => {
+        return current.isArrivedToDestination
+    })
+    
+    Promise.all([
+            //let progressMoney = GetCashWallet(scheduled)
+        new Promise((res) => {
+            GetCashWallet(progress, res)
+        }),
+        new Promise((res) => {
+            GetCashWallet(scheduled, res)
+        }),
+        //let progressMoney = GetCashWallet(scheduled)
+        new Promise((res) => {
+            GetCashWallet(completed, res)
+        })
+
+    ]).then((future) => {
+        let [progressMoney, scheduledMoney, completedMoney] = future
+        let Object = {}
+        Object.moneyInprogress = progressMoney
+        Object.moneyScheduled = scheduledMoney
+        Object.moneyCompleted = completedMoney
+        Object.inprogress = progress.length
+        Object.scheduled = scheduled.length
+        Object.completed = completed.length
+
+        resolve(Object)
+    }).catch((error) => {
+
+        console.log(error)
+        resolve({
+            response: "error",
+            flag: "Possibly invalid input parameters",
+        })
+    })
+ 
+}
+
+
+/**
  * 
  * @function RideRow : Returns single ride details
  */
@@ -90,6 +188,9 @@ const RideRow = (props) => {
     )
 }
 
+/**
+ * @function RideOverview : Main function rendering the rides overview page
+ */
 
 function RideOverview() {
 
@@ -98,6 +199,12 @@ function RideOverview() {
     let [inProgress, setInProgress] = useState(true)
     let [scheduled, setScheduled] = useState(false)
     let [completed, setCompleted] = useState(false)
+    let [InprogressCount, setInProgressCount] = useState(0)
+    let [ScheduledCount, setScheduledCount] = useState(0)
+    let [CompletedCount, setCompletedCount] = useState(0)
+    let [moneyInprogress, setMoneyInProgress] = useState({})
+    let [moneyScheduled, setMoneyScheduled] = useState({})
+    let [moneyCompleted, setMoneyCompleted] = useState({})
     /*let [passengers_number, setPassengersNumber] = useState(0)
     let [request_type, setRequestType] = useState(0)
     let [date_time, setDateTime] = useState(0)
@@ -126,13 +233,29 @@ function RideOverview() {
                         console.log(ride)
                     }) */
                     setRides(data)
+                    // Get inprogress, scheduled and completed data to update count state
+                    new Promise((res) => {
+                        progressScheduledCompleted(data, res)
+                    }).then((future) => {
+                        console.log(future)
+                        setInProgressCount(future.inprogress)
+                        setMoneyInProgress(future.moneyInprogress)
+                        setScheduledCount(future.scheduled)
+                        setMoneyScheduled(future.moneyScheduled)
+                        setCompletedCount(future.completed)
+                        setMoneyCompleted(future.moneyCompleted)
+                        
+                    }).catch((error) => {
+                        console.log(error)
+                    })
+
                 } else {
                     console.log(data.error) // data.error ?
                     alert("Something went wrong while retrieving Data")
                 }
             })
             socket.emit("getRideOverview", {data: "Get ride-overview Data!"})
-        },1000)
+        },2000)
 
         return( () => {
             clearInterval(interval)
@@ -144,11 +267,19 @@ function RideOverview() {
         ENDPOINT
     ])
 
+    /**
+     * @function rideListInProgress : returns the list of rides in progress
+     * @function rideListScheduled : returns the list of scheduled rides
+     * @function rideListCompleted : returns the list of completed rides
+     * 
+     */
+    
     const rideListInProgress = () => {
+
         return rides.map( currentRide => {
+         
             if ( currentRide.isAccepted && currentRide.isPickedUp 
-                && !currentRide.isDroppedPassenger ) {
-                
+                && !currentRide.isArrivedToDestination) {
                 return <RideRow ride={currentRide}  />
             } else { 
                 //! Do nothing (Do not add the ride to the list if not in progress)
@@ -169,8 +300,7 @@ function RideOverview() {
 
     const rideListCompleted = () => {
         return rides.map( currentRide => {
-            if ( currentRide.isAccepted && currentRide.isPickedUp 
-                && (currentRide.isDroppedPassenger || currentRide.isDroppedDriver) ) {
+            if ( currentRide.isArrivedToDestination) {
                 
                 return <RideRow ride={currentRide}  />
             } else { 
@@ -191,6 +321,7 @@ function RideOverview() {
         marginTop: 5,
         marginBottom: 10
     }
+
     return(
        
         <div>
@@ -201,26 +332,51 @@ function RideOverview() {
                 </div>
                 <div className="right-column" >
                     <h1 style={ title_style }> Rides Overview </h1>
-                    <button className="btn btn-outline-info btn-sm " onClick={ () => {
+                    <button style={{ marginLeft: 25}} className="btn btn-outline-info btn-sm " onClick={ () => {
                     setScheduled (false)
                     setCompleted(false)
                     setInProgress(true)  
-                    }}>Rides in progress</button>
+                    }}>Rides in progress [{ InprogressCount }]</button>
 
-                    <button className="btn btn-outline-info btn-sm" onClick={ () => {
+                    <button style={{ marginLeft: 35}} className="btn btn-outline-info btn-sm" onClick={ () => {
                     setInProgress (false)
                     setCompleted(false)
                     setScheduled(true)  
-                    }}>Scheduled rides</button>
+                    }}>Scheduled rides [{ ScheduledCount }]</button>
 
-                    <button className="btn btn-outline-info btn-sm" onClick={ () => {
+                    <button style={{ marginLeft: 35}} className="btn btn-outline-info btn-sm" onClick={ () => {
                     setInProgress (false)
                     setCompleted(true)
                     setScheduled(false)  
-                    }}>Completed rides</button>
+                    }}>Completed rides [{ CompletedCount }]</button>
 
                         <div style = {{ display: inProgress? "":"none" }}>
                             <h3 style={ subtitle_style }>Rides in progress </h3>
+                            <hr></hr>
+                            <div id="container">
+                                
+                                <div>
+                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyInprogress["totalCash"] }
+                                    <span style={{ fontSize: 'small', color:"black"}}> cash</span> 
+                                </h1>
+                                </div>
+                                <div>
+                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyInprogress["totalWallet"] }
+                                    <span style={{ fontSize: 'small', color:"black"}}> wallet</span> 
+                                </h1>
+                                </div>
+                                <div>
+                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyInprogress["totalCashWallet"] }
+                                    <span style={{ fontSize: 'small', color:"black"}}> Total</span> 
+                                </h1>
+                                </div>
+                                <div style={{ backgroundColor: "gray"}}>
+                                <h1 style={{ fontSize: 'x-large', color:"blue"}}> N$ 20
+                                    <span style={{ fontSize: 'small', color:"black"}}> today</span> 
+                                </h1>
+                                </div>
+                            </div>
+                            <hr></hr>
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>
@@ -244,6 +400,31 @@ function RideOverview() {
 
                         <div style = {{ display: scheduled? "":"none" }}>
                             <h3 style={ subtitle_style }>Scheduled rides </h3>
+                            <hr></hr>
+                            <div id="container">
+                                
+                                <div>
+                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyScheduled["totalCash"] }
+                                    <span style={{ fontSize: 'small', color:"black"}}> cash</span> 
+                                </h1>
+                                </div>
+                                <div>
+                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyScheduled["totalWallet"] }
+                                    <span style={{ fontSize: 'small', color:"black"}}> wallet</span> 
+                                </h1>
+                                </div>
+                                <div>
+                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyScheduled["totalCashWallet"] }
+                                    <span style={{ fontSize: 'small', color:"black"}}> Total</span> 
+                                </h1>
+                                </div>
+                                <div style={{ backgroundColor: "gray"}}>
+                                <h1 style={{ fontSize: 'x-large', color:"blue"}}> N$ 20
+                                    <span style={{ fontSize: 'small', color:"black"}}> today</span> 
+                                </h1>
+                                </div>
+                            </div>
+                            <hr></hr>
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>
@@ -267,6 +448,31 @@ function RideOverview() {
 
                         <div style = {{ display: completed? "":"none" }}>
                             <h3 style={ subtitle_style }>Completed rides</h3>
+                            <hr></hr>
+                            <div id="container">
+                                
+                                <div>
+                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyCompleted["totalCash"] }
+                                    <span style={{ fontSize: 'small', color:"black"}}> cash</span> 
+                                </h1>
+                                </div>
+                                <div>
+                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyCompleted["totalWallet"] }
+                                    <span style={{ fontSize: 'small', color:"black"}}> wallet</span> 
+                                </h1>
+                                </div>
+                                <div>
+                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyCompleted["totalCashWallet"] }
+                                    <span style={{ fontSize: 'small', color:"black"}}> Total</span> 
+                                </h1>
+                                </div>
+                                <div style={{ backgroundColor: "gray"}}>
+                                <h1 style={{ fontSize: 'x-large', color:"blue"}}> N$ 20
+                                    <span style={{ fontSize: 'small', color:"black"}}> today</span> 
+                                </h1>
+                                </div>
+                            </div>
+                            <hr></hr>
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>
@@ -289,11 +495,7 @@ function RideOverview() {
                         </div>
                 </div>
             </div>
-
-
-
-            
-            
+   
         </div>
     
     )

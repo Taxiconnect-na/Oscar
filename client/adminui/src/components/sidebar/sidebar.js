@@ -12,8 +12,13 @@ function Sidebar() {
                     <MenuItem><Link to="/">Summary</Link></MenuItem> 
                     <MenuItem><Link to="/driver-registration">Register Driver</Link></MenuItem>
                     <SubMenu title="Trip Overview">
-                        <MenuItem><Link to="/trip-overview/rides">Rides</Link></MenuItem>
-                        <MenuItem><Link to="/trip-overview/deliveries">Deliveries</Link></MenuItem>
+                        <SubMenu title="Windhoek" >
+                            <MenuItem><Link to="/trip-overview/rides">Rides</Link></MenuItem>
+                            <MenuItem><Link to="/trip-overview/deliveries">Deliveries</Link></MenuItem>
+                        </SubMenu>
+                        <SubMenu title="Swakopmund">
+                            <MenuItem>Not Available</MenuItem>
+                        </SubMenu>
                     </SubMenu>
                     <MenuItem><Link>Drivers</Link></MenuItem>
                     <MenuItem><Link>Users </Link></MenuItem>

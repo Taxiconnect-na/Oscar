@@ -249,6 +249,7 @@ function getRideOverview(collectionRidesDeliveryData,
                 const isPickedUp = trip.ride_state_vars.inRideToDestination
                 const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
                 const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                const isArrivedToDestination = trip.isArrivedToDestination
                 const connect_type = trip.connect_type
                 const payment_method = trip.payment_method
                 const amount = trip.fare
@@ -282,6 +283,7 @@ function getRideOverview(collectionRidesDeliveryData,
                         tripDetails.isPickedUp = isPickedUp
                         tripDetails.isDroppedPassenger = isDroppedPassenger
                         tripDetails.isDroppedDriver = isDroppedDriver
+                        tripDetails.isArrivedToDestination = isArrivedToDestination
                         tripDetails.connect_type = connect_type
                         tripDetails.payment_method = payment_method 
                         tripDetails.amount = amount 
@@ -310,6 +312,7 @@ function getRideOverview(collectionRidesDeliveryData,
                         tripDetails.isPickedUp = isPickedUp
                         tripDetails.isDroppedPassenger = isDroppedPassenger
                         tripDetails.isDroppedDriver = isDroppedDriver
+                        tripDetails.isArrivedToDestination = isArrivedToDestination
                         tripDetails.connect_type = connect_type
                         tripDetails.payment_method = payment_method 
                         tripDetails.amount = amount 

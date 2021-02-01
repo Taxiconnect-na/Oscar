@@ -28,3 +28,19 @@ table {
 #iner-table {
     width: auto;
 }
+
+#container {
+    display: flex;
+    flex-wrap: wrap;
+    width: 800px;
+    margin:auto;
+}
+
+#container > div {
+    color: blue;
+    margin-top: 5px;
+    padding: 5px;
+    width: 200px;
+    font-size: 15px;
+    background-color: white;
+}
