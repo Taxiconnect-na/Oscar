@@ -12,6 +12,12 @@
     margin-left: 300px;
     margin-right: 300px;
 }
+.car-data {
+    grid-area: car-data;
+    margin-top: 10px;
+    width: auto;
+    margin: auto;
+}
 
 #wrapper {
     display: grid;
@@ -19,6 +25,7 @@
     grid-template-rows: auto;
     grid-template-areas: 
     "literal-info files-info-bank "
+    "car-data car-data"
     "submit-registration submit-registration";
     gap: 40px;
 }

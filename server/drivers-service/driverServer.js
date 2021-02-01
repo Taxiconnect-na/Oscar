@@ -80,6 +80,7 @@ clientMongo.connect(function(err) {
         const copy_white_paper = req.files.copy_white_paper
         const copy_public_permit = req.files.copy_public_permit
         const copy_blue_paper = req.files.copy_blue_paper
+        const taxi_picture = req.files.taxi_picture
     
         if (req.body.delivery_provider.length === 0) {
             console.log("No delivery provider")
@@ -144,22 +145,39 @@ clientMongo.connect(function(err) {
                 savedFiles.copy_blue_paper = "Copy blue paper"
             }
         })
+        taxi_picture.mv(path.join(__dirname,
+            `../../client/adminui/public/uploads/${taxi_picture.name}`), err => {  //mv move method on file object
+            if (err) {
+                console.error(err)
+                return res.status(500).send(err)
+            } else {
+                savedFiles.taxi_picture = "Taxi picture"
+            }
+        })
 
         const UploadedFiles = {
             uploaded_files : savedFiles
         }
 
         let fingerprintSource = req.body.name + req.body.surname + req.body.personal_id_number
-
+        let carFingerprintSource = req.body.car_brand + req.body.plate_number + req.body.taxi_number
         // Generate a fingerprint
-        let driverFingerprint 
-        new Promise((future) => {
-
-            GenerateFingerprint(fingerprintSource,false, future)
-            
-        }).then(
+        let driverFingerprint
+        let car_fingerprint
+        Promise.all([
+            new Promise((future) => {
+                // Generate a fingerprint of the driver identity
+                GenerateFingerprint(fingerprintSource,false, future)
+                
+            }),
+            new Promise((future) => {
+                // Generate fingerprint of the added car
+                GenerateFingerprint(carFingerprintSource, false, future)
+            })
+        ]) 
+        .then(
             (result) => {
-                driverFingerprint = result
+                [driverFingerprint, car_fingerprint] = result
 
                 // Driver's object to be stored in db
                 let driver = {
@@ -168,7 +186,7 @@ clientMongo.connect(function(err) {
                     phone_number: req.body.phone_number,
                     email: req.body.email,
                     password: "12345678",
-                    operation_clearances: req.body.operation_clearances,
+                    operation_clearances: [req.body.operation_clearances],
                     // If delivery, set delivery provider:
                     delivery_provider: req.body.delivery_provider.length>0 ? req.body.delivery_provider : false,
                     identification: {
@@ -180,6 +198,7 @@ clientMongo.connect(function(err) {
                         copy_public_permit: req.files.copy_public_permit.name,
                         copy_blue_paper: req.files.copy_blue_paper.name,
                         blue_paper_expiration: req.body.blue_paper_expiration,
+                        driver_licence_expiration: req.body.driver_licence_expiration,
                         // Other identification info
                         personal_id_number: req.body.personal_id_number,
                         title: req.body.title,
@@ -199,7 +218,23 @@ clientMongo.connect(function(err) {
                     driver_fingerprint: driverFingerprint,
                     
                     // When false, the driver shall not have access permission to the Driver's App
-                    isDriverSuspended: false    
+                    isDriverSuspended: false,    
+                    // Add car's data:
+                    cars_data: [
+                        {
+                            car_brand: req.body.car_brand,
+                            permit_number: req.body.permit_number,
+                            taxi_number: req.body.taxi_number,
+                            plate_number: req.body.plate_number,
+                            max_passengers: parseInt(req.body.max_passengers),
+                            car_fingerprint: car_fingerprint, // =====
+                            vehicle_type: req.body.vehicle_type,
+                            category: req.body.category,
+                            date_registered: new Date(),
+                            date_updated: new Date(),
+                            taxi_picture: req.files.taxi_picture.name
+                        },
+                    ]
 
                 }
 

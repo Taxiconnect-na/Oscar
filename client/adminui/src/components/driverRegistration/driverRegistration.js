@@ -6,7 +6,7 @@ import Sidebar from '../sidebar/sidebar'
 
 const left_form_style = {
     border: "1px solid #698dc7",
-    borderWidth: 4,
+    borderWidth: 2,
     borderRadius: 20,
     padding: 25,
     marginLeft: 20,
@@ -14,11 +14,18 @@ const left_form_style = {
 }
 const right_form_style = {
     border: "1px solid #698dc7",
-    borderWidth: 4,
+    borderWidth: 2,
     borderRadius: 20,
     padding: 30,
     marginRight: 25,
     marginTop: 25
+}
+const car_data_style = {
+    border: "1px solid #698dc7",
+    borderWidth: 2,
+    borderRadius: 20,
+    marginTop: 10,
+    padding: 40
 }
 const DriverRegistration = () => {
 
@@ -31,6 +38,7 @@ const DriverRegistration = () => {
         //let [password, setPassword] = useState('')
         let [operation_clearances, setOperationClearances] = useState('')
         let [delivery_provider, setDeliveryProvider] = useState('')
+
         //  Files :
         let [profile_picture, setProfilePicture] = useState('')
         let [profile_picture_name, setProfilePictureName] = useState('Profile picture') 
@@ -50,11 +58,25 @@ const DriverRegistration = () => {
         let [copy_blue_paper, setCopyBluePaper] = useState('')
         let [copy_blue_paper_name, setCopyBluePaperName] = useState('Blue paper')
         let [blue_paper_expiration, setBluePaperExpiration] = useState(new Date())
+        let [driver_licence_expiration, setDriverLicenceExpiration] = useState(new Date())
+
         //  Bank Details :
         let [bank_name, setBankName] = useState('')
         let [account_number, setAccountNmber] = useState('')
         let [branch_number, setBranchNumber] = useState('')
         let [branch_name, setBranchName] = useState('')
+        
+        // Car data : 
+        let [car_brand, setCarBrand] = useState('')
+        let [permit_number, setPermitNumber] = useState('')
+        let [taxi_number, setTaxiNumber] = useState('')
+        let [plate_number, setPlateNumber] = useState('')
+        let [max_passengers, setMaxPassengers] = useState(4)
+        let [vehicle_type, setVehicleType] = useState('')
+  
+        // car file:
+        let [taxi_picture, setTaxiPicture] = useState('')
+        let [taxi_picture_name, setTaxiPictureName] = useState('Taxi picture')
 
        /* const deliveryProviderList = [
             {
@@ -96,11 +118,21 @@ const DriverRegistration = () => {
             formData.append('copy_public_permit', copy_public_permit)
             formData.append('copy_blue_paper', copy_blue_paper)
             formData.append('blue_paper_expiration', blue_paper_expiration)
+            formData.append('driver_licence_expiration', driver_licence_expiration)
             formData.append('bank_name', bank_name)
             formData.append('account_number', account_number)
             formData.append('branch_number', branch_number)
             formData.append('branch_name', branch_name)
 
+            // Car's data
+            formData.append('car_brand', car_brand)
+            formData.append('permit_number', permit_number)
+            formData.append('taxi_number', taxi_number)
+            formData.append('plate_number', plate_number)
+            formData.append('max_passengers', max_passengers)
+            formData.append('taxi_picture', taxi_picture)
+            formData.append('vehicle_type', vehicle_type)
+           
             console.log(formData.get('title'))
             console.log(formData.get('delivery_provider'))
             console.log(formData.get('operation_clearances'))
@@ -120,7 +152,8 @@ const DriverRegistration = () => {
                 
             } catch(err) {
                 console.log(err)
-                alert("There was an error with the server")
+                alert("There was an error with the server, " + 
+                "make sure all the fields were properly entered")
             }   
         }
 
@@ -305,6 +338,15 @@ const DriverRegistration = () => {
                                         />
                                     </div>
                                 </div>
+                                <div className="form-group mt-3">
+                                    <label>Driver's licence expiration date: </label>
+                                    <div>
+                                        <DatePicker
+                                            selected={driver_licence_expiration}
+                                            onChange={(date) => {setDriverLicenceExpiration(date)}} 
+                                        />
+                                    </div>
+                                </div>
                                 <br></br>
                                 <div style={{ marginTop: 6 }}> <h3> Bank Details</h3></div>
                                 <div className="form-group">
@@ -342,6 +384,84 @@ const DriverRegistration = () => {
                                         value={ branch_name }
                                         onChange={(e) => { setBranchName(e.target.value) }}
                                         />
+                                </div>
+
+                            </div>
+
+                            <div className="car-data" style={ car_data_style }>
+                                <div style={{ width: 550}}><h3 style={{ width: 250, margin: "auto"}}>Car's data</h3></div>
+                                <div className="form-group">
+                                    <label>Brand: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        value={ car_brand }
+                                        onChange={(e) => { setCarBrand(e.target.value) }}
+                                        />
+                                </div>
+                                <div className="form-group">
+                                    <label>Permit number: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        value={ permit_number }
+                                        onChange={(e) => { setPermitNumber(e.target.value) }}
+                                        />
+                                </div>
+                                <div className="form-group">
+                                    <label>Taxi number: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        value={ taxi_number }
+                                        onChange={(e) => { setTaxiNumber(e.target.value) }}
+                                        />
+                                </div>
+                                <div className="form-group">
+                                    <label>Plate number: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        value={ plate_number }
+                                        onChange={(e) => { setPlateNumber(e.target.value) }}
+                                        />
+                                </div>
+                                <div className="form-group">
+                                    <label>Maximum number of passengers: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        value={ max_passengers }
+                                        onChange={(e) => { setMaxPassengers(e.target.value) }}
+                                        />
+                                </div>
+                                <div className="form-group">
+                                    <label>Car category (select): </label>
+                                    <select
+                                        required
+                                        className="form-control"
+                                        style={{ width: 400 }}
+                                        value={ vehicle_type }
+                                        onChange={(e) => { setVehicleType(e.target.value) }}>
+                                            <option></option>
+                                    <option key="normalTaxiEconomy" value="normalTaxiEconomy">Economy (normal)</option>
+                                    <option key="electricEconomy" value="electricEconomy">Economy (electric)</option>
+                                    <option key="comfortNormalRide" value="comfortNormalRide">Comfort (normal)</option>
+                                    <option key="comfortElectricRide" value="comfortElectricRide">Comfort (electric)</option>
+                                    <option key="luxuryNormalRide" value="luxuryNormalRide">Luxury (normal)</option>
+                                    <option key="luxuryElectricRide" value="luxuryElectricRide">Luxury (electric)</option>
+
+                                    </select>
+                                    </div>
+                                <div className="custom-file mt-4">
+                                    <input type="file" className="custom-file-input" id="customFile"
+                                        onChange={(e) => { 
+                                            setTaxiPicture(e.target.files[0])
+                                            setTaxiPictureName(e.target.files[0].name)
+                                        }} />
+                                    <label className="custom-file-label" htmlFor="customFile">
+                                        {taxi_picture_name}
+                                    </label> 
                                 </div>
 
                             </div>
