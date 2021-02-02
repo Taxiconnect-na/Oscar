@@ -54,6 +54,7 @@ clientMongo.connect(function(err) {
     collectionDrivers_profiles.find({}).toArray()
     .then((result) => {
         driverDataList = result
+        console.log(driverDataList)
     }).catch((error) => {
         console.log(error)
     })
@@ -175,89 +176,98 @@ clientMongo.connect(function(err) {
                 GenerateFingerprint(carFingerprintSource, false, future)
             })
         ]) 
-        .then(
-            (result) => {
-                [driverFingerprint, car_fingerprint] = result
+        .then( (result) => {
 
-                // Driver's object to be stored in db
-                let driver = {
-                    name: req.body.name,
-                    surname: req.body.surname,
-                    phone_number: req.body.phone_number,
-                    email: req.body.email,
-                    password: "12345678",
-                    operation_clearances: [req.body.operation_clearances],
-                    // If delivery, set delivery provider:
-                    delivery_provider: req.body.delivery_provider.length>0 ? req.body.delivery_provider : false,
-                    identification: {
-                        // Required files:
-                        profile_picture: req.files.profile_picture.name,
-                        driver_licence_doc: req.files.driver_licence_doc.name,
-                        copy_id_paper: req.files.copy_id_paper.name,
-                        copy_white_paper: req.files.copy_white_paper.name,
-                        copy_public_permit: req.files.copy_public_permit.name,
-                        copy_blue_paper: req.files.copy_blue_paper.name,
-                        blue_paper_expiration: req.body.blue_paper_expiration,
-                        driver_licence_expiration: req.body.driver_licence_expiration,
-                        // Other identification info
-                        personal_id_number: req.body.personal_id_number,
-                        title: req.body.title,
+            [driverFingerprint, car_fingerprint] = result
+
+            // Driver's object to be stored in db
+            let driver = {
+                name: req.body.name,
+                surname: req.body.surname,
+                phone_number: req.body.phone_number,
+                email: req.body.email,
+                password: "12345678",
+                operation_clearances: [req.body.operation_clearances],
+                // If delivery, set delivery provider:
+                delivery_provider: req.body.delivery_provider.length>0 ? req.body.delivery_provider : false,
+                identification: {
+                    // Required files:
+                    profile_picture: req.files.profile_picture.name,
+                    driver_licence_doc: req.files.driver_licence_doc.name,
+                    copy_id_paper: req.files.copy_id_paper.name,
+                    copy_white_paper: req.files.copy_white_paper.name,
+                    copy_public_permit: req.files.copy_public_permit.name,
+                    copy_blue_paper: req.files.copy_blue_paper.name,
+                    blue_paper_expiration: req.body.blue_paper_expiration,
+                    driver_licence_expiration: req.body.driver_licence_expiration,
+                    // Other identification info
+                    personal_id_number: req.body.personal_id_number,
+                    title: req.body.title,
+                    date_updated: new Date(),
+                    // Default upon creation
+                    isAccount_verified: true,
+                    // Personal Banking details
+                    banking_details: {
+                        bank_name: req.body.bank_name,
+                        account_number: req.body.account_number,
+                        branch_number: req.body.branch_number,
+                        branch_name: req.body.branch_name
+                    }
+                },
+                date_registered: new Date(),
+                date_updated: new Date(),  // to be changed upon update
+                driver_fingerprint: driverFingerprint,
+                
+                // When false, the driver shall not have access permission to the Driver's App
+                isDriverSuspended: false,    
+                // Add car's data:
+                cars_data: [
+                    {
+                        car_brand: req.body.car_brand,
+                        permit_number: req.body.permit_number,
+                        taxi_number: req.body.taxi_number,
+                        plate_number: req.body.plate_number,
+                        max_passengers: parseInt(req.body.max_passengers),
+                        car_fingerprint: car_fingerprint, // =====
+                        vehicle_type: req.body.vehicle_type,
+                        category: req.body.category,
+                        date_registered: new Date(),
                         date_updated: new Date(),
-                        // Default upon creation
-                        isAccount_verified: true,
-                        // Personal Banking details
-                        banking_details: {
-                            bank_name: req.body.bank_name,
-                            account_number: req.body.account_number,
-                            branch_number: req.body.branch_number,
-                            branch_name: req.body.branch_name
-                        }
+                        taxi_picture: req.files.taxi_picture.name
                     },
-                    date_registered: new Date(),
-                    date_updated: new Date(),  // to be changed upon update
-                    driver_fingerprint: driverFingerprint,
-                    
-                    // When false, the driver shall not have access permission to the Driver's App
-                    isDriverSuspended: false,    
-                    // Add car's data:
-                    cars_data: [
-                        {
-                            car_brand: req.body.car_brand,
-                            permit_number: req.body.permit_number,
-                            taxi_number: req.body.taxi_number,
-                            plate_number: req.body.plate_number,
-                            max_passengers: parseInt(req.body.max_passengers),
-                            car_fingerprint: car_fingerprint, // =====
-                            vehicle_type: req.body.vehicle_type,
-                            category: req.body.category,
-                            date_registered: new Date(),
-                            date_updated: new Date(),
-                            taxi_picture: req.files.taxi_picture.name
-                        },
-                    ]
-
-                }
-
-                collectionDrivers_profiles.insertOne(driver, function(err, res) {
-                    if (err) throw err
-                    console.log("New Driver Registered")
-                })
-                // Return uploaded files
-                res.json(UploadedFiles)
-                    
-            })
+                ],
+                operational_state : {
+                    status: "offline",
+                    last_location: null,
+                    accepted_requests_infos: null,
+                    default_selected_car: {
+                        max_passengers: parseInt(req.body.max_passengers),
+                        car_fingerprint: car_fingerprint,
+                        vehicle_type: req.body.category,
+                        date_Selected: new Date()
                     },
-            (error) => {
-                console.log(error)
-                res.json({message: "Something went wront"})
+                    push_notification_token: null
+                }                    
+
             }
-        )
-        
 
+            collectionDrivers_profiles.insertOne(driver, function(err, res) {
+                if (err) throw err
+                console.log("*************   New Driver Registered   ********************")
+            })
+            // Return uploaded files
+            res.json(UploadedFiles)
+           
+                
+        }).catch((error) => {
+            console.log(error)
+            res.json({message: "Oops! Something went wrong, maybe wrong input data"})
+        })
+
+    })
 
 })
 
 app.listen(PORT, () => {
     console.log("Driver server up and running")
 })
-

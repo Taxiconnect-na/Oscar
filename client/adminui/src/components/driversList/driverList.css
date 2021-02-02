@@ -1,0 +1,30 @@
+
+#container-driver {
+    display: flex;
+    flex-wrap: wrap;
+    width: 800px;
+    margin:auto;
+}
+
+#container-driver > div {
+    color: blue;
+    margin-top: 5px;
+    padding: 5px;
+    width: 300px;
+    font-size: 15px;
+    background-color: white;
+}
+th {
+    font-size: 14px;
+    text-align: center;
+    padding: 10px;
+    border-bottom: solid 1px black;
+}
+
+td {
+    padding: 8px;
+    font-size: small;
+    text-align: center;
+   
+}
+

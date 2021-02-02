@@ -20,7 +20,7 @@ function Sidebar() {
                             <MenuItem>Not Available</MenuItem>
                         </SubMenu>
                     </SubMenu>
-                    <MenuItem><Link>Drivers</Link></MenuItem>
+                    <MenuItem><Link to="/drivers">Drivers</Link></MenuItem>
                     <MenuItem><Link>Users </Link></MenuItem>
                 </Menu>
             </ProSidebar>;
