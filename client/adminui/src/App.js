@@ -7,6 +7,7 @@ import DriverRegistration from "./components/driverRegistration/driverRegistrati
 import RideOverview from "./components/rideOverview/rideOverview"
 import DeliveryOverview from "./components/deliveryOverview/deliveryOverview"
 import DriverList from "./components/driversList/driverList"
+import PassengerList from "./components/passengersList/passengerList"
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path= "/trip-overview/rides" component={RideOverview} />
         <Route path ="/trip-overview/deliveries" component={DeliveryOverview} />
         <Route path="/drivers" component={DriverList} />
+        <Route path="/passengers" component={PassengerList} />
    </Router>
 
   );

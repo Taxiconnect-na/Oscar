@@ -21,7 +21,7 @@ function Sidebar() {
                         </SubMenu>
                     </SubMenu>
                     <MenuItem><Link to="/drivers">Drivers</Link></MenuItem>
-                    <MenuItem><Link>Users </Link></MenuItem>
+                    <MenuItem><Link to="/passengers">Users </Link></MenuItem>
                 </Menu>
             </ProSidebar>;
         </div>

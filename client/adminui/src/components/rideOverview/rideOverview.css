@@ -33,14 +33,30 @@ table {
     display: flex;
     flex-wrap: wrap;
     width: 800px;
-    margin:auto;
+    margin-left: 180px;
 }
 
 #container > div {
     color: blue;
     margin-top: 5px;
     padding: 5px;
-    width: 200px;
+    width: 250px;
     font-size: 15px;
     background-color: white;
+}
+
+#container-low {
+    display: flex;
+    flex-wrap: wrap;
+    width: 800px;
+    margin-left: 100px;
+}
+
+#container-low > div {
+    color: white;
+    margin-top: 5px;
+    padding: 5px;
+    width: 200px;
+    font-size: 15px;
+    background-color: rgb(12, 75, 15);
 }

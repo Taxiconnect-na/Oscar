@@ -3,6 +3,7 @@ import io from 'socket.io-client'
 import "./rideOverview.css"
 import Sidebar from "../sidebar/sidebar"
 
+
 /**
  * @function GetCashWallet : Returns the total money of trips in progress, scheduled and completed
  *                          Of a given array of rides (cash and delivery returned)
@@ -64,6 +65,18 @@ function progressScheduledCompleted(arrayData, resolve) {
     let completed = arrayData.filter( current => {
         return current.isArrivedToDestination
     })
+
+    let completed_today = arrayData.filter( current => {
+        let startOfToday = new Date()
+        let convertToday = new Date(startOfToday.setHours(0, 0, 0, 0)).toISOString()
+        //console.log(current.date_time)
+        console.log(startOfToday)
+        console.log(convertToday)
+        let today = current.date_time > convertToday
+        console.log(`Date comparison result: ${today}`)
+        return (today && current.isArrivedToDestination)
+    })
+    console.log(completed_today)
     
     Promise.all([
             //let progressMoney = GetCashWallet(scheduled)
@@ -76,17 +89,22 @@ function progressScheduledCompleted(arrayData, resolve) {
         //let progressMoney = GetCashWallet(scheduled)
         new Promise((res) => {
             GetCashWallet(completed, res)
+        }),
+        new Promise((res) => {
+            GetCashWallet(completed_today,res)
         })
 
     ]).then((future) => {
-        let [progressMoney, scheduledMoney, completedMoney] = future
+        let [progressMoney, scheduledMoney, completedMoney, completedMoneyToday] = future
         let Object = {}
         Object.moneyInprogress = progressMoney
         Object.moneyScheduled = scheduledMoney
         Object.moneyCompleted = completedMoney
+        Object.moneyCompletedToday = completedMoneyToday
         Object.inprogress = progress.length
         Object.scheduled = scheduled.length
         Object.completed = completed.length
+        Object.completed_today = completed_today.length
 
         resolve(Object)
     }).catch((error) => {
@@ -202,9 +220,12 @@ function RideOverview() {
     let [InprogressCount, setInProgressCount] = useState(0)
     let [ScheduledCount, setScheduledCount] = useState(0)
     let [CompletedCount, setCompletedCount] = useState(0)
+    let [CompletedTodayCount, setCompletedTodayCount] = useState(0)
     let [moneyInprogress, setMoneyInProgress] = useState({})
     let [moneyScheduled, setMoneyScheduled] = useState({})
     let [moneyCompleted, setMoneyCompleted] = useState({})
+    let [moneyCompletedToday, setMoneyCompletedToday] = useState({})
+
     /*let [passengers_number, setPassengersNumber] = useState(0)
     let [request_type, setRequestType] = useState(0)
     let [date_time, setDateTime] = useState(0)
@@ -244,6 +265,8 @@ function RideOverview() {
                         setMoneyScheduled(future.moneyScheduled)
                         setCompletedCount(future.completed)
                         setMoneyCompleted(future.moneyCompleted)
+                        setCompletedTodayCount(future.completed_today)
+                        setMoneyCompletedToday(future.moneyCompletedToday)
                         
                     }).catch((error) => {
                         console.log(error)
@@ -351,8 +374,9 @@ function RideOverview() {
                     }}>Completed rides [{ CompletedCount }]</button>
 
                         <div style = {{ display: inProgress? "":"none" }}>
-                            <h3 style={ subtitle_style }>Rides in progress </h3>
+                            
                             <hr></hr>
+                            
                             <div id="container">
                                 
                                 <div>
@@ -369,14 +393,34 @@ function RideOverview() {
                                 <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyInprogress["totalCashWallet"] }
                                     <span style={{ fontSize: 'small', color:"black"}}> Total</span> 
                                 </h1>
-                                </div>
-                                <div style={{ backgroundColor: "gray"}}>
-                                <h1 style={{ fontSize: 'x-large', color:"blue"}}> N$ 20
-                                    <span style={{ fontSize: 'small', color:"black"}}> today</span> 
-                                </h1>
-                                </div>
+                                </div>   
                             </div>
                             <hr></hr>
+                            <h5 style={{ width: 35, margin: "auto" }}>TODAY</h5>
+                            <div id="container-low">
+                                <div >
+                                    <h1 style={{ fontSize: 'large', color:"white", textAlign: "center"}}> N$ { moneyCompletedToday["totalCash"]} 
+                                        <span style={{ fontSize: 'small'}}> cash</span> 
+                                    </h1>
+                                </div>
+                                <div >
+                                    <h1 style={{ fontSize: 'large', color:"white", textAlign: "center"}}> N$ { moneyCompletedToday["totalWallet"]}
+                                        <span style={{ fontSize: 'small'}}> wallet</span> 
+                                    </h1>
+                                </div>
+                                <div >
+                                    <h1 style={{ fontSize: 'large', color:"white", textAlign: "center"}}> N$ { moneyCompletedToday["totalCashWallet"]} 
+                                        <span style={{ fontSize: 'small'}}> total</span> 
+                                    </h1>
+                                </div>
+                                <div >
+                                    <h1 style={{ fontSize: 'large', color:"white", textAlign: "center"}}> { CompletedTodayCount } 
+                                        <span style={{ fontSize: 'small', }}> rides</span> 
+                                    </h1>
+                                </div>
+
+                            </div>
+                            <h3 style={ subtitle_style }>Rides in progress </h3>
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>
@@ -418,13 +462,10 @@ function RideOverview() {
                                     <span style={{ fontSize: 'small', color:"black"}}> Total</span> 
                                 </h1>
                                 </div>
-                                <div style={{ backgroundColor: "gray"}}>
-                                <h1 style={{ fontSize: 'x-large', color:"blue"}}> N$ 20
-                                    <span style={{ fontSize: 'small', color:"black"}}> today</span> 
-                                </h1>
-                                </div>
+                               
                             </div>
                             <hr></hr>
+                         
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>
