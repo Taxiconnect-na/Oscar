@@ -5,11 +5,6 @@ import "./PassengerList.css"
 import { FaUserAlt } from "react-icons/fa"
 
 
-function OneTotalRidesTrips(identifier, arrayData, resolve) {
-    // Initialize variable
-}
-
-
 const PassengerRow = (props) => {
     return(
         <tr>
@@ -20,7 +15,7 @@ const PassengerRow = (props) => {
             <td>{ props.passenger.phone_number }</td>
             <td>{ props.passenger.email }</td>
             <td>{ props.passenger.date_registered }</td>
-            <td>14</td>
+            <td>{ props.passenger.totaltrip }</td>
         </tr>
     )
 }
@@ -30,8 +25,7 @@ function PassengerList() {
 
     let [passengers, setPassengers] = useState([])
     let [totalNewPassengerToday, setTotalNewPassengerToday] = useState(0)
-    let [rides, setRides] = useState([])
-    let [deliveries, setDeliveries] = useState([])
+
     let ENDPOINT = 'localhost:5558'
 
     useEffect(() => { 
@@ -49,38 +43,13 @@ function PassengerList() {
           
             socket.emit("getPassengers", {data:'getting passengers'})
             
-            // Get the statistics
-            socket.on("statistics-response", (data) => {
+            // Get the statistics 
+            /*socket.on("statistics-response", (data) => {
 
                 setTotalNewPassengerToday(data["totalNewPassengerToday"])
             });
-            socket.emit("statistics", {data:'specs'})
+            socket.emit("statistics", {data:'specs'}) */
 
-            // Get rides:
-            socket.on("getRideOverview-response", (data) => {
-                if ((data !== undefined) && (data != null)) {
-                
-                    setRides(data)
-              
-                } else {
-                    console.log(data.error) // data.error ?
-                    alert("Something went wrong while retrieving Data")
-                }
-            })
-            socket.emit("getRideOverview", {data: "Get ride-overview Data!"})
-
-            //Get deliveries:
-            socket.on("getDeliveryOverview-response", (data) => {
-                if ((data !== undefined) && (data != null)) {
-            
-                    setDeliveries(data)
-             
-                } else {
-                    console.log(data.error) // data.error ?
-                    alert("Something went wrong while retrieving Data")
-                }
-            })
-            socket.emit("getDeliveryOverview", {data: "Get delivery-overview Data!"})
 
         }, 2000)
 
