@@ -37,6 +37,157 @@ function GenerateFingerprint(str, encryption = false, resolve) {
     resolve(hash)
 }
 
+/**
+ * 
+ * @param {array} arrayData : A given array from the rides_deliveries collection
+ * @param {return} resolve  : Returns an object of computed values:
+ *                              {totalCash: x , totalWallet: y ,totalCashWallet: x+y}
+ */
+
+function GetCashWallet(arrayData, resolve) {
+  
+    let fare_array = [];
+    let fare_array_cash = [];
+    let fare_array_wallet = [];
+    const Sum = (arr) => arr.reduce((num1, num2) => num1 + num2, 0);
+    
+    arrayData.map((ride) => {
+        fare_array.push(Number(ride["fare"]));
+
+        // Get rides with CASH as payment method
+        let payment_method = ride["payment_method"].toUpperCase().trim();
+        if (/CASH/i.test(payment_method)) {
+        // if (payment_method ==="CASH") /CASH/ makes sure of spacing
+        fare_array_cash.push(Number(ride["fare"]));
+        } else {
+        fare_array_wallet.push(Number(ride["fare"]));
+        }
+    });
+    
+    let totalCash = Sum(fare_array_cash);
+    let totalWallet = Sum(fare_array_wallet);
+    let totalCashWallet = totalCash + totalWallet;
+    let CashWalletObject = { totalCash, totalWallet, totalCashWallet };
+
+    resolve(CashWalletObject)
+
+}
+
+/**
+ * 
+ * @param {collection} DriversCollection:  
+ * @param {*} FilteringCollection 
+ * @param {return} resolve 
+ */
+
+function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
+
+    DriversCollection
+    .find({})
+    .toArray()
+    .then((individualsList) => {
+        let drivers = individualsList.map((individual) => {
+            return new Promise((outcome) => {
+                // Get the following:
+                const name = individual.name
+                const surname = individual.surname
+                const phone_number = individual.phone_number
+                const taxi_number = individual.cars_data[0].taxi_number
+                const plate_number = individual.cars_data[0].plate_number
+                const car_brand = individual.cars_data[0].car_brand
+                const status = individual.operational_state.status
+             
+                //Query for this individual's completed rides
+                query = {
+                    taxi_id: individual.driver_fingerprint,
+                    isArrivedToDestination: true
+                }
+                
+                FilteringCollection
+                .find(query)
+                .toArray()
+                .then((result) => {
+                    
+                    const totaltrip = result.length
+
+                    //Make computation to get corresponding total money made
+                    new Promise((res) => {
+                        GetCashWallet(result, res)
+                    }).then((futuremoney) => {
+                        const totalmoney = futuremoney.totalCashWallet
+
+                        // Get today's data:
+                        let startOfToday = new Date()
+                        startOfToday.setHours(0, 0, 0, 0)
+                        
+                        FilteringCollection
+                        .find( {
+                            taxi_id: individual.driver_fingerprint,
+                            isArrivedToDestination: true,
+                            date_requested: { $gte: startOfToday }
+                        })
+                        .toArray()
+                        .then((todaydata) => {
+                            const todaytrip = todaydata.length
+
+                            new Promise((res) => {
+                                GetCashWallet(todaydata, res)
+                            }).then((todaymoney) => {
+
+                                const todayTotalMoney = todaymoney.totalCashWallet
+
+                                // Initialize Individual data
+                                let Individual_driver = {}
+
+                                // Append data to the Individual driver Object:
+                                Individual_driver.name = name
+                                Individual_driver.surname = surname
+                                Individual_driver.phone_number = phone_number
+                                Individual_driver.taxi_number = taxi_number
+                                Individual_driver.plate_number = plate_number
+                                Individual_driver.car_brand = car_brand
+                                Individual_driver.status = status
+                                Individual_driver.totaltrip = totaltrip
+                                Individual_driver.totalmoney = totalmoney
+                                Individual_driver.todaytrip = todaytrip
+                                Individual_driver.totalMoneyToday = todayTotalMoney
+
+                                // Append this driver's info to the drivers list
+                                outcome(Individual_driver)
+
+
+                            }).catch((error) => {
+                                console.log(error)
+                            })
+
+                        }).catch((error) => {
+                            console.log(error)
+                        })                        
+
+                    }).catch((error) => {
+                        console.log(error)
+                        
+                    })
+
+                    
+                }).catch((error) => {
+                    console.log(error)
+                })
+            })
+        })
+        Promise.all(drivers).then(
+            (result) => {
+                resolve(result)
+            },
+            (error) => {
+                console.log(error)
+                resolve({ response: "error", flag: "Invalid_params_maybe" })
+            }
+        )
+    }).catch((error) => {
+        console.log(error)
+    })  
+}
 
 
 
@@ -48,8 +199,10 @@ clientMongo.connect(function(err) {
     const collectionDrivers_profiles = dbMongo.collection(
         "drivers_profiles"
     )
-    // Initialize the driver list variable
-    let driverDataList
+    const collectionRidesDeliveryData = dbMongo.collection(
+        "rides_deliveries_requests"
+    )
+    
 
     collectionDrivers_profiles.find({}).toArray()
     .then((result) => {
@@ -61,7 +214,17 @@ clientMongo.connect(function(err) {
 
     app.get("/driver-data", (req, res) => {
         let response = res
-        response.json(driverDataList)
+        new Promise((res) => {
+            getDriversInfo(collectionDrivers_profiles, collectionRidesDeliveryData, res)
+        }).then((result) => {
+            let driverDataList = result
+            console.log("Driver's Data API called")
+            console.log(result)
+            response.json(driverDataList)
+        }).catch((error) => {
+            console.log(error)
+            response.json({"error": "something went wrong. Maybe no connection or wrong parameters"})
+        })
     })
 
         // Upload Endpoint (where we will send our requests to from the react app)

@@ -7,7 +7,7 @@ import { FaUserAlt } from "react-icons/fa"
 
 function OnlineDrivers(driverArray, resolve) {
     let onlineDrivers = driverArray.filter(member => {
-        return member.operational_state.status === "online"
+        return member.status === "online"
     })
 
     resolve(onlineDrivers)
@@ -20,12 +20,12 @@ const DriverRow = (props) => {
             <td>{ props.driver.name}</td>
             <td>{ props.driver.surname }</td>
             <td>{ props.driver.phone_number }</td>
-            <td>{ props.driver.cars_data? props.driver.cars_data[0].taxi_number: "not found"}</td>
-            <td>{ props.driver.cars_data? props.driver.cars_data[0].plate_number: "not found" }</td>
-            <td>{ props.driver.cars_data? props.driver.cars_data[0].car_brand: "not found" }</td>
-            <td>{ props.driver.operational_state? props.driver.operational_state.status:"unknown" }</td>
-            <td>N$ 250</td>
-            <td>11</td>
+            <td>{ props.driver.taxi_number }</td>
+            <td>{ props.driver.plate_number }</td>
+            <td>{ props.driver.car_brand }</td>
+            <td>{ props.driver.status }</td>
+            <td>{ props.driver.totalMoneyToday }</td> 
+            <td>{ props.driver.todaytrip }</td>
         </tr>
     )
 }

@@ -539,7 +539,7 @@ clientMongo.connect(function (err) {
         collectionRidesDeliveryData, 
         collectionPassengers_profiles,
         res )
-    }).then(
+    }).then( 
       (result) => {
         console.log(result)
         res.send(result)
