@@ -13,6 +13,12 @@ const clientMongo = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
+/**
+ * 
+ * @param {collection} collectionName 
+ * @param {object} query 
+ * @function GetTotal 
+ */
 
 function GetTotal(collectionName, query, resolve) {
   //var completedCheck = { isArrivedToDestination: true}
@@ -473,6 +479,270 @@ function getDeliveryOverview(collectionRidesDeliveryData,
 
 
 
+
+//! Functions dealing with partners data:
+
+/**
+ * @function OverallmoneyPartner : returns an object of total money made so far and daily total
+ *                               Keys: total and totalToday
+ * @param {array} driversList: An array list of objects with a key value: totalmoney  
+ *                              Where "totalmoney" is a numerical value
+ * @param {return} resolve 
+ */
+
+function OverallmoneyPartner(driversList, resolve) {
+  let total = []
+  let totalToday = []
+  const Sum = (arr) => arr.reduce((num1, num2) => num1 + num2, 0)
+
+  driversList.map((driver) => {
+      total.push(Number(driver["totalmoney"]))
+      totalToday.push(Number(driver["totalMoneyToday"]))
+  })
+
+  let totalMoney = {
+      total: Sum(total),
+      totalToday: Sum(totalToday)
+
+  }
+
+  resolve(totalMoney)
+}
+/**
+* 
+* @param {array} arrayData : An array of objects from the rides/deliveries collection 
+
+*/
+function GetCashWallet(arrayData, resolve) {
+
+  let fare_array = [];
+  let fare_array_cash = [];
+  let fare_array_wallet = [];
+  const Sum = (arr) => arr.reduce((num1, num2) => num1 + num2, 0);
+  
+  arrayData.map((ride) => {
+      fare_array.push(Number(ride["fare"]));
+
+      // Get rides with CASH as payment method
+      let payment_method = ride["payment_method"].toUpperCase().trim();
+      if (/CASH/i.test(payment_method)) {
+      // if (payment_method ==="CASH") /CASH/ makes sure of spacing
+      fare_array_cash.push(Number(ride["fare"]));
+      } else {
+      fare_array_wallet.push(Number(ride["fare"]));
+      }
+  });
+  
+  let totalCash = Sum(fare_array_cash);
+  let totalWallet = Sum(fare_array_wallet);
+  let totalCashWallet = totalCash + totalWallet;
+  let CashWalletObject = { totalCash, totalWallet, totalCashWallet };
+
+  resolve(CashWalletObject)
+
+  //return CashWalletObject
+}
+/**
+* 
+* @param {collection} DriversCollection 
+* @param {collection} FilteringCollection: The rides/deliveries collection
+* @param {string} deliveryProviderName : The name of the delivery provider as 
+*                                          As registered at delivery_provider param
+* 
+*/
+
+function getDeliveryProviderInfo(DriversCollection,FilteringCollection,deliveryProviderName, resolve) {
+
+  DriversCollection
+  .find(query = {
+      "operation_clearances": "Delivery",
+      delivery_provider: deliveryProviderName
+  })
+  .toArray()
+  .then((individualsList) => {
+      
+      let drivers = individualsList.map((individual) => {
+          return new Promise((outcome) => {
+              // Get the following:
+              const name = individual.name
+              const surname = individual.surname
+              const phone_number = individual.phone_number
+              const taxi_number = individual.cars_data[0].taxi_number
+              const plate_number = individual.cars_data[0].plate_number
+              const car_brand = individual.cars_data[0].car_brand
+              const status = individual.operational_state.status
+              
+              //Query for this individual's completed rides
+              query = {
+                  taxi_id: individual.driver_fingerprint,
+                  isArrivedToDestination: true
+              }
+              
+              FilteringCollection
+              .find(query)
+              .toArray()
+              .then((result) => {
+                  
+                  const totaltrip = result.length
+
+                  //Make computation to get corresponding total money made
+                  new Promise((res) => {
+                      GetCashWallet(result, res)
+                  }).then((futuremoney) => {
+                      const totalmoney = futuremoney.totalCashWallet
+
+                      // Get today's data:
+                      let startOfToday = new Date()
+                      startOfToday.setHours(0, 0, 0, 0)
+                      
+                      FilteringCollection
+                      .find( {
+                          taxi_id: individual.driver_fingerprint,
+                          isArrivedToDestination: true,
+                          date_requested: { $gte: startOfToday }
+                      })
+                      .toArray()
+                      .then((todaydata) => {
+                          const todaytrip = todaydata.length
+
+                          new Promise((res) => {
+                              GetCashWallet(todaydata, res)
+                          }).then((todaymoney) => {
+
+                              const todayTotalMoney = todaymoney.totalCashWallet
+
+                              // Initialize Individual data
+                              let Individual_driver = {}
+
+                              // Append data to the Individual driver Object:
+                              Individual_driver.name = name
+                              Individual_driver.surname = surname
+                              Individual_driver.phone_number = phone_number
+                              Individual_driver.taxi_number = taxi_number
+                              Individual_driver.plate_number = plate_number
+                              Individual_driver.car_brand = car_brand
+                              Individual_driver.status = status
+                              Individual_driver.totaltrip = totaltrip
+                              Individual_driver.totalmoney = totalmoney
+                              Individual_driver.todaytrip = todaytrip
+                              Individual_driver.totalMoneyToday = todayTotalMoney
+
+                              outcome(Individual_driver)
+
+
+                          }).catch((error) => {
+                              console.log(error)
+                          })
+
+                      }).catch((error) => {
+                          console.log(error)
+                      })                        
+
+                  }).catch((error) => {
+                      console.log(error)
+                      
+                  })
+
+                  
+              }).catch((error) => {
+                  console.log(error)
+              })
+          })
+      })
+      Promise.all(drivers).then(
+          (result) => {
+              // Get total money made by drivers:
+              new Promise((res) => {
+                  OverallmoneyPartner(result, res)
+              }).then((future) => {
+                  
+                  let driverAll = {
+                      drivers_list: result,
+                      drivers_count : result.length,
+                      total_money: future.total,
+                      total_money_today: future.totalToday    
+                  }
+                  resolve(driverAll)
+
+              }).catch((error) => {
+                  console.log(error)
+              })
+              
+          },
+          (error) => {
+              console.log(error)
+              resolve({ response: "error", flag: "Invalid_params_maybe" })
+          }
+      )
+  }).catch((error) => {
+      console.log(error)
+  })  
+}
+
+
+function getOwners(ownersCollection, resolve) {
+  ownersCollection
+  .find({})
+  .toArray()
+  .then((owners) => {
+    let ownersData = owners.map((owner) => {
+      return new Promise((outcome) => {
+
+          const name = owner.name
+          const email = owner.email
+          const password = owner.password
+
+          const ownerData =  {
+              name: name,
+              email: email,
+              password: password 
+          }
+
+          outcome(ownerData)
+      })
+    })
+    Promise.all(ownersData)
+    .then(
+        (result) => {
+            resolve(result)
+        },
+        (error) => {
+            console.log(error)
+            resolve({ response: "error", flag: "Wrong parameters maybe"})
+        }
+    )
+  })
+}
+/**
+ * @function userExists : Authenticates the delivery provider
+ * @param {string} email 
+ * @param {string} password 
+ * @param {array} providers 
+ */
+function userExists(provider, email, password, providers, resolve) {
+  resolve( providers.some(function(el) {
+    return (el.email === email && el.password === password && el.name === provider)
+    })
+  )
+}
+/*
+* Testing the function 
+console.log(userExists("deliveryGuy", "delivery@guy","12345678",[
+  {
+    name: "ebikesForAfrica",
+    email: "ebikes@africa",
+    password: "12345678"
+  },
+  {
+    name: "deliveryGuy", 
+    email: "delivery@guy",
+    password: "12345678" 
+  }
+])  )  */   
+//! End of partners functions' data
+
+// All APIs : 
+
 clientMongo.connect(function (err) {
   //if (err) throw err;
 
@@ -487,7 +757,7 @@ clientMongo.connect(function (err) {
   const collectionRidesDeliveryDataCancelled = dbMongo.collection(
     "cancelled_rides_deliveries_requests"
   );
-    
+  const collectionOwners = dbMongo.collection("owners_profiles") 
   //? INITIALIZE EXPRESS ONCE
   app
     .get("/", (req, res) => {
@@ -551,6 +821,10 @@ clientMongo.connect(function (err) {
     )
 
   })
+
+  /**
+   * API responsible of getting all deliveries data
+   */
   app.get("/delivery-overview", (req,res) => {
     console.log("Delivery overview API called delivery!!")
     new Promise((res) => {
@@ -570,6 +844,57 @@ clientMongo.connect(function (err) {
     )
 
   })
+
+  /**
+   * API responsible of getting the partners data (delivery providers)
+   */
+
+   app.get("/delivery-provider-data/:provider/:email/:password", (req, res) => {
+     
+      let response = res
+      // Get the received parameter 
+      let providerName = req.params.provider
+      let providerEmail = req.params.email
+      let providerPassword = req.params.password
+      console.log(`Delivery provider API called by: ${ providerName }`)
+     
+      new Promise((res) => {
+        getOwners(collectionOwners, res)
+      }).then((ownersList) => {
+    
+        Promise.all([
+          new Promise((res) => {
+            // Ckeck promise
+            userExists(req.params.provider, req.params.email, req.params.password, ownersList, res)
+          }),
+          new Promise((res) => {
+            getDeliveryProviderInfo(collectionDrivers_profiles, collectionRidesDeliveryData, req.params.provider, res)
+          })
+        ])
+        .then((result) => {
+  
+          [checkResponse, deliveryInfo] = result
+       
+          if (checkResponse) {
+            response.send(deliveryInfo)
+            console.log(result)
+          } else {
+            response.status(400).send({
+              message: "Wrong credentials"
+            })
+          }
+  
+        }).catch((error) => {
+          console.log(error)
+          response.send({ response: "error", flag: "Something went wrong, could be Invalid parameters"})
+        })
+      }).catch((error) => {
+        console.log(error)
+        response.status(400).send({message: "Something went wrong"})
+      })
+      
+        
+   })
 });
 
 
