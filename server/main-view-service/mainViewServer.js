@@ -59,7 +59,7 @@ function GetDailyRegistered(collectionName, resolve) {
     .catch((err) => console.log(err));
 }
 
-function GetCashWallet(collectionName, resolve) {
+function GetCashWalletCollection(collectionName, resolve) {
   collectionName
     .find({ isArrivedToDestination: true })
     .toArray()
@@ -166,7 +166,7 @@ function activelyGet_allThe_stats(
                       GetDailyRegistered(collectionPassengers_profiles, res);
                     }),
                     new Promise((res) => {
-                      GetCashWallet(collectionRidesDeliveryData, res);
+                      GetCashWalletCollection(collectionRidesDeliveryData, res);
                     }),
                   ])
                     .then((data) => {
@@ -741,6 +741,10 @@ console.log(userExists("deliveryGuy", "delivery@guy","12345678",[
 ])  )  */   
 //! End of partners functions' data
 
+
+
+
+
 // All APIs : 
 
 clientMongo.connect(function (err) {
@@ -827,6 +831,7 @@ clientMongo.connect(function (err) {
    */
   app.get("/delivery-overview", (req,res) => {
     console.log("Delivery overview API called delivery!!")
+    
     new Promise((res) => {
       getDeliveryOverview(
         collectionRidesDeliveryData, 
@@ -844,56 +849,65 @@ clientMongo.connect(function (err) {
     )
 
   })
+  /**
+   * API to authenticate an owner
+   */
+  app.post("/authenticate-owner", (req, res) => {
+
+    let response = res
+
+    new Promise((res) => {
+      getOwners(collectionOwners, res)
+    })
+    .then((ownersList) => {
+      new Promise((res) => {
+
+        userExists(req.body.name, req.body.email, req.body.password, ownersList, res)
+        
+      })
+      .then((result) => {
+
+        let authentication_response = result
+        response.send({authenticated: authentication_response})
+
+      },  (error) => {
+        console.log(error)
+        response.send({message: "error", flag: "Maybe Invalid parameters"})
+      })
+
+    }).catch((error) => {
+      console.log(error)
+      response.send({message: "error", flag: "Maybe Invalid parameters of owners"})
+    })
+  })
 
   /**
    * API responsible of getting the partners data (delivery providers)
    */
 
-   app.get("/delivery-provider-data/:provider/:email/:password", (req, res) => {
+   app.get("/delivery-provider-data/:provider", (req, res) => {
      
       let response = res
       // Get the received parameter 
       let providerName = req.params.provider
-      let providerEmail = req.params.email
-      let providerPassword = req.params.password
-      console.log(`Delivery provider API called by: ${ providerName }`)
-     
-      new Promise((res) => {
-        getOwners(collectionOwners, res)
-      }).then((ownersList) => {
     
-        Promise.all([
-          new Promise((res) => {
-            // Ckeck promise
-            userExists(req.params.provider, req.params.email, req.params.password, ownersList, res)
-          }),
-          new Promise((res) => {
-            getDeliveryProviderInfo(collectionDrivers_profiles, collectionRidesDeliveryData, req.params.provider, res)
-          })
-        ])
+      console.log(`Delivery provider API called by: ${ providerName }`)
+
+        new Promise((res) => {
+          getDeliveryProviderInfo(collectionDrivers_profiles, collectionRidesDeliveryData, req.params.provider, res)
+        })
         .then((result) => {
-  
-          [checkResponse, deliveryInfo] = result
-       
-          if (checkResponse) {
+
+          let deliveryInfo = result
+        
             response.send(deliveryInfo)
             console.log(result)
-          } else {
-            response.status(400).send({
-              message: "Wrong credentials"
-            })
-          }
-  
-        }).catch((error) => {
+
+        })
+        .catch((error) => {
           console.log(error)
           response.send({ response: "error", flag: "Something went wrong, could be Invalid parameters"})
         })
-      }).catch((error) => {
-        console.log(error)
-        response.status(400).send({message: "Something went wrong"})
-      })
-      
-        
    })
 });
 

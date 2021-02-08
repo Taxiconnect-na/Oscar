@@ -86,6 +86,56 @@ io.on("connection", (socket) => {
         
     })
 
+    // Get delivery provider's data
+    socket.on("getPartnerData", function(data) {
+        if ((data !== undefined) && (data != null)) {
+            console.log(`getPartnerData emitted with credentials: ${data}`)
+            try {
+                axios.get(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/delivery-provider-data/${data.name}/${data.email}/${data.password}`)
+                .then((feedback) => {
+
+                    console.log(feedback.data)
+                
+                    socket.emit("getPartnerData-response", feedback.data)
+                    
+                }, (error) => {
+                    console.log(`Exited with error code: ${error.response.status}`)
+                    socket.emit("getPartnerData-response", error.response.status)
+                })
+
+            } catch (error) {
+                console.log(error)
+            }
+                
+        }
+    })
+    
+    // Authenticate owner:
+    socket.on("authenticate", function(data) {
+
+        if ((data !== undefined) && (data != null)) {
+            console.log("Authenticating...")
+            console.log(data)
+
+            try {
+
+                axios.post(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/authenticate-owner`, data)
+                .then((feedback) => {
+
+                    console.log(feedback.data)
+
+                    socket.emit("authenticate-response", feedback.data)
+
+                }).catch((error) => {
+                    console.log(error)               
+                })
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        
+    })
+
 
     // Get the driver list: 
     socket.on("getDrivers", function(data) {

@@ -8,6 +8,8 @@ import RideOverview from "./components/rideOverview/rideOverview"
 import DeliveryOverview from "./components/deliveryOverview/deliveryOverview"
 import DriverList from "./components/driversList/driverList"
 import PassengerList from "./components/passengersList/passengerList"
+import PartnersAdmin from "./components/partners/partnersAdmin"
+import LoginFormPartner from "./components/partners/LoginFormPartner"
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
         <Route path ="/trip-overview/deliveries" component={DeliveryOverview} />
         <Route path="/drivers" component={DriverList} />
         <Route path="/passengers" component={PassengerList} />
+        <Route path="/partnerAdmin" component={PartnersAdmin} />
+        <Route path="/login" component={LoginFormPartner}  />
    </Router>
 
   );
