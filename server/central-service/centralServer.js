@@ -91,7 +91,7 @@ io.on("connection", (socket) => {
         if ((data !== undefined) && (data != null)) {
             console.log(`getPartnerData emitted with credentials: ${data}`)
             try {
-                axios.get(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/delivery-provider-data/${data.name}/${data.email}/${data.password}`)
+                axios.get(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/delivery-provider-data/${data.provider}`)
                 .then((feedback) => {
 
                     console.log(feedback.data)

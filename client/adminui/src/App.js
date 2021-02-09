@@ -14,7 +14,7 @@ import LoginFormPartner from "./components/partners/LoginFormPartner"
 function App() {
   return (
    <Router>
-     
+      <Switch>
         <Route path="/" exact component={Overview} />
         <Route path="/driver-registration"  component={DriverRegistration} />
         <Route path= "/trip-overview/rides" component={RideOverview} />
@@ -23,6 +23,8 @@ function App() {
         <Route path="/passengers" component={PassengerList} />
         <Route path="/partnerAdmin" component={PartnersAdmin} />
         <Route path="/login" component={LoginFormPartner}  />
+      </Switch>
+        
    </Router>
 
   );
