@@ -61,7 +61,7 @@ function progressScheduledCompleted(arrayData, resolve) {
 
     let scheduled = arrayData.filter(current => {
         let Value = current.request_type === "scheduled"
-        return Value
+        return Value 
     })
     let completed = arrayData.filter( current => {
         return current.isArrivedToDestination

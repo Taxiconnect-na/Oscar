@@ -1,0 +1,29 @@
+nav {
+    margin-bottom: 0px;
+}
+
+.col-sm {
+   
+    margin: auto;
+
+    padding: 10px;
+}
+
+@keyframes move {
+    0% {
+        left: 0%;
+    }
+    50% {
+        left: 30%;
+    }
+    100% {
+        left:  0%;
+    }
+}
+
+h1,p {
+    position: relative;
+    animation-name: move;
+    animation-duration: 6s;
+    animation-fill-mode: forwards;
+}

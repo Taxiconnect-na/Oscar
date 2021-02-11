@@ -95,8 +95,15 @@ io.on("connection", (socket) => {
                 .then((feedback) => {
 
                     console.log(feedback.data)
+
+                    let partnerData = {
+                        drivers: feedback.data.drivers_list,
+                        drivers_count: feedback.data.drivers_count,
+                        total_money: feedback.data.total_money,
+                        total_money_today: feedback.data.total_money_today
+                    }
                 
-                    socket.emit("getPartnerData-response", feedback.data)
+                    socket.emit("getPartnerData-response", partnerData)
                     
                 }, (error) => {
                     console.log(`Exited with error code: ${error.response.status}`)
