@@ -55,12 +55,11 @@ function GetCashWallet(arrayData, resolve) {
 function progressScheduledCompleted(arrayData, resolve) {
     
     let progress = arrayData.filter(current => {
-        return current.isAccepted && current.isPickedUp
-            && !current.isArrivedToDestination
+        return !current.isArrivedToDestination
     })
 
     let scheduled = arrayData.filter(current => {
-        let Value = current.request_type === "scheduled"
+        let Value = current.request_type === "scheduled" && current.isArrivedToDestination===false
         return Value 
     })
     let completed = arrayData.filter( current => {
@@ -118,7 +117,7 @@ const DeliveryRow = (props) => {
     let [details, setDetails] = useState(false)
     let detailButton = details? "less":"more"
     
-    if (props.delivery.isDroppedPassenger===true) {
+    if (props.delivery.isDroppedDriver===true) {
         statedrop = "YES"
     } else {
         statedrop = "NO"

@@ -14,7 +14,7 @@ const PassengerRow = (props) => {
             <td>{ props.passenger.gender }</td>
             <td>{ props.passenger.phone_number }</td>
             <td>{ props.passenger.email }</td>
-            <td>{ props.passenger.date_registered }</td>
+            <td>{ props.passenger.date_registered.date }</td>
             <td>{ props.passenger.totaltrip }</td>
         </tr>
     )

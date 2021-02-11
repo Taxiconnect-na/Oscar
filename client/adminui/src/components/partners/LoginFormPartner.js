@@ -1,6 +1,6 @@
 import React, { useState }from 'react'
 import io from 'socket.io-client'
-import "./partnersAdmin.css"
+
 
 
 export default function LoginFormPartner() {

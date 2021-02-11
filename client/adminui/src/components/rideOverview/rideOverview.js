@@ -54,12 +54,11 @@ function GetCashWallet(arrayData, resolve) {
 function progressScheduledCompleted(arrayData, resolve) {
     
     let progress = arrayData.filter(current => {
-        return current.isAccepted && current.isPickedUp
-            && !current.isArrivedToDestination
+        return !current.isArrivedToDestination
     })
 
     let scheduled = arrayData.filter(current => {
-        let Value = current.request_type === "scheduled"
+        let Value = current.request_type === "scheduled" && current.isArrivedToDestination===false
         return Value
     })
     let completed = arrayData.filter( current => {
@@ -105,7 +104,8 @@ function progressScheduledCompleted(arrayData, resolve) {
         Object.scheduled = scheduled.length
         Object.completed = completed.length
         Object.completed_today = completed_today.length
-
+        console.log("------------------------------")
+        console.log(arrayData)
         resolve(Object)
     }).catch((error) => {
 
@@ -131,7 +131,7 @@ const RideRow = (props) => {
     let [details, setDetails] = useState(false)
     let detailButton = details? "less":"more"
     
-    if (props.ride.isDroppedPassenger===true) {
+    if (props.ride.isDroppedDriver===true) {
         statedrop = "YES"
     } else {
         statedrop = "NO"
@@ -301,8 +301,7 @@ function RideOverview() {
 
         return rides.map( currentRide => {
          
-            if ( currentRide.isAccepted && currentRide.isPickedUp 
-                && !currentRide.isArrivedToDestination) {
+            if ( !currentRide.isArrivedToDestination) {
                 return <RideRow ride={currentRide}  />
             } else { 
                 //! Do nothing (Do not add the ride to the list if not in progress)
@@ -312,7 +311,7 @@ function RideOverview() {
 
     const rideListScheduled = () => {
         return rides.map( currentRide => {
-            if ( currentRide.request_type === "scheduled") {
+            if ( currentRide.request_type === "scheduled" && currentRide.isArrivedToDestination===false) {
                 
                 return <RideRow ride={currentRide}  />
             } else { 
@@ -431,7 +430,7 @@ function RideOverview() {
                                         <th>Date</th>
                                         <th>Time requested</th>
                                         <th>Client picked up</th>
-                                        <th>client dropped off</th>
+                                        <th>Driver dropped off confirmation</th>
                                         <th>Connect type</th>
                                         <th>...</th>
                                     </tr>

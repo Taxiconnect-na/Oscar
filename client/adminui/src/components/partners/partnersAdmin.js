@@ -317,7 +317,7 @@ export default function PartnersAdmin() {
                                     Total fare
                                 </div>
                                 <div className="card-body">
-                                    <h3>{ totalMoney }</h3>
+                                    <h3>N$ { totalMoney }</h3>
                                 </div>
                                 </div>
                             </div>
@@ -327,7 +327,7 @@ export default function PartnersAdmin() {
                                     Total fare today 
                                 </div>
                                 <div className="card-body">
-                                    <h3>{ totalMoneyToday }</h3>
+                                    <h3>N$ { totalMoneyToday }</h3>
                                 </div>
                                 </div>
                             </div>
