@@ -126,14 +126,15 @@ function activelyGet_allThe_stats(
           console.log(`Final: ${Fullcollect}`);
           //let finalObject = new Object()
 
+
+          let startOfToday = new Date();
+          startOfToday.setHours(0, 0, 0, 0)
           new Promise((res) => {
             GetTotal(
               collectionRidesDeliveryData,
               {
-                date_requested: {
-                  $regex: new Date().toISOString().replace(/\T.*/, " "),
-                  $options: "i",
-                },
+                date_requested: { $gte : startOfToday } ,
+                
                 isArrivedToDestination: true,
               },
               res
@@ -147,11 +148,11 @@ function activelyGet_allThe_stats(
                 GetTotal(
                   collectionRidesDeliveryDataCancelled,
                   {
-                    date_requested: {
-                      $regex: new Date().toISOString().replace(/\T.*/, " "),
-                      $options: "i",
+                    date_requested: { $gte : startOfToday }
+                    //date_requested: {
+                      //$regex: new Date().toISOString().replace(/\T.*/, " "),
+                      //$options: "i",
                     },
-                  },
                   res
                 );
               })
@@ -236,6 +237,7 @@ function activelyGet_allThe_stats(
 
 function getRideOverview(collectionRidesDeliveryData, 
   collectionPassengers_profiles,
+  collectionDrivers_profiles,
   resolve ) {
     collectionRidesDeliveryData
       .find({ride_mode:"RIDE"})
@@ -272,9 +274,19 @@ function getRideOverview(collectionRidesDeliveryData,
                 .find(query)
                 .toArray()
                 .then((user)=> {
-                    // initialize the trip details object
-                    const tripDetails = {}
-                    if (user[0]){
+                    // request for the driver to get the taxi number
+                    queryDriver = {
+                      driver_fingerprint: trip.taxi_id
+                    }
+                    collectionDrivers_profiles
+                    .findOne(queryDriver)
+                    .then((driver) => {
+                      const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+
+                      // initialize the trip details object
+                      const tripDetails = {}
+                      if (user[0]){
+
                         const name = user[0]["name"]
                         const surname = user[0]["surname"]
                         const gender = user[0]["gender"]
@@ -297,12 +309,13 @@ function getRideOverview(collectionRidesDeliveryData,
                         tripDetails.name = name 
                         tripDetails.surname = surname
                         tripDetails.gender = gender
-                        tripDetails.cellphone = cellphone 
+                        tripDetails.cellphone = cellphone
+                        tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
                         //tripDetails.origin = origin
                         // Add trip detail to final response 
                         res0(tripDetails)
                       
-                    } else {
+                      } else {
                         //! Set the passenger details to "not found" if fingerprint is 
                         //!   unknown(suspecious case)
                         const name = "not found"
@@ -327,10 +340,15 @@ function getRideOverview(collectionRidesDeliveryData,
                         tripDetails.surname = surname
                         tripDetails.gender = gender
                         tripDetails.cellphone = cellphone 
+                        tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
                         //tripDetails.origin = origin
                         // Add trip detail to final response 
                         res0(tripDetails)
                     }
+
+                    }, (error) => {
+                      console.log(error)
+                    })
 
                 }).catch((error) => { 
                     console.log(error)
@@ -356,6 +374,7 @@ function getRideOverview(collectionRidesDeliveryData,
 
 function getDeliveryOverview(collectionRidesDeliveryData, 
   collectionPassengers_profiles,
+  collectionDrivers_profiles,
   resolve ) {
     collectionRidesDeliveryData
       .find({ride_mode:"DELIVERY"})
@@ -393,6 +412,15 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                 .find(query)
                 .toArray()
                 .then((user)=> {
+                  // Request for the driver's info
+                  queryDriver = {
+                    driver_fingerprint: trip.taxi_id
+                  }
+                  collectionDrivers_profiles
+                  .findOne(queryDriver)
+                  .then((driver) => {
+                    const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+
                     // initialize the trip details object
                     const tripDetails = {}
                     if (user[0]){
@@ -425,6 +453,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                         tripDetails.gender = gender
                         tripDetails.cellphone = cellphone 
                         tripDetails.origin = origin
+                        tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
                         // Add trip detail to final response 
                         res0(tripDetails)
                       
@@ -453,9 +482,15 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                         tripDetails.gender = gender
                         tripDetails.cellphone = cellphone 
                         tripDetails.origin = origin
+                        tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
                         // Add trip detail to final response 
                         res0(tripDetails)
                     }
+
+                  })
+                  .catch((error) =>{
+                    console.log(error)
+                  })
 
                 }).catch((error) => { 
                     console.log(error)
@@ -543,7 +578,7 @@ function GetCashWallet(arrayData, resolve) {
   //return CashWalletObject
 }
 /**
-* 
+* @function getDeliveryProviderInfo: Gets the basic info provided to the delivery provider dashboard
 * @param {collection} DriversCollection 
 * @param {collection} FilteringCollection: The rides/deliveries collection
 * @param {string} deliveryProviderName : The name of the delivery provider as 
@@ -629,7 +664,6 @@ function getDeliveryProviderInfo(DriversCollection,FilteringCollection,deliveryP
 
                               outcome(Individual_driver)
 
-
                           }).catch((error) => {
                               console.log(error)
                           })
@@ -643,7 +677,6 @@ function getDeliveryProviderInfo(DriversCollection,FilteringCollection,deliveryP
                       
                   })
 
-                  
               }).catch((error) => {
                   console.log(error)
               })
@@ -666,6 +699,7 @@ function getDeliveryProviderInfo(DriversCollection,FilteringCollection,deliveryP
 
               }).catch((error) => {
                   console.log(error)
+                  resolve({ response: "error", flag: "Invalid_params_maybe" })
               })
               
           },
@@ -676,9 +710,15 @@ function getDeliveryProviderInfo(DriversCollection,FilteringCollection,deliveryP
       )
   }).catch((error) => {
       console.log(error)
+      resolve({ response: "error", flag: "Invalid_params_maybe" })
   })  
 }
 
+/**
+ * @function getOwners : Gets the individual information of owners (delivery providers)
+ * @param {collection} ownersCollection 
+ * @param {return} resolve: 
+ */
 
 function getOwners(ownersCollection, resolve) {
   ownersCollection
@@ -812,6 +852,7 @@ clientMongo.connect(function (err) {
       getRideOverview(
         collectionRidesDeliveryData, 
         collectionPassengers_profiles,
+        collectionDrivers_profiles,
         res )
     }).then( 
       (result) => {
@@ -836,6 +877,7 @@ clientMongo.connect(function (err) {
       getDeliveryOverview(
         collectionRidesDeliveryData, 
         collectionPassengers_profiles,
+        collectionDrivers_profiles,
         res )
     }).then(
       (result) => {

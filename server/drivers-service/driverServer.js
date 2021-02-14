@@ -191,6 +191,78 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
 
 
 
+/**
+ * @function GenerateUnique : Generates a random 6 digits number which is not in the paymentNumbersList
+ * @param {array} paymentNumbersList 
+ * @param {return} resolve 
+ */
+
+function GenerateUnique(paymentNumbersList, resolve) {
+    try {
+            randomGen = Math.floor((Math.random()*1000000)+1)
+        
+            if (paymentNumbersList.includes(randomGen)) {
+                GenerateUnique(array, resolve)
+            } else {
+                resolve(randomGen)
+            }
+    } catch(error) {
+        resolve ({error: "something went wrong"})
+    }
+    
+}
+
+
+/**
+ * @function CreatePaymentNumber : Returnes a random number after checking availability in DB
+ * @param {collection} collectionDrivers_profiles 
+ * @param {return} resolve 
+ */
+
+function CreatePaymentNumber(collectionDrivers_profiles, resolve) {
+
+    collectionDrivers_profiles
+    .find({})
+    .toArray()
+    .then((drivers) => {
+        let driversNumber = drivers.map((driver) => {
+            return new Promise((outcome) => {
+                const number = driver.identification_data ? driver.identification_data.personal_id_number: null
+                outcome(number)
+            })
+        })
+
+        Promise.all(driversNumber)
+        .then((result) => {
+            console.log("Getting payment numbers...")
+
+            new Promise((res) => {
+                GenerateUnique(result, res)
+            })
+            .then((generated) => {
+                console.log(`Generated number: ${generated}`)
+                // return the generated number as a string
+                resolve(generated.toString())
+
+            }, (error) => {
+                console.log(error)
+                resolve({message: "error occured during generation"})
+            })
+            //resolve(result)
+        })
+        .catch((error) => {
+            console.log(error)
+            resolve({message: "error occured before generation"})
+        })
+    })
+    .catch((error) => {
+        console.log(error)
+        resolve({message: "error occured in createPaymentNUmber func"})
+    })  
+}
+
+
+
 clientMongo.connect(function(err) {
     //if (err) throw err
     console.log("Successful connection to Database")
@@ -337,11 +409,15 @@ clientMongo.connect(function(err) {
             new Promise((future) => {
                 // Generate fingerprint of the added car
                 GenerateFingerprint(carFingerprintSource, false, future)
+            }),
+            new Promise ((future) => {
+                // Generate unique payment number
+                CreatePaymentNumber(collectionDrivers_profiles, future)
             })
         ]) 
         .then( (result) => {
 
-            [driverFingerprint, car_fingerprint] = result
+            [driverFingerprint, car_fingerprint, paymentNumber] = result
 
             // Driver's object to be stored in db
             let driver = {
@@ -353,7 +429,7 @@ clientMongo.connect(function(err) {
                 operation_clearances: [req.body.operation_clearances],
                 // If delivery, set delivery provider:
                 delivery_provider: req.body.delivery_provider.length>0 ? req.body.delivery_provider : false,
-                identification: {
+                identification_data: {
                     // Required files:
                     profile_picture: req.files.profile_picture.name,
                     driver_licence_doc: req.files.driver_licence_doc.name,
@@ -375,7 +451,9 @@ clientMongo.connect(function(err) {
                         account_number: req.body.account_number,
                         branch_number: req.body.branch_number,
                         branch_name: req.body.branch_name
-                    }
+                    },
+                    // Payment number
+                    paymentNumber: paymentNumber
                 },
                 date_registered: new Date(),
                 date_updated: new Date(),  // to be changed upon update
@@ -410,7 +488,8 @@ clientMongo.connect(function(err) {
                         date_Selected: new Date()
                     },
                     push_notification_token: null
-                }                    
+                },
+
 
             }
 

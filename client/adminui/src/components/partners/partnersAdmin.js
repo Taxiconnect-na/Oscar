@@ -239,34 +239,39 @@ export default function PartnersAdmin() {
         backgroundColor: "#3183a3",
         
     }
+    const form_style = {
+        width: 400,
+        margin: "auto",
+        marginTop: 100
+    }
     // Returned content:
     if (!authenticated) {
         return(
             
             <div>
-                <form onSubmit={submitHandler}>
+                <form onSubmit={submitHandler} style={form_style}>
                     <div className="form-inner">
-                    <h2>Login</h2>
+                    <h2 style={{ width: 100, margin: "auto"}}>Login</h2>
                     {(error != "") ? ( <div className="error">{error}</div>) : ""}
                     <div className="form-group">
                         <label htmlFor="name">Name:</label>
-                        <input type="text" name="name" id="name"
+                        <input type="text" name="name" id="name" className="form-control"
                                 onChange={e => setDetails({...details, name: e.target.value})} value={details.name} >
                         </input>
                     </div>
                     <div className="form-group">
                         <label htmlFor="email">Email:</label>
-                        <input type="email" name="email" id="email"
+                        <input type="email" name="email" id="email" className="form-control"
                                 onChange={e => setDetails({...details, email: e.target.value})} value={details.email}>
                         </input>
                     </div>
                     <div className="form-group">
                         <label htmlFor="password">Password:</label>
-                        <input type="password" name="password" id="password"
+                        <input type="password" name="password" id="password" className="form-control"
                                 onChange={e => setDetails({...details, password: e.target.value})} value={details.password}>
                         </input>
                     </div>
-                    <input type="submit" value="LOGIN" />
+                    <input className="form-control" type="submit" value="LOGIN" style={{ backgroundColor: "#157ab0"}}/>
                     </div>
                 </form>
             </div>

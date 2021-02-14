@@ -29,7 +29,10 @@ function PassengerList() {
     let ENDPOINT = 'localhost:5558'
 
     useEffect(() => { 
-        let socket = io(ENDPOINT, {transports: ['websocket', 'polling', 'flashsocket']})
+        let socket = io(ENDPOINT, {
+                                    transports: ['websocket', 'polling', 'flashsocket'],
+                                    reconnection: true,
+                                    reconnectionAttempts: Infinity})
         const interval = setInterval(() => {
             console.log("passengerslist@taxiconnect")
             socket.on("getPassengers-feedback", (data) => {

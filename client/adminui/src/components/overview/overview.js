@@ -23,7 +23,11 @@ function Overview() {
     
     
     useEffect(() => { 
-        let socket = io(ENDPOINT, {transports: ['websocket', 'polling', 'flashsocket']})
+        let socket = io(ENDPOINT, {
+                                    transports: ['websocket', 'polling', 'flashsocket'],
+                                    reconnection: true,
+                                    reconnectionAttempts: Infinity})
+                                    
         const interval = setInterval(() => {
             console.log("mack@taxiconnect")
             socket.on("statistics-response", (data) => {

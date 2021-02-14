@@ -69,9 +69,10 @@ function progressScheduledCompleted(arrayData, resolve) {
         let startOfToday = new Date()
         let convertToday = new Date(startOfToday.setHours(0, 0, 0, 0)).toISOString()
         //console.log(current.date_time)
-        console.log(startOfToday)
-        console.log(convertToday)
-        let today = current.date_time > convertToday
+        //console.log(startOfToday)
+        console.log(`today start: ${convertToday}`)
+        console.log(`recived date: ${current.date_time}`)
+        let today = (new Date(current.date_time)) > convertToday
         console.log(`Date comparison result: ${today}`)
         return (today && current.isArrivedToDestination)
     })
@@ -128,13 +129,16 @@ const RideRow = (props) => {
     let statepick
     let statepickword
     let statedrop
+    let statedropword
     let [details, setDetails] = useState(false)
     let detailButton = details? "less":"more"
     
     if (props.ride.isDroppedDriver===true) {
-        statedrop = "YES"
+        statedrop = {backgroundColor:"green"}
+        statedropword = "YES"
     } else {
-        statedrop = "NO"
+        statedrop = {backgroundColor:"red"}
+        statedropword = "NO"
     }
 
     if (props.ride.isPickedUp === true) {
@@ -154,14 +158,14 @@ const RideRow = (props) => {
     return(
         <>
         <tr style ={{ backgroundColor: "#ebd113"}}>
-            <td>2</td>
-            <td>XN034</td>
+            
+            <td>{ props.ride.taxi_number }</td>
             <td>{ props.ride.passengers_number}</td>
             <td>{ props.ride.request_type}</td>
             <td>{ props.ride.date_time }</td>
             <td>{ props.ride.date_time }</td>
             <td style={ statepick }>{ statepickword }</td>
-            <td>{ statedrop }</td>
+            <td style={ statedrop }>{ statedropword }</td>
             <td>{ props.ride.connect_type }</td>
             <td><button className="btn btn-outline-info btn-sm" onClick={ () => {
                     setDetails(!details)  
@@ -194,7 +198,7 @@ const RideRow = (props) => {
                             <td className="td-second">{ props.ride.gender }</td>
                             <td className="td-second">{ props.ride.payment_method }</td>
                             <td className="td-second">N$ { props.ride.amount }</td>
-                            <td className="td-second">fq{ props.ride.amount}</td>
+                            <td className="td-second">{ props.ride.amount}</td>
                             <td className="td-second">{dest()}</td>
                             <td className="td-second">{props.ride.wished_pickup_time }</td>
                         </tr>
@@ -244,7 +248,10 @@ function RideOverview() {
     let ENDPOINT = 'localhost:5558' 
 
     useEffect(() => {
-        let socket = io(ENDPOINT, { transports: ["websocket", "polling", "flashsocket"]})
+        let socket = io(ENDPOINT, {
+                                    transports: ['websocket', 'polling', 'flashsocket'],
+                                    reconnection: true,
+                                    reconnectionAttempts: Infinity})
         const interval = setInterval(() => {
             console.log("kaputo@taxiconnect")
             socket.on("getRideOverview-response", (data) => {
@@ -253,6 +260,10 @@ function RideOverview() {
                     data.map((ride) => {
                         console.log(ride)
                     }) */
+                    console.log("**********************************")
+                    console.log("Received statistics object:")
+                    console.log(data)
+                    console.log("**********************************")
                     setRides(data)
                     // Get inprogress, scheduled and completed data to update count state
                     new Promise((res) => {
@@ -343,59 +354,18 @@ function RideOverview() {
         marginTop: 5,
         marginBottom: 10
     }
+    const card = {
+        backgroundColor: "#62bbde"
+    }
+    const card_header = {
+        backgroundColor: "#3183a3",
+        
+    }
 
-    return(
-       
-        <div>
-
-            <div className="wrapper">
-                <div className="left-column">
-                <Sidebar />
-                </div>
-                <div className="right-column" >
-                    <h1 style={ title_style }> Rides Overview </h1>
-                    <button style={{ marginLeft: 25}} className="btn btn-outline-info btn-sm " onClick={ () => {
-                    setScheduled (false)
-                    setCompleted(false)
-                    setInProgress(true)  
-                    }}>Rides in progress [{ InprogressCount }]</button>
-
-                    <button style={{ marginLeft: 35}} className="btn btn-outline-info btn-sm" onClick={ () => {
-                    setInProgress (false)
-                    setCompleted(false)
-                    setScheduled(true)  
-                    }}>Scheduled rides [{ ScheduledCount }]</button>
-
-                    <button style={{ marginLeft: 35}} className="btn btn-outline-info btn-sm" onClick={ () => {
-                    setInProgress (false)
-                    setCompleted(true)
-                    setScheduled(false)  
-                    }}>Completed rides [{ CompletedCount }]</button>
-
-                        <div style = {{ display: inProgress? "":"none" }}>
-                            
-                            <hr></hr>
-                            
-                            <div id="container">
-                                
-                                <div>
-                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyInprogress["totalCash"] }
-                                    <span style={{ fontSize: 'small', color:"black"}}> cash</span> 
-                                </h1>
-                                </div>
-                                <div>
-                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyInprogress["totalWallet"] }
-                                    <span style={{ fontSize: 'small', color:"black"}}> wallet</span> 
-                                </h1>
-                                </div>
-                                <div>
-                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyInprogress["totalCashWallet"] }
-                                    <span style={{ fontSize: 'small', color:"black"}}> Total</span> 
-                                </h1>
-                                </div>   
-                            </div>
-                            <hr></hr>
-                            <h5 style={{ width: 35, margin: "auto" }}>TODAY</h5>
+    const today = () => {
+        return(
+           <div style= {{ backgroundColor: "#cbd1d1", marginTop: 0, padding: 15}}>
+               <h5 style={{ width: 35, margin: "auto" }}>TODAY</h5>
                             <div id="container-low">
                                 <div >
                                     <h1 style={{ fontSize: 'large', color:"white", textAlign: "center"}}> N$ { moneyCompletedToday["totalCash"]} 
@@ -419,11 +389,91 @@ function RideOverview() {
                                 </div>
 
                             </div>
+           </div>
+        )
+    }
+
+    return(
+       
+        <div>
+
+            <div className="wrapper">
+                <div className="left-column">
+                <Sidebar />
+                </div>
+                <div className="right-column" >
+                    <h1 style={ title_style }> Rides Overview </h1>
+                    <div style= {{ marginLeft: 200, padding: 10}}>
+                        <button style={{ marginLeft: 25}} className="btn btn-info btn-sm " onClick={ () => {
+                        setScheduled (false)
+                        setCompleted(false)
+                        setInProgress(true)  
+                        }}>Rides in progress [{ InprogressCount }]</button>
+
+                        <button style={{ marginLeft: 35}} className="btn btn-info btn-sm " onClick={ () => {
+                        setInProgress (false)
+                        setCompleted(false)
+                        setScheduled(true)  
+                        }}>Scheduled rides [{ ScheduledCount }]</button>
+
+                        <button style={{ marginLeft: 35}} className="btn btn-info btn-sm " onClick={ () => {
+                        setInProgress (false)
+                        setCompleted(true)
+                        setScheduled(false)  
+                        }}>Completed rides [{ CompletedCount }]</button>
+
+                    </div>
+
+                        <div style = {{ display: inProgress? "":"none" }}>
+                            
+                            <hr></hr>
+                            
+                            <div >
+                                <div className="container">
+                                    <div className="row text-center">
+                                        <div className="col-sm">
+                                            <div className="card" style={card}>
+                                            <div className="card-header" style={card_header}>
+                                                cash
+                                            </div>
+                                            <div className="card-body">
+                                                <h3>N$ { moneyInprogress["totalCash"] }</h3>
+                                            </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-sm">
+                                            <div className="card" style={card}>
+                                            <div className="card-header" style= {card_header}>
+                                                wallet
+                                            </div>
+                                            <div className="card-body">
+                                                <h3>N$ { moneyInprogress["totalWallet"] }</h3>
+                                            </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-sm">
+                                            <div className="card" style={card}>
+                                            <div className="card-header" style={card_header}>
+                                                Total  
+                                            </div>
+                                            <div className="card-body">
+                                                <h3>N$ { moneyInprogress["totalCashWallet"] }</h3>
+                                            </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr></hr>
+
+                            { today() }
+
                             <h3 style={ subtitle_style }>Rides in progress </h3>
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>
-                                        <th>#</th>
+                                       
                                         <th>Taxi number</th>
                                         <th>Passengers</th>
                                         <th>Request type</th>
@@ -442,40 +492,60 @@ function RideOverview() {
                         </div>
 
                         <div style = {{ display: scheduled? "":"none" }}>
-                            <h3 style={ subtitle_style }>Scheduled rides </h3>
+                            
                             <hr></hr>
-                            <div id="container">
-                                
-                                <div>
-                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyScheduled["totalCash"] }
-                                    <span style={{ fontSize: 'small', color:"black"}}> cash</span> 
-                                </h1>
+                            <div >
+                                <div className="container">
+                                    <div className="row text-center">
+                                        <div className="col-sm">
+                                            <div className="card" style={card}>
+                                            <div className="card-header" style={card_header}>
+                                                cash
+                                            </div>
+                                            <div className="card-body">
+                                                <h3>N$ { moneyScheduled["totalCash"] }</h3>
+                                            </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-sm">
+                                            <div className="card" style={card}>
+                                            <div className="card-header" style= {card_header}>
+                                                wallet
+                                            </div>
+                                            <div className="card-body">
+                                                <h3>N$ { moneyScheduled["totalWallet"] }</h3>
+                                            </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-sm">
+                                            <div className="card" style={card}>
+                                            <div className="card-header" style={card_header}>
+                                                Total  
+                                            </div>
+                                            <div className="card-body">
+                                                <h3>N$ { moneyScheduled["totalCashWallet"] }</h3>
+                                            </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyScheduled["totalWallet"] }
-                                    <span style={{ fontSize: 'small', color:"black"}}> wallet</span> 
-                                </h1>
-                                </div>
-                                <div>
-                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyScheduled["totalCashWallet"] }
-                                    <span style={{ fontSize: 'small', color:"black"}}> Total</span> 
-                                </h1>
-                                </div>
-                               
                             </div>
                             <hr></hr>
-                         
+
+                            { today() }
+
+                            <h3 style={ subtitle_style }>Scheduled rides </h3>
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>
-                                        <th>##</th>
+                                        
                                         <th>Taxi number</th>
                                         <th>Passengers</th>
                                         <th>Request type</th>
                                         <th>Date</th>
                                         <th>Time requested</th>
                                         <th>Client picked up</th>
-                                        <th>client dropped off</th>
+                                        <th>Driver dropped off confirmation</th>
                                         <th>Connect type</th>
                                         <th>...</th>
                                     </tr>
@@ -487,43 +557,63 @@ function RideOverview() {
                         </div>
 
                         <div style = {{ display: completed? "":"none" }}>
-                            <h3 style={ subtitle_style }>Completed rides</h3>
+                            
                             <hr></hr>
-                            <div id="container">
+                           
                                 
-                                <div>
-                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyCompleted["totalCash"] }
-                                    <span style={{ fontSize: 'small', color:"black"}}> cash</span> 
-                                </h1>
-                                </div>
-                                <div>
-                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyCompleted["totalWallet"] }
-                                    <span style={{ fontSize: 'small', color:"black"}}> wallet</span> 
-                                </h1>
-                                </div>
-                                <div>
-                                <h1 style={{ fontSize: 'large', color:"blue"}}> N$ { moneyCompleted["totalCashWallet"] }
-                                    <span style={{ fontSize: 'small', color:"black"}}> Total</span> 
-                                </h1>
-                                </div>
-                                <div style={{ backgroundColor: "gray"}}>
-                                <h1 style={{ fontSize: 'x-large', color:"blue"}}> N$ 20
-                                    <span style={{ fontSize: 'small', color:"black"}}> today</span> 
-                                </h1>
+                            <div >
+                                <div className="container">
+                                    <div className="row text-center">
+                                        <div class="col-sm">
+                                            <div className="card" style={card}>
+                                            <div className="card-header" style={card_header}>
+                                                cash
+                                            </div>
+                                            <div className="card-body">
+                                                <h3>N$ { moneyCompleted["totalCash"] }</h3>
+                                            </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-sm">
+                                            <div className="card" style={card}>
+                                            <div className="card-header" style= {card_header}>
+                                                wallet
+                                            </div>
+                                            <div className="card-body">
+                                                <h3>N$ { moneyCompleted["totalWallet"] }</h3>
+                                            </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-sm">
+                                            <div className="card" style={card}>
+                                            <div className="card-header" style={card_header}>
+                                                Total  
+                                            </div>
+                                            <div className="card-body">
+                                                <h3>N$ { moneyCompleted["totalCashWallet"] }</h3>
+                                            </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                                
                             <hr></hr>
+
+                            { today() }
+
+                            <h3 style={ subtitle_style }>Completed rides</h3>
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>
-                                        <th>###</th>
+                                 
                                         <th>Taxi number</th>
                                         <th>Passengers</th>
                                         <th>Request type</th>
                                         <th>Date</th>
                                         <th>Time requested</th>
                                         <th>Client picked up</th>
-                                        <th>client dropped off</th>
+                                        <th>Driver dropped off confirmation</th>
                                         <th>Connect type</th>
                                         <th>...</th>
                                     </tr>
