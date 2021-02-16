@@ -60,6 +60,9 @@ io.on("connection", (socket) => {
             .then((feedback) => {
             let rideOverview = feedback.data
 
+            console.log("===================RIDES=============================")
+            console.log(feedback.data)
+
             socket.emit("getRideOverview-response", rideOverview)
             })
             .catch((error) => {
@@ -76,6 +79,7 @@ io.on("connection", (socket) => {
             axios.get(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/delivery-overview`)
             .then((feedback) => {
             let deliveryOverview = feedback.data
+            console.log(feedback.data)
 
             socket.emit("getDeliveryOverview-response", deliveryOverview)
             })

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react'
 import io from 'socket.io-client'
 import { FaUserAlt } from "react-icons/fa"
 import "./partnersAdmin.css"
+import queryString from 'query-string'
 
- 
 import { BrowserRouter as Router, Link, useLocation } from 'react-router-dom'
 
 /**
@@ -84,7 +84,7 @@ export default function PartnersAdmin() {
     let [name, setName] = useState(null)
     let [email, setEmail] = useState(null)
     let [password, setPassword] = useState(null)
-   
+    var [test, setTest] = useState("")
     // Use LocalStorage to preserve authentication state
     let [authenticated, setAuthentication] = useLocalStorage("authenticated", false)
 

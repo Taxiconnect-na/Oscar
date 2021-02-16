@@ -73,6 +73,7 @@ const DriverRegistration = () => {
         let [plate_number, setPlateNumber] = useState('')
         let [max_passengers, setMaxPassengers] = useState(4)
         let [vehicle_type, setVehicleType] = useState('')
+        let [car_nature, setCarNature] = useState("")
   
         // car file:
         let [taxi_picture, setTaxiPicture] = useState('')
@@ -132,6 +133,7 @@ const DriverRegistration = () => {
             formData.append('max_passengers', max_passengers)
             formData.append('taxi_picture', taxi_picture)
             formData.append('vehicle_type', vehicle_type)
+            formData.append('car_nature', car_nature)
            
             console.log(formData.get('title'))
             console.log(formData.get('delivery_provider'))
@@ -452,7 +454,21 @@ const DriverRegistration = () => {
                                     <option key="luxuryElectricRide" value="luxuryElectricRide">Luxury (electric)</option>
 
                                     </select>
-                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Car nature (select): </label>
+                                    <select
+                                        required
+                                        className="form-control"
+                                        style={{ width: 400 }}
+                                        value={ car_nature }
+                                        onChange={(e) => { setCarNature(e.target.value) }}>
+                                            <option></option>
+                                        <option key="bicycle" value="bicycle">bicycle</option>
+                                        <option key="bike" value="bike">bike</option>
+                                        <option key="car" value="car">car</option>
+                                    </select>
+                                </div>
                                 <div className="custom-file mt-4">
                                     <input type="file" className="custom-file-input" id="customFile"
                                         onChange={(e) => { 

@@ -465,6 +465,7 @@ clientMongo.connect(function(err) {
                 cars_data: [
                     {
                         car_brand: req.body.car_brand,
+                        car_nature: req.body.car_nature,
                         permit_number: req.body.permit_number,
                         taxi_number: req.body.taxi_number,
                         plate_number: req.body.plate_number,

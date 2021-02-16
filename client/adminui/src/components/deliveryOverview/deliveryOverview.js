@@ -163,11 +163,11 @@ const DeliveryRow = (props) => {
             <td>{ props.delivery.taxi_number ? props.delivery.taxi_number : "not found"}</td>
             <td>{ props.delivery.origin}</td>
             <td>{ props.delivery.request_type}</td>
-            <td>{ props.delivery.date_time }</td>
-            <td>{ props.delivery.date_time }</td>
+            <td>{ props.delivery.date_time.toString().slice(0,10) }</td>
+            <td>{ props.delivery.date_time.toString().slice(11,19) }</td>
             <td style={ statepick }>{ statepickword }</td>
             <td style={ statedrop }>{ statedropword }</td>
-            <td>{ props.delivery.delivery_receiver } ({props.delivery.delivery_phone})</td>
+            <td>{ props.delivery.delivery_receiver } {props.delivery.delivery_phone}</td>
             <td><button className="btn btn-outline-info btn-sm" onClick={ () => {
                     setDetails(!details)  
             }}>{ detailButton }</button></td>    
@@ -302,8 +302,7 @@ function DeliveryOverview() {
      */
     const deliveryListInProgress = () => {
         return deliveries.map( currentDelivery => {
-            if ( currentDelivery.isAccepted && currentDelivery.isPickedUp 
-                && !currentDelivery.isArrivedToDestination) {
+            if ( !currentDelivery.isArrivedToDestination) {
                 
                 return <DeliveryRow delivery={currentDelivery}  />
             } else { 
@@ -472,7 +471,7 @@ function DeliveryOverview() {
                                     <th>Date</th>
                                     <th>Time requested</th>
                                     <th>Item picked up</th>
-                                    <th>Item dropped off</th>
+                                    <th>Dropped (Driver side) </th>
                                     <th>Receiver</th>
                                     <th>...</th>
                                 </tr>

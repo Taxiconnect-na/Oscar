@@ -241,6 +241,7 @@ function getRideOverview(collectionRidesDeliveryData,
   resolve ) {
     collectionRidesDeliveryData
       .find({ride_mode:"RIDE"})
+      .sort({ date_requested: -1})
       .toArray()
       .then((result) => {
           // Initialize the list of all trips
@@ -262,7 +263,7 @@ function getRideOverview(collectionRidesDeliveryData,
                 const payment_method = trip.payment_method
                 const amount = trip.fare
                 const destinations = trip.destinationData
-                //const origin = trip.pickup_location_infos.location_name
+                const origin = trip.pickup_location_infos.suburb
                 //console.log(trip.client_id)
                 // Request for corresponding passenger
                 query = {
@@ -311,7 +312,7 @@ function getRideOverview(collectionRidesDeliveryData,
                         tripDetails.gender = gender
                         tripDetails.cellphone = cellphone
                         tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
-                        //tripDetails.origin = origin
+                        tripDetails.origin = origin
                         // Add trip detail to final response 
                         res0(tripDetails)
                       
@@ -341,7 +342,7 @@ function getRideOverview(collectionRidesDeliveryData,
                         tripDetails.gender = gender
                         tripDetails.cellphone = cellphone 
                         tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
-                        //tripDetails.origin = origin
+                        tripDetails.origin = origin
                         // Add trip detail to final response 
                         res0(tripDetails)
                     }
@@ -396,6 +397,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                 const isPickedUp = trip.ride_state_vars.inRideToDestination
                 const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
                 const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                const isArrivedToDestination = trip.isArrivedToDestination
                 const payment_method = trip.payment_method
                 const amount = trip.fare
                 const destinations = trip.destinationData
@@ -431,12 +433,10 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                         const cellphone = user[0]["phone_number"]
                       
                         //create the Object containing collected data
-                        if (delivery_receiver != false) {
-                          tripDetails.delivery_receiver = delivery_receiver
-                        }
-                        if (delivery_phone != false) {
-                          tripDetails.delivery_phone = delivery_phone
-                        }
+                        
+                        tripDetails.delivery_receiver = delivery_receiver
+                        tripDetails.delivery_phone = delivery_phone
+                      
                         tripDetails.request_type = request_type
                         tripDetails.isAccepted = isAccepted
                         tripDetails.wished_pickup_time = wished_pickup_time
@@ -444,6 +444,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                         tripDetails.isPickedUp = isPickedUp
                         tripDetails.isDroppedPassenger = isDroppedPassenger
                         tripDetails.isDroppedDriver = isDroppedDriver
+                        tripDetails.isArrivedToDestination = isArrivedToDestination
                         //tripDetails.connect_type = connect_type
                         tripDetails.payment_method = payment_method 
                         tripDetails.amount = amount 
@@ -465,6 +466,9 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                         const gender = "not found"
                         const cellphone = "not found"
 
+                        tripDetails.delivery_receiver = delivery_receiver
+                        tripDetails.delivery_phone = delivery_phone
+
                         //tripDetails.passengers_number = passengers_number
                         tripDetails.request_type = request_type
                         tripDetails.isAccepted = isAccepted
@@ -473,6 +477,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                         tripDetails.isPickedUp = isPickedUp
                         tripDetails.isDroppedPassenger = isDroppedPassenger
                         tripDetails.isDroppedDriver = isDroppedDriver
+                        tripDetails.isArrivedToDestination = isArrivedToDestination
                         //tripDetails.connect_type = connect_type
                         tripDetails.payment_method = payment_method 
                         tripDetails.amount = amount 
@@ -593,6 +598,7 @@ function getDeliveryProviderInfo(DriversCollection,FilteringCollection,deliveryP
       "operation_clearances": "Delivery",
       delivery_provider: deliveryProviderName
   })
+  .sort({ date_requested: -1})
   .toArray()
   .then((individualsList) => {
       

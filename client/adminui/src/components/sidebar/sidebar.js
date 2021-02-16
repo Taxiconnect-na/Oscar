@@ -2,16 +2,23 @@ import { ProSidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 import { BrowserRouter as Router, Link } from 'react-router-dom'  // Keep Router though not used in code
 import 'react-pro-sidebar/dist/css/styles.css';
 import './sidebar.scss'
- 
+import logotaxiconnect from '../../logotaxiconnect.png'
+import { FaChartBar, FaThList, FaRegRegistered, FaCarSide } from 'react-icons/fa'
 function Sidebar() {
-     
+     const iconStyle = {
+         width: 35,
+         height: 20
+     }
     return(
         <div className="sidebar">
             <ProSidebar>
                 <Menu iconShape="square">
-                    <MenuItem><Link to="/">Summary</Link></MenuItem> 
-                    <MenuItem><Link to="/driver-registration">Register Driver</Link></MenuItem>
-                    <SubMenu title="Trip Overview">
+                    <img src={logotaxiconnect} alt="TaxiConnect" style={{ height: 73, width: 140, marginLeft:30, marginBottom: 50}}/>
+                    <MenuItem><Link to="/"><FaChartBar style={iconStyle}/>Summary</Link></MenuItem> 
+                    <MenuItem><Link to="/driver-registration"><FaRegRegistered style={iconStyle} />Register Driver</Link></MenuItem>
+                    
+                    <SubMenu title="Trip Overview" style = {{marginLeft: 10}}>
+                    <FaCarSide style={iconStyle} />
                         <SubMenu title="Windhoek" >
                             <MenuItem><Link to="/trip-overview/rides">Rides</Link></MenuItem>
                             <MenuItem><Link to="/trip-overview/deliveries">Deliveries</Link></MenuItem>
@@ -20,8 +27,8 @@ function Sidebar() {
                             <MenuItem>Not Available</MenuItem>
                         </SubMenu>
                     </SubMenu>
-                    <MenuItem><Link to="/drivers">Drivers</Link></MenuItem>
-                    <MenuItem><Link to="/passengers">Users </Link></MenuItem>
+                    <MenuItem><Link to="/drivers"><FaThList style={iconStyle} />Drivers</Link></MenuItem>
+                    <MenuItem><Link to="/passengers"><FaThList style={iconStyle} />Users </Link></MenuItem>
                 </Menu>
             </ProSidebar>;
         </div>

@@ -4,6 +4,9 @@ import "./rideOverview.css"
 import Sidebar from "../sidebar/sidebar"
 
 
+
+
+
 /**
  * @function GetCashWallet : Returns the total money of trips in progress, scheduled and completed
  *                          Of a given array of rides (cash and delivery returned)
@@ -70,9 +73,10 @@ function progressScheduledCompleted(arrayData, resolve) {
         let convertToday = new Date(startOfToday.setHours(0, 0, 0, 0)).toISOString()
         //console.log(current.date_time)
         //console.log(startOfToday)
+        
         console.log(`today start: ${convertToday}`)
-        console.log(`recived date: ${current.date_time}`)
-        let today = (new Date(current.date_time)) > convertToday
+        console.log(`received date: ${current.date_time}`)
+        let today = (new Date(current.date_time)) > (new Date(convertToday))
         console.log(`Date comparison result: ${today}`)
         return (today && current.isArrivedToDestination)
     })
@@ -162,8 +166,8 @@ const RideRow = (props) => {
             <td>{ props.ride.taxi_number }</td>
             <td>{ props.ride.passengers_number}</td>
             <td>{ props.ride.request_type}</td>
-            <td>{ props.ride.date_time }</td>
-            <td>{ props.ride.date_time }</td>
+            <td>{ props.ride.date_time.toString().slice(0,10) }</td>
+            <td>{ props.ride.date_time.toString().slice(11,19) }</td>
             <td style={ statepick }>{ statepickword }</td>
             <td style={ statedrop }>{ statedropword }</td>
             <td>{ props.ride.connect_type }</td>
@@ -185,7 +189,7 @@ const RideRow = (props) => {
                             <th>Gender</th>
                             <th>Payment</th>
                             <th>Amount</th>
-                            <th>From</th>
+                            <th>Origin</th>
                             <th>Destination(s)</th>
                             <th>Wished pick up time</th>
                         </tr>
@@ -198,9 +202,10 @@ const RideRow = (props) => {
                             <td className="td-second">{ props.ride.gender }</td>
                             <td className="td-second">{ props.ride.payment_method }</td>
                             <td className="td-second">N$ { props.ride.amount }</td>
-                            <td className="td-second">{ props.ride.amount}</td>
+                            <td className="td-second">{ props.ride.origin}</td>
                             <td className="td-second">{dest()}</td>
-                            <td className="td-second">{props.ride.wished_pickup_time }</td>
+                            <td className="td-second">{props.ride.wished_pickup_time.toString().slice(0,10)} @({props.ride.wished_pickup_time.toString().slice(11,19)})
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -480,7 +485,7 @@ function RideOverview() {
                                         <th>Date</th>
                                         <th>Time requested</th>
                                         <th>Client picked up</th>
-                                        <th>Driver dropped off confirmation</th>
+                                        <th>Driver drop-off confirmation</th>
                                         <th>Connect type</th>
                                         <th>...</th>
                                     </tr>
