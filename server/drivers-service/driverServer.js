@@ -24,7 +24,15 @@ app.get("/", (req, res) => {
     res.send("All is good at Driver server")
 })
 
-
+/**
+ * 
+ * @function addHours : adds a given amount of hours to a date object 
+ */
+Date.prototype.addHours = function(h) {
+    this.setTime(this.getTime() + (h*60*60*1000));
+    return this;
+}
+ 
 
 /** 
   * @function GenerateFingerprint()
@@ -78,7 +86,7 @@ function GetCashWallet(arrayData, resolve) {
 /**
  * 
  * @param {collection} DriversCollection:  
- * @param {*} FilteringCollection 
+ * @param {collection} FilteringCollection 
  * @param {return} resolve 
  */
 
@@ -265,6 +273,52 @@ function CreatePaymentNumber(collectionDrivers_profiles, resolve) {
 
 
 
+function InsertcashPayment(driversCollection,walletTransactionsLogsCollection, query, amount, resolve) {
+    // Initialize transaction object
+    const transaction = {}
+    // make query
+    driversCollection
+    .findOne(query)
+    .then((result) => {
+        
+        const money = amount
+        const user_fingerprint = "Taxiconnect"
+        const recipient_fp = result.driver_fingerprint
+        const payment_currency = "NAD"
+        const transaction_nature = "weeklyPaidDriverAutomatic"
+        const date_captured = (new Date()).addHours(2)
+        const timestamp = ((new Date()).addHours(2)).getTime()
+
+        transaction.user_fingerprint = user_fingerprint
+        transaction.recipient_fp = recipient_fp
+        transaction.payment_currency = payment_currency
+        transaction.transaction_nature = transaction_nature
+        transaction.date_captured = date_captured
+        transaction.timestamp = timestamp
+        transaction.amount = money
+
+        // Insert transaction into db
+        walletTransactionsLogsCollection
+        .insertOne(transaction)
+        .then((next) => {
+            resolve(`++++++++++++ ONE CASH PAYMENT OF [  N$ ${amount}  ] BY ${result.name} inserted ++++++++++++++++`)
+        })
+        .catch((error) => {
+            console.log(error)
+            resolve({error: "Seems like wrong parameters @db query"})
+        })
+
+    })
+    .catch((error) => {
+        console.log(error)
+        resolve({error: "Seems like wrong parameters"})
+    })
+}
+
+
+
+
+
 clientMongo.connect(function(err) {
     //if (err) throw err
     console.log("Successful connection to Database")
@@ -276,7 +330,9 @@ clientMongo.connect(function(err) {
     const collectionRidesDeliveryData = dbMongo.collection(
         "rides_deliveries_requests"
     )
-    
+    const collectionWallet_transaction_logs = dbMongo.collection(
+        "wallet_transactions_logs"
+    )
 
     collectionDrivers_profiles.find({}).toArray()
     .then((result) => {
@@ -286,6 +342,9 @@ clientMongo.connect(function(err) {
         console.log(error)
     })
 
+    /**
+     * API responsible to return drivers list
+     */
     app.get("/driver-data", (req, res) => {
         let response = res
         new Promise((res) => {
@@ -299,6 +358,57 @@ clientMongo.connect(function(err) {
             console.log(error)
             response.json({"error": "something went wrong. Maybe no connection or wrong parameters"})
         })
+    })
+
+    app.post("/cash-payment", (req, res) => {
+        const query_taxi_number = req.body.taxi_number? {"cars_data.taxi_number": req.body.taxi_number} : ""
+        const query_paymentNumber = req.body.paymentNumber? {"identification_data.paymentNumber": req.body.paymentNumber}: ""
+        const received_amount = req.body.amount
+
+        if (query_taxi_number) {
+
+            new Promise((res) => {
+                InsertcashPayment(
+                    collectionDrivers_profiles,
+                    collectionWallet_transaction_logs, query_taxi_number,
+                    received_amount,
+                    res
+                )
+             })
+             .then((result) => {
+                 console.log("-------------DONE-----------------------")
+                 console.log(result)
+                 res.json({"response": "SUCCESSFUL INSERTION"})
+                 
+             })
+             .catch((error) => {
+                 console.log(error)
+                 res.status(500).send({"error": "Something went wrong"})
+             })
+        } else if (query_paymentNumber) {
+
+            new Promise((res) => {
+                InsertcashPayment(
+                    collectionDrivers_profiles,
+                    collectionWallet_transaction_logs, query_paymentNumber,
+                    received_amount,
+                    res
+                )
+             })
+             .then((result) => {
+                 console.log("-------------DONE-----------------------")
+                 console.log(result)
+                 res.json({"response": "SUCCESSFUL INSERTION"})
+                 
+             })
+             .catch((error) => {
+                 console.log(error)
+                 res.status(500).send({"error": "Something went wrong"})
+             })
+        } else {
+            res.status(500).send({"error": "Something went wrong!!"})
+        }
+
     })
 
         // Upload Endpoint (where we will send our requests to from the react app)
@@ -319,6 +429,7 @@ clientMongo.connect(function(err) {
         const copy_public_permit = req.files.copy_public_permit
         const copy_blue_paper = req.files.copy_blue_paper
         const taxi_picture = req.files.taxi_picture
+        
     
         if (req.body.delivery_provider.length === 0) {
             console.log("No delivery provider")
@@ -444,7 +555,7 @@ clientMongo.connect(function(err) {
                     // Other identification info
                     personal_id_number: req.body.personal_id_number,
                     title: req.body.title,
-                    date_updated: new Date(),
+                    date_updated: (new Date()).addHours(2),
                     // Default upon creation
                     isAccount_verified: true,
                     // Personal Banking details
@@ -457,8 +568,8 @@ clientMongo.connect(function(err) {
                     // Payment number
                     paymentNumber: paymentNumber
                 },
-                date_registered: new Date(),
-                date_updated: new Date(),  // to be changed upon update
+                date_registered: (new Date()).addHours(2),
+                date_updated: (new Date()).addHours(2),  // to be changed upon update
                 driver_fingerprint: driverFingerprint,
                 
                 // When false, the driver shall not have access permission to the Driver's App
@@ -475,8 +586,8 @@ clientMongo.connect(function(err) {
                         car_fingerprint: car_fingerprint, // =====
                         vehicle_type: req.body.vehicle_type,
                         category: req.body.category,
-                        date_registered: new Date(),
-                        date_updated: new Date(),
+                        date_registered: (new Date()).addHours(2),
+                        date_updated: (new Date()).addHours(2),
                         taxi_picture: req.files.taxi_picture.name
                     },
                 ],
@@ -488,7 +599,7 @@ clientMongo.connect(function(err) {
                         max_passengers: parseInt(req.body.max_passengers),
                         car_fingerprint: car_fingerprint,
                         vehicle_type: req.body.category,
-                        date_Selected: new Date()
+                        date_Selected: (new Date()).addHours(2)
                     },
                     push_notification_token: null
                 },
