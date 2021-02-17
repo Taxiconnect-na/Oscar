@@ -60,8 +60,8 @@ const DriverRow = (props) => {
             <td>{ props.driver.car_brand }</td>
             <td>{ props.driver.status }</td>
             <td> { props.driver.totalMoneyToday }</td>
-            <td>{ props.driver.totalmoney}</td> 
             <td>{ props.driver.todaytrip }</td>
+            <td>{ props.driver.totalmoney}</td>             
             <td>{ props.driver.totaltrip}</td>
             
         </tr>
@@ -101,6 +101,7 @@ export default function PartnersAdmin() {
     useEffect(() => {
         
         if(authenticated) {
+            setName(details.name)
             if(interval === null) {
 
                 interval = setInterval(() => {
@@ -111,24 +112,15 @@ export default function PartnersAdmin() {
                     socket.on("getPartnerData-response", (data) => {
                         console.log("getting getPartnerData-response data")
 
-                        /*let List = data.drivers_list.map((user) => {
-                            return new Promise((outcome) => {
-                                
-                            })
-                        })*/
-                        /*let total_money = data.total_money
-                        let total_money_today = data.total_money_today
-                        let drivers_count = data.drivers_count
-                        let mydata = data.drivers  */
                         if ((data !== undefined) || (data != null)) {
                             setPartnerDrivers([...data["drivers"]])
                             setTotalMoney(data["total_money"])
                             setTotalMoneyToday(data["total_money_today"])
                             setDriversCount(data["drivers_count"])
 
-                            console.log(data)
+                            //console.log(data)
                             setAllData(data)
-                            console.log(`All data: ${allData}`)
+                            //console.log(`All data: ${allData}`)
 
                             console.log(`total money: ${totalMoney}`)
                             console.log(`total money today : ${totalMoneyToday}`) 
@@ -161,7 +153,7 @@ export default function PartnersAdmin() {
 
     const Logout = () => {
         setAuthentication(false)
-       
+        setError("")
         setDetails({name:"", email:"", password:""})
         
         return(() => {clearInterval(interval)})
@@ -194,13 +186,8 @@ export default function PartnersAdmin() {
                         socket.emit("getPartnerData", {provider: details.name})
             
                         socket.on("getPartnerData-response", (data) => {
-                            console.log("getting getPartnerData-response data")
-                            
-                            /*let total_money = data.total_money
-                            let total_money_today = data.total_money_today
-                            let drivers_count = data.drivers_count
-                            let mydata = data.drivers_list*/
-
+                            console.log("getting getPartnerData data")
+                          
                             setPartnerDrivers(data.drivers)
                             setTotalMoney(data.total_money)
                             setTotalMoneyToday(data.total_money_today)
@@ -250,7 +237,7 @@ export default function PartnersAdmin() {
                 <form onSubmit={submitHandler} style={form_style}>
                     <div className="form-inner">
                     <h2 style={{ width: 100, margin: "auto"}}>Login</h2>
-                    {(error != "") ? ( <div className="error">{error}</div>) : ""}
+                    {(error != "") ? ( <div className="text-warning" style={{width:200, margin:"auto",}}>{error}</div>) : ""}
                     <div className="form-group">
                         <label htmlFor="name">Name:</label>
                         <input type="text" name="name" id="name" className="form-control"
@@ -280,7 +267,7 @@ export default function PartnersAdmin() {
             <div >
 
                 <nav className="navbar navbar-expand-lg " style={{ backgroundColor: "#0b5054"}}>
-                    <a className="navbar-brand" href="#" style={{color:"white", marginLeft: 100}}>Dashboard</a>
+                    <a className="navbar-brand" href="#" style={{color:"white", marginLeft: 100}}>Dashboard | {name}</a>
 
                     <ul className="nav ml-auto">
                     <li className="nav-item">
@@ -302,7 +289,7 @@ export default function PartnersAdmin() {
 
                 <div className="container">
                     
-                    <div class="container">
+                    <div class="container" >
                         <div class="row text-center">
                             <div class="col-sm">
                                 <div className="card" style={card}>
@@ -317,7 +304,7 @@ export default function PartnersAdmin() {
                             <div class="col-sm">
                                 <div className="card" style={card}>
                                 <div className="card-header" style= {card_header}>
-                                    Total fare
+                                    Gross amount
                                 </div>
                                 <div className="card-body">
                                     <h3>N$ { totalMoney }</h3>
@@ -327,7 +314,7 @@ export default function PartnersAdmin() {
                             <div class="col-sm">
                                 <div className="card" style={card}>
                                 <div className="card-header" style={card_header}>
-                                    Total fare today 
+                                    Today 
                                 </div>
                                 <div className="card-body">
                                     <h3>N$ { totalMoneyToday }</h3>
@@ -340,8 +327,8 @@ export default function PartnersAdmin() {
 
                  
                     <br></br>
-                    
-                    <div className="card">
+                    <div style={{marginBottom:150}}>
+                    <div className="card" >
                         <div className="card-header">
                             Registered drivers 
                         </div>
@@ -357,10 +344,10 @@ export default function PartnersAdmin() {
                                         <th>Plate number</th>
                                         <th>Car brand</th>
                                         <th>Status</th>
-                                        <th>Daily profit</th>
-                                        <th>TotalProfit</th>
-                                        <th>Daily connect</th>
-                                        <th>Total connect</th>
+                                        <th>Today (N$)</th>
+                                        <th>Connects (today)</th>
+                                        <th>Total (N$)</th>       
+                                        <th>Total connects</th>
                                     </tr>
 
                                 </thead>
@@ -370,6 +357,7 @@ export default function PartnersAdmin() {
                             </table> 
                             </div>
                         </div>
+                </div>
                 </div>           
             </div>
         )

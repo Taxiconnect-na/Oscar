@@ -27,3 +27,15 @@ h1,p {
     animation-duration: 6s;
     animation-fill-mode: forwards;
 }
+
+table {
+    table-layout: fixed;
+    width: 100%;
+    font-size: 13px;
+
+}
+
+table > thead, td {
+    text-align: center;
+    padding: 5px;
+}

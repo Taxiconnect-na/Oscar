@@ -194,10 +194,10 @@ const DriverRegistration = () => {
                                     value={delivery_provider}
                                     onChange={(e) => { setDeliveryProvider(e.target.value) }}>
                                         <option></option>
-                                        <option value="ebikesForAfrica">ebikesForAfrica</option>
-                                        <option value="deliveryGuy">deliveryGuy</option>
-                                        <option value="twoPointDelivery">twoPointDelivery</option>
-                                
+                                        <option value="ebikes4Africa">ebikes4Africa</option>
+                                        <option value="DeliveryGuy">deliveryGuy</option>
+                                        <option value="TwoPointDelivery">TwoPointDelivery</option>
+                                        <option value="Tuma">tuma</option>                                
                                 </select>
                             </div>
                             <div className="form-group ml-4">
