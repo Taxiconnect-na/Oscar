@@ -24,6 +24,8 @@ app.get("/", (req, res) => {
     res.send("All is good at Driver server")
 })
 
+
+
 /** 
   * @function GenerateFingerprint()
   * Generate a unique fingerprint for a given string

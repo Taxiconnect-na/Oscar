@@ -1,6 +1,11 @@
 version: "3"
 services:
+  mongo:
+    image: mongo:latest
+    restart: always
   admin-server:
+    depends_on: 
+      - mongo
     image: admin-image:1.0
     build: .
     ports:
