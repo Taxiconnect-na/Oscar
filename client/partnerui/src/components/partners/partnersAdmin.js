@@ -256,7 +256,7 @@ export default function PartnersAdmin() {
                                 onChange={e => setDetails({...details, password: e.target.value})} value={details.password}>
                         </input>
                     </div>
-                    <input className="form-control" type="submit" value="LOGIN" style={{ backgroundColor: "#157ab0"}}/>
+                    <input className="form-control" id="submit-button" type="submit" value="LOGIN" style={{ backgroundColor: "#157ab0"}}/>
                     </div>
                 </form>
             </div>
