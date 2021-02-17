@@ -3,7 +3,7 @@ import Sidebar from "../sidebar/sidebar"
 import io from "socket.io-client"
 import "./PassengerList.css"
 import { FaUserAlt } from "react-icons/fa"
-
+require("dotenv").config({ path : "../../../.env"})
 
 const PassengerRow = (props) => {
     return(
@@ -26,7 +26,7 @@ function PassengerList() {
     let [passengers, setPassengers] = useState([])
     let [totalNewPassengerToday, setTotalNewPassengerToday] = useState(0)
 
-    let ENDPOINT = 'localhost:5558'
+    let ENDPOINT = process.env.GATEWAY
 
     useEffect(() => { 
         let socket = io(ENDPOINT, {

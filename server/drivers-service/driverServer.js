@@ -1,4 +1,4 @@
-require("dotenv").config()
+require("dotenv").config({ path: "../.env"})
 const express = require("express")
 const fileUpload = require("express-fileupload")
 const app = express()
@@ -13,7 +13,7 @@ app.use(cors())
 app.use(fileUpload())
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
-PORT = process.env.PORT || 5556
+PORT = process.env.DRIVER_ROOT
 
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
@@ -512,5 +512,5 @@ clientMongo.connect(function(err) {
 })
 
 app.listen(PORT, () => {
-    console.log("Driver server up and running")
+    console.log(`Driver server up and running @ port ${ PORT } `)
 })

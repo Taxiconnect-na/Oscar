@@ -3,8 +3,7 @@ import io from 'socket.io-client'
 import { FaUserAlt } from "react-icons/fa"
 import "./partnersAdmin.css"
 import queryString from 'query-string'
-
-import { BrowserRouter as Router, Link, useLocation } from 'react-router-dom'
+require("dotenv").config({ path : "../../../.env"})
 
 /**
  * @function useLocalStorage: Works like useState except add persistence of data upon reload
@@ -74,7 +73,7 @@ var interval = null
 
 export default function PartnersAdmin() {
     // Initialize socket connection
-    var ENDPOINT = 'localhost:5558'
+    var ENDPOINT = 'localhost:10014'
     var socket = io(ENDPOINT, {
                     transports: ['websocket', 'polling', 'flashsocket'],
                     reconnection: true,

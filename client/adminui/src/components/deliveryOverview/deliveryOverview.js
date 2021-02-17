@@ -2,7 +2,7 @@ import React, {useState, useEffect} from "react"
 import io from 'socket.io-client'
 import "./deliveryOverview.css"
 import Sidebar from "../sidebar/sidebar"
-
+require("dotenv").config({ path : "../../../.env"})
 
 
 /**
@@ -244,7 +244,7 @@ function DeliveryOverview() {
     let [gender, setGender] = useState('')
     let [cellphone, setCellphone] = useState('')  */
     
-    let ENDPOINT = 'localhost:5558' 
+    let ENDPOINT = process.env.GATEWAY
 
     useEffect(() => {
         let socket = io(ENDPOINT, {

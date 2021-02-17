@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ path: "../.env"});
 const express = require("express")
 const app = express()
 const axios = require("axios")
@@ -12,7 +12,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cors())
 
-const PORT = process.env.PORT || 5558
+const PORT = process.env.CENTRAL_PORT
 
 
 io.on("connection", (socket) => {

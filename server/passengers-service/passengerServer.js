@@ -1,4 +1,4 @@
-require("dotenv").config()
+require("dotenv").config({ path: "../.env" })
 const express = require("express")
 const app = express()
 const cors = require("cors")
@@ -9,7 +9,7 @@ const dbName = process.env.DB_NAME
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cors())
-PORT = process.env.PORT || 5557
+PORT = process.env.PASSENGER_ROOT
 
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
@@ -128,6 +128,6 @@ clientMongo.connect(function(err) {
 })
 
 app.listen(PORT, () => {
-    console.log("Passenger server up and running")
+    console.log(`Passenger server up and running @ port ${PORT}`)
 })
 

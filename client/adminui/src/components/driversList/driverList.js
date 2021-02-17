@@ -3,6 +3,7 @@ import io from 'socket.io-client'
 import Sidebar from '../sidebar/sidebar'
 import "./driverList.css"
 import { FaUserAlt } from "react-icons/fa"
+require("dotenv").config({ path : "../../../.env"})
 
 
 function OnlineDrivers(driverArray, resolve) {
@@ -32,7 +33,7 @@ const DriverRow = (props) => {
 
 function DriverList() {
     
-    let ENDPOINT = 'localhost:5558'
+    let ENDPOINT = process.env.GATEWAY
     let [drivers, setDrivers] = useState([])
     let [online_drivers_count, setOnlineDriversCount] = useState(0)
 

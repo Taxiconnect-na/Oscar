@@ -7,7 +7,7 @@ function App() {
     <Router>
       <Switch>
        
-        <Route path="/partnerAdmin" component={PartnersAdmin} />
+        <Route path="/" exact component={PartnersAdmin} />
         
       </Switch>
       

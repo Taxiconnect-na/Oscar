@@ -3,6 +3,7 @@ import axios from 'axios'
 import DatePicker from 'react-datepicker'
 import './driverRegistration.css'
 import Sidebar from '../sidebar/sidebar'
+require('dotenv').config({ path: "../../../.env"})
 
 const left_form_style = {
     border: "1px solid #698dc7",
@@ -139,10 +140,10 @@ const DriverRegistration = () => {
             console.log(formData.get('delivery_provider'))
             console.log(formData.get('operation_clearances'))
             console.log(formData.get('copy_id_paper'))
-            
+            //passenger-data
             // Send data to server
             try {
-                const res = await axios.post('http://localhost:5556/upload', formData, {
+                const res = await axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     } 

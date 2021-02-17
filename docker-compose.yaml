@@ -1,0 +1,14 @@
+version: "3"
+services:
+  admin-server:
+    image: admin-image:1.0
+    build: .
+    ports:
+      - "10014:10014"
+      - "10011:10011"
+      - "10010:10010"
+      - "10012:10012"
+      - "10300:10300"
+      - "10305:10305"
+    restart: always
+      

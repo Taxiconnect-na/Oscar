@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import io from 'socket.io-client'
 import Sidebar from '../sidebar/sidebar'
 import './overview.css' 
-
+require("dotenv").config({ path : "../../../.env"})
 
 function Overview() {
     // Initialize statistics state
@@ -19,7 +19,7 @@ function Overview() {
     let [totalNewPassengerToday, setTotalNewPassengerToday] = useState(50)
     let [totalCash, setTotalCash] = useState(762)
     let [totalWallet, setTotalWallet] = useState(345)
-    let ENDPOINT = 'localhost:5558'
+    let ENDPOINT = process.env.GATEWAY
     
     
     useEffect(() => { 
