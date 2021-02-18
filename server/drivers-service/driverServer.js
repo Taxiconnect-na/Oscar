@@ -17,12 +17,12 @@ PORT = process.env.DRIVER_ROOT
 
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
-  });
+});
 
 
-app.get("/", (req, res) => {
+/*app.get("/", (req, res) => {
     res.send("All is good at Driver server")
-})
+}) */
 
 /**
  * 
@@ -271,7 +271,15 @@ function CreatePaymentNumber(collectionDrivers_profiles, resolve) {
     })  
 }
 
-
+/**
+ * @function InsertcashPayment: Inserts a payment made by a driver, which gets saved into the
+ *                               wallet transactions collection
+ * @param {collection} driversCollection 
+ * @param {collection} walletTransactionsLogsCollection 
+ * @param {object} query 
+ * @param {number} amount 
+ * @param {return} resolve 
+ */
 
 function InsertcashPayment(driversCollection,walletTransactionsLogsCollection, query, amount, resolve) {
     // Initialize transaction object
@@ -360,6 +368,9 @@ clientMongo.connect(function(err) {
         })
     })
 
+    /**
+     * API serving to insert a payment made by a driver/owner given taxi_number,
+     */
     app.post("/cash-payment", (req, res) => {
         const query_taxi_number = req.body.taxi_number? {"cars_data.taxi_number": req.body.taxi_number} : ""
         const query_paymentNumber = req.body.paymentNumber? {"identification_data.paymentNumber": req.body.paymentNumber}: ""

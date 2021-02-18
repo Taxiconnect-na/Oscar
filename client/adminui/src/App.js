@@ -9,6 +9,7 @@ import DeliveryOverview from "./components/deliveryOverview/deliveryOverview"
 import DriverList from "./components/driversList/driverList"
 import PassengerList from "./components/passengersList/passengerList"
 import PartnersAdmin from "./components/partners/partnersAdmin"
+import CashPaymentDriver from './components/cashPaymentDriver/cashPaymentDriver'
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/drivers" component={DriverList} />
         <Route path="/passengers" component={PassengerList} />
         <Route path="/partnerAdmin" component={PartnersAdmin} />
+        <Route path="/driver-payment" component={CashPaymentDriver} />
        
       </Switch>
         
