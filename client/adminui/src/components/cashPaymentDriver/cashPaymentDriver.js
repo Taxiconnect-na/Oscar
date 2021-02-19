@@ -20,21 +20,31 @@ export default function CashPaymentDriver() {
         formData.append("amount", amount)
 
         console.log("Submitting...")
+        
         try {
 
-            const res = await axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/cash-payment`, formData , {
+            const res = await axios.post(`http://localhost:10011/cash-payment`, formData , {
                 headers: {
-                    "Content-Type": "application/json"
+                    'Content-Type': 'multipart/form-data'
                 } 
-            } )
+            })
 
             console.log(res.data)
             alert("Successfully submitted")
 
+            setTaxiNumber("")
+            setPaymentNumber("")
+            setAmount("")
+            setPaymentWith("")
+
         } catch(err) {
             console.log(err)
-            alert("There was an error with the server, " + 
-                "make sure all the fields were properly entered")
+            if (err.response.status === 500) {
+                alert("No driver match, enter correct taxi number or payment number")
+            } else {
+                alert("Error: The payment was not made. Maybe server error or wrong parameters")
+            }
+            
         } 
         /*axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/cash-payment`, formData)
         .then((result) => { console.log(result)}) */
@@ -50,12 +60,12 @@ export default function CashPaymentDriver() {
                     <Fragment >
                     <div className="right-column">
                     
-                        <h1 style={{ textAlign: "center", marginBottom: 5, backgroundColor: "#179eb3" }}>
+                        <h1 style={{ textAlign: "center", marginBottom: 5, backgroundColor: "#179eb3", padding: 5 }}>
                             Make Payment </h1>
                         <form onSubmit={onSubmitHandler}> 
                             <div id="wrapper">
                                 <div className="literal-info" style={{width: 250, margin:"auto", marginTop:50}}>
-                                    <div className="form-group mb-4">
+                                    <div className="form-group mb-4" >
                                         <label>Make payment with (select): </label>
                                         <select
                                             required

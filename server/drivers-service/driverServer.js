@@ -212,6 +212,7 @@ function GenerateUnique(paymentNumbersList, resolve) {
             randomGen = Math.floor((Math.random()*1000000)+1)
         
             if (paymentNumbersList.includes(randomGen)) {
+                console.log(`********************** ${random} is taken *************`)
                 GenerateUnique(array, resolve)
             } else {
                 resolve(randomGen)
@@ -219,7 +220,7 @@ function GenerateUnique(paymentNumbersList, resolve) {
     } catch(error) {
         resolve ({error: "something went wrong"})
     }
-    
+     
 }
 
 
@@ -289,7 +290,8 @@ function InsertcashPayment(driversCollection,walletTransactionsLogsCollection, q
     .findOne(query)
     .then((result) => {
         
-        const money = amount
+        if(result) {
+            const money = amount
         const user_fingerprint = "Taxiconnect"
         const recipient_fp = result.driver_fingerprint
         const payment_currency = "NAD"
@@ -315,6 +317,9 @@ function InsertcashPayment(driversCollection,walletTransactionsLogsCollection, q
             console.log(error)
             resolve({error: "Seems like wrong parameters @db query"})
         })
+        } else {
+            resolve({error: "driver not found"})
+        }
 
     })
     .catch((error) => {
@@ -381,16 +386,22 @@ clientMongo.connect(function(err) {
             new Promise((res) => {
                 InsertcashPayment(
                     collectionDrivers_profiles,
-                    collectionWallet_transaction_logs, query_taxi_number,
+                    collectionWallet_transaction_logs,
+                    query_taxi_number,
                     received_amount,
                     res
                 )
              })
              .then((result) => {
-                 console.log("-------------DONE-----------------------")
-                 console.log(result)
-                 res.json({"response": "SUCCESSFUL INSERTION"})
-                 
+                 // Verify returned object from InsertCashPayment
+                 if (!result.error) {
+                    console.log("-------------DONE-----------------------")
+                    console.log(result)
+                    res.json({"response": "SUCCESSFUL INSERTION"})
+                 } else {
+                     res.status(500).send({error: "no match for provided taxi number" })
+                 }
+
              })
              .catch((error) => {
                  console.log(error)
@@ -401,16 +412,20 @@ clientMongo.connect(function(err) {
             new Promise((res) => {
                 InsertcashPayment(
                     collectionDrivers_profiles,
-                    collectionWallet_transaction_logs, query_paymentNumber,
+                    collectionWallet_transaction_logs,
+                    query_paymentNumber,
                     received_amount,
                     res
                 )
              })
              .then((result) => {
-                 console.log("-------------DONE-----------------------")
-                 console.log(result)
-                 res.json({"response": "SUCCESSFUL INSERTION"})
-                 
+                if (!result.error) {
+                    console.log("-------------DONE-----------------------")
+                    console.log(result)
+                    res.json({"response": "SUCCESSFUL INSERTION"})
+                 } else {
+                    res.status(500).send({error: "no match for provided payment number" })
+                 }
              })
              .catch((error) => {
                  console.log(error)
@@ -450,7 +465,7 @@ clientMongo.connect(function(err) {
         
         const savedFiles = {}
         profile_picture.mv(path.join(__dirname,
-            `../../client/adminui/public/uploads/${profile_picture.name}`), err => {  //mv move method on file object
+            `./uploads/${profile_picture.name}`), err => {  //mv move method on file object
             if (err) {
                 console.error(err) 
                 return res.status(500).send(err)
@@ -460,7 +475,7 @@ clientMongo.connect(function(err) {
             
         })
         driver_licence_doc.mv(path.join(__dirname,
-            `../../client/adminui/public/uploads/${driver_licence_doc.name}`), err => {  //mv move method on file object
+            `./uploads/${driver_licence_doc.name}`), err => {  //mv move method on file object
             if (err) {
                 console.error(err) 
                 return res.status(500).send(err)
@@ -470,7 +485,7 @@ clientMongo.connect(function(err) {
             
         })
         copy_id_paper.mv(path.join(__dirname,
-            `../../client/adminui/public/uploads/${copy_id_paper.name}`), err => {  //mv move method on file object
+            `./uploads/${copy_id_paper.name}`), err => {  //mv move method on file object
             if (err) {
                 console.error(err)
                 return res.status(500).send(err)
@@ -479,7 +494,7 @@ clientMongo.connect(function(err) {
             }
         })
         copy_white_paper.mv(path.join(__dirname,
-            `../../client/adminui/public/uploads/${copy_white_paper.name}`), err => {  //mv move method on file object
+            `./uploads/${copy_white_paper.name}`), err => {  //mv move method on file object
             if (err) {
                 console.error(err)
                 return res.status(500).send(err)
@@ -488,7 +503,7 @@ clientMongo.connect(function(err) {
             }
         })
         copy_public_permit.mv(path.join(__dirname,
-            `../../client/adminui/public/uploads/${copy_public_permit.name}`), err => {  //mv move method on file object
+            `./uploads/${copy_public_permit.name}`), err => {  //mv move method on file object
             if (err) {
                 console.error(err)
                 return res.status(500).send(err)
@@ -497,7 +512,7 @@ clientMongo.connect(function(err) {
             }
         })
         copy_blue_paper.mv(path.join(__dirname,
-            `../../client/adminui/public/uploads/${copy_blue_paper.name}`), err => {  //mv move method on file object
+            `./uploads/${copy_blue_paper.name}`), err => {  //mv move method on file object
             if (err) {
                 console.error(err)
                 return res.status(500).send(err)
@@ -506,7 +521,7 @@ clientMongo.connect(function(err) {
             }
         })
         taxi_picture.mv(path.join(__dirname,
-            `../../client/adminui/public/uploads/${taxi_picture.name}`), err => {  //mv move method on file object
+            `./uploads/${taxi_picture.name}`), err => {  //mv move method on file object
             if (err) {
                 console.error(err)
                 return res.status(500).send(err)
@@ -561,8 +576,8 @@ clientMongo.connect(function(err) {
                     copy_white_paper: req.files.copy_white_paper.name,
                     copy_public_permit: req.files.copy_public_permit.name,
                     copy_blue_paper: req.files.copy_blue_paper.name,
-                    blue_paper_expiration: req.body.blue_paper_expiration,
-                    driver_licence_expiration: req.body.driver_licence_expiration,
+                    blue_paper_expiration: new Date(req.body.blue_paper_expiration),
+                    driver_licence_expiration: new Date(req.body.driver_licence_expiration),
                     // Other identification info
                     personal_id_number: req.body.personal_id_number,
                     title: req.body.title,

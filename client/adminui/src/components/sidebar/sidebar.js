@@ -4,6 +4,8 @@ import 'react-pro-sidebar/dist/css/styles.css';
 import './sidebar.scss'
 import logotaxiconnect from '../../logotaxiconnect.png'
 import { FaChartBar, FaThList, FaRegRegistered, FaCarSide } from 'react-icons/fa'
+import { MdBusiness } from 'react-icons/md'
+
 function Sidebar() {
      const iconStyle = {
          width: 35,
@@ -29,6 +31,7 @@ function Sidebar() {
                     </SubMenu>
                     <MenuItem><Link to="/drivers"><FaThList style={iconStyle} />Drivers</Link></MenuItem>
                     <MenuItem><Link to="/passengers"><FaThList style={iconStyle} />Users </Link></MenuItem>
+                    <MenuItem><Link to="/driver-payment"><MdBusiness style={iconStyle} />Make payment </Link></MenuItem>
                 </Menu>
             </ProSidebar>;
         </div>

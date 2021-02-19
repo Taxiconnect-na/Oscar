@@ -1,32 +1,35 @@
 import React, { useState, useEffect } from 'react'
 //import axios from "axios"
-import io from 'socket.io-client'
+//import io from 'socket.io-client'
+import socket from '../socket'
 import Sidebar from '../sidebar/sidebar'
 import './overview.css' 
 require("dotenv").config({ path : "../../../.env"})
 
 function Overview() {
     // Initialize statistics state
-    let [totalFareSuccessful, setTotalFareSuccessful] = useState(550)
-    let [totalTripSuccessful, setTotalTripSuccessful] = useState(146)
-    let [totalFareCancelled , setTotalFareCancelled ] = useState(67)
-    let [totalTripCancelled, setTotalTripCancelled] = useState(45)
-    let [totalFareSuccessfulToday, setTotalFareSuccessfulToday] = useState(30)
-    let [totalTripSuccessfulToday, setTotalTripSuccessfulToday ] = useState(3)
-    let [totalFareCancelledToday, setTotalFareCancelledToday] = useState(58)
-    let [totalTripCancelledToday , setTotalTripCancelledToday ] = useState(7)
-    let [totalNewDriverToday, setTotalNewDriverToday ] = useState(6)
-    let [totalNewPassengerToday, setTotalNewPassengerToday] = useState(50)
-    let [totalCash, setTotalCash] = useState(762)
-    let [totalWallet, setTotalWallet] = useState(345)
-    let ENDPOINT = process.env.GATEWAY
+    let [totalFareSuccessful, setTotalFareSuccessful] = useState(0)
+    let [totalTripSuccessful, setTotalTripSuccessful] = useState(0)
+    let [totalFareCancelled , setTotalFareCancelled ] = useState(0)
+    let [totalTripCancelled, setTotalTripCancelled] = useState(0)
+    let [totalFareSuccessfulToday, setTotalFareSuccessfulToday] = useState(0)
+    let [totalTripSuccessfulToday, setTotalTripSuccessfulToday ] = useState(0)
+    let [totalFareCancelledToday, setTotalFareCancelledToday] = useState(0)
+    let [totalTripCancelledToday , setTotalTripCancelledToday ] = useState(0)
+    let [totalNewDriverToday, setTotalNewDriverToday ] = useState(0)
+    let [totalNewPassengerToday, setTotalNewPassengerToday] = useState(0)
+    let [totalCash, setTotalCash] = useState(0)
+    let [totalWallet, setTotalWallet] = useState(0)
+    //let ENDPOINT = process.env.GATEWAY
+    //var ENDPOINT = "localhost:10014"
     
     
     useEffect(() => { 
-        let socket = io(ENDPOINT, {
+        /*let socket = io(ENDPOINT, {
                                     transports: ['websocket', 'polling', 'flashsocket'],
                                     reconnection: true,
-                                    reconnectionAttempts: Infinity})
+                                    //upgrade: true,
+                                    reconnectionAttempts: Infinity})  */
                                     
         const interval = setInterval(() => {
             console.log("mack@taxiconnect")
@@ -68,7 +71,7 @@ function Overview() {
         totalNewPassengerToday,
         totalCash,
         totalWallet, 
-        ENDPOINT
+     
     ])
 
     return(

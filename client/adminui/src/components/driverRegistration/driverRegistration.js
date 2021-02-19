@@ -143,7 +143,7 @@ const DriverRegistration = () => {
             //passenger-data
             // Send data to server
             try {
-                const res = await axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, formData, {
+                const res = await axios.post(`http://localhost:10011/upload`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     } 

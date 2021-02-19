@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import io from 'socket.io-client'
+//import io from 'socket.io-client'
+import socket from '../socket'
 import { FaUserAlt } from "react-icons/fa"
 import "./partnersAdmin.css"
 import queryString from 'query-string'
@@ -73,11 +74,11 @@ var interval = null
 
 export default function PartnersAdmin() {
     // Initialize socket connection
-    var ENDPOINT = 'localhost:10014'
+    /*var ENDPOINT = 'localhost:10014'
     var socket = io(ENDPOINT, {
                     transports: ['websocket', 'polling', 'flashsocket'],
                     reconnection: true,
-                    reconnectionAttempts: Infinity})
+                    reconnectionAttempts: Infinity})   */
     
     //Initialize state variables
     let [name, setName] = useState(null)
@@ -88,9 +89,9 @@ export default function PartnersAdmin() {
     let [authenticated, setAuthentication] = useLocalStorage("authenticated", false)
 
     let [partnerDrivers, setPartnerDrivers] = useState([])
-    let [driversCount, setDriversCount] = useState(5)
-    let [totalMoney, setTotalMoney] = useState(5) 
-    let [totalMoneyToday, setTotalMoneyToday] = useState(5)
+    let [driversCount, setDriversCount] = useState(0)
+    let [totalMoney, setTotalMoney] = useState(0) 
+    let [totalMoneyToday, setTotalMoneyToday] = useState(0)
     let [allData, setAllData] = useState({})
 
  
@@ -140,7 +141,7 @@ export default function PartnersAdmin() {
             clearInterval(interval)
         })
        
-    }, [ENDPOINT, 
+    }, [, 
         /*details, 
         allData, 
         partnerDrivers,

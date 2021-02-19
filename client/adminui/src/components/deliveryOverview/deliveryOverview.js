@@ -1,10 +1,11 @@
 import React, {useState, useEffect} from "react"
-import io from 'socket.io-client'
+//import io from 'socket.io-client'
+import socket from '../socket'
 import "./deliveryOverview.css"
 import Sidebar from "../sidebar/sidebar"
 require("dotenv").config({ path : "../../../.env"})
 
-
+ 
 /**
  * @function GetCashWallet : Returns the total money of trips in progress, scheduled and completed
  *                          Of a given array of rides (cash and delivery returned)
@@ -71,10 +72,10 @@ function progressScheduledCompleted(arrayData, resolve) {
         let convertToday = new Date(startOfToday.setHours(0, 0, 0, 0)).toISOString()
         //console.log(current.date_time)
         //console.log(startOfToday)
-        console.log(`today start: ${convertToday}`)
-        console.log(`recived date: ${current.date_time}`)
+        //console.log(`today start: ${convertToday}`)
+        //console.log(`recived date: ${current.date_time}`)
         let today = (new Date(current.date_time)) > convertToday
-        console.log(`Date comparison result: ${today}`)
+        //console.log(`Date comparison result: ${today}`)
         return (today && current.isArrivedToDestination)
     })
     
@@ -244,43 +245,39 @@ function DeliveryOverview() {
     let [gender, setGender] = useState('')
     let [cellphone, setCellphone] = useState('')  */
     
-    let ENDPOINT = process.env.GATEWAY
+    //var ENDPOINT = "localhost:10014"
 
     useEffect(() => {
-        let socket = io(ENDPOINT, {
-                                    transports: ['websocket', 'polling', 'flashsocket'],
-                                    reconnection: true,
-                                    reconnectionAttempts: Infinity})
+        
         const interval = setInterval(() => {
             console.log("kaputo@taxiconnect-delivery")
+            // Get all the deliveries
             socket.on("getDeliveryOverview-response", (data) => {
                 if ((data !== undefined) && (data != null)) {
-                    /* Do something
-                    data.map((ride) => {
-                        console.log(ride)
-                    }) */
+                    console.log("deliveries general")
                     setDeliveries(data)
-                    // Get inprogress, scheduled and completed data to update count state
-                    new Promise((res) => {
-                        progressScheduledCompleted(data, res)
-                    }).then((future) => {
-                        console.log(future)
-                        setInProgressCount(future.inprogress)
-                        setMoneyInProgress(future.moneyInprogress)
-                        setScheduledCount(future.scheduled)
-                        setMoneyScheduled(future.moneyScheduled)
-                        setCompletedCount(future.completed)
-                        setMoneyCompleted(future.moneyCompleted)
-                        setCompletedTodayCount(future.completed_today)
-                        setMoneyCompletedToday(future.moneyCompletedToday)
-                    }).catch((error) => {
-                        console.log(error)
-                    })
+                   
                 } else {
-                    console.log(data.error) // data.error ?
-                    alert("Something went wrong while retrieving Data")
+                    console.error(data.error) 
                 }
             })
+            
+            socket.on("getDeliveryOverview-response-scatter", (future) => {
+                if((future != undefined) && (future != null)) {
+                    console.log("scattered results")
+                    setInProgressCount(future.inprogress)
+                    setMoneyInProgress(future.moneyInprogress)
+                    setScheduledCount(future.scheduled)
+                    setMoneyScheduled(future.moneyScheduled)
+                    setCompletedCount(future.completed)
+                    setMoneyCompleted(future.moneyCompleted)
+                    setCompletedTodayCount(future.completed_today)
+                    setMoneyCompletedToday(future.moneyCompletedToday)
+                } else {
+                    console.error(future.error) 
+                }
+            }) 
+
             socket.emit("getDeliveryOverview", {data: "Get delivery-overview Data!"})
         },1000)
 
@@ -291,7 +288,7 @@ function DeliveryOverview() {
     }, [
         // re-render whenever any of these changes
         deliveries,
-        ENDPOINT
+ 
     ])
 
     /**

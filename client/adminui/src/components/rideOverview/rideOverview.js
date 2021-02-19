@@ -1,127 +1,10 @@
 import React, {useState, useEffect} from "react"
-import io from 'socket.io-client'
+//import io from 'socket.io-client'
+import socket from '../socket'
 import "./rideOverview.css"
 import Sidebar from "../sidebar/sidebar"
 require("dotenv").config({ path : "../../../.env"})
 
-
-
-
-/**
- * @function GetCashWallet : Returns the total money of trips in progress, scheduled and completed
- *                          Of a given array of rides (cash and delivery returned)
- * @param {array} arrayData : An array of rides from either an API or Database of rides with known
- *                            keys. 
- * 
- */
-
-function GetCashWallet(arrayData, resolve) {
-  
-    let fare_array = [];
-    let fare_array_cash = [];
-    let fare_array_wallet = [];
-    const Sum = (arr) => arr.reduce((num1, num2) => num1 + num2, 0);
-    
-    arrayData.map((ride) => {
-        fare_array.push(Number(ride["amount"]));
-
-        // Get rides with CASH as payment method
-        let payment_method = ride["payment_method"].toUpperCase().trim();
-        if (/CASH/i.test(payment_method)) {
-        // if (payment_method ==="CASH") /CASH/ makes sure of spacing
-        fare_array_cash.push(Number(ride["amount"]));
-        } else {
-        fare_array_wallet.push(Number(ride["amount"]));
-        }
-    });
-    
-    let totalCash = Sum(fare_array_cash);
-    let totalWallet = Sum(fare_array_wallet);
-    let totalCashWallet = totalCash + totalWallet;
-    let CashWalletObject = { totalCash, totalWallet, totalCashWallet };
-
-    resolve(CashWalletObject)
-
-    //return CashWalletObject
-}
-
-/**
- * @function progressScheduledCompleted : Returns the total count and money of trips in progress, 
- *                                        scheduled and completed
- *                          Of a given array of rides (cash and delivery returned)
- * @param {array} arrayData : An array of rides from either an API or Database of rides with known
- *                            keys. 
- * 
- */
-
-function progressScheduledCompleted(arrayData, resolve) {
-    
-    let progress = arrayData.filter(current => {
-        return !current.isArrivedToDestination
-    })
-
-    let scheduled = arrayData.filter(current => {
-        let Value = current.request_type === "scheduled" && current.isArrivedToDestination===false
-        return Value
-    })
-    let completed = arrayData.filter( current => {
-        return current.isArrivedToDestination
-    })
-
-    let completed_today = arrayData.filter( current => {
-        let startOfToday = new Date()
-        let convertToday = new Date(startOfToday.setHours(0, 0, 0, 0)).toISOString()
-        //console.log(current.date_time)
-        //console.log(startOfToday)
-        
-        console.log(`today start: ${convertToday}`)
-        console.log(`received date: ${current.date_time}`)
-        let today = (new Date(current.date_time)) > (new Date(convertToday))
-        console.log(`Date comparison result: ${today}`)
-        return (today && current.isArrivedToDestination)
-    })
-    console.log(completed_today)
-    
-    Promise.all([
-            //let progressMoney = GetCashWallet(scheduled)
-        new Promise((res) => {
-            GetCashWallet(progress, res)
-        }),
-        new Promise((res) => {
-            GetCashWallet(scheduled, res)
-        }),
-        //let progressMoney = GetCashWallet(scheduled)
-        new Promise((res) => {
-            GetCashWallet(completed, res)
-        }),
-        new Promise((res) => {
-            GetCashWallet(completed_today,res)
-        })
-
-    ]).then((future) => {
-        let [progressMoney, scheduledMoney, completedMoney, completedMoneyToday] = future
-        let Object = {}
-        Object.moneyInprogress = progressMoney
-        Object.moneyScheduled = scheduledMoney
-        Object.moneyCompleted = completedMoney
-        Object.moneyCompletedToday = completedMoneyToday
-        Object.inprogress = progress.length
-        Object.scheduled = scheduled.length
-        Object.completed = completed.length
-        Object.completed_today = completed_today.length
-        console.log("------------------------------")
-        console.log(arrayData)
-        resolve(Object)
-    }).catch((error) => {
-
-        console.log(error)
-        resolve({
-            response: "error",
-            flag: "Possibly invalid input parameters",
-        })
-    })
- 
-}
 
 
 /**
@@ -235,28 +118,15 @@ function RideOverview() {
     let [moneyCompleted, setMoneyCompleted] = useState({})
     let [moneyCompletedToday, setMoneyCompletedToday] = useState({})
 
-    /*let [passengers_number, setPassengersNumber] = useState(0)
-    let [request_type, setRequestType] = useState(0)
-    let [date_time, setDateTime] = useState(0)
-    let [isPickedUp, setIsPickedUp] = useState(false)
-    let [isDroppedPassenger, setIsDroppedPassenger] = useState(false)
-    let [isDroppedDriver, setIsDroppedDriver] = useState(false)
-    let [connect_type, setConnectType] = useState('')
-    let [payment_method, setPaymentMethod] = useState('')
-    let [amount, setAmount] = useState(0)
-    let [destinations, setDestinations] = useState([])
-    let [name, setName] = useState('')
-    let [surname, setSurname] = useState('')
-    let [gender, setGender] = useState('')
-    let [cellphone, setCellphone] = useState('')  */
     
-    let ENDPOINT = process.env.GATEWAY
+    //var ENDPOINT = "http://192.168.8.151:10014/"
 
     useEffect(() => {
-        let socket = io(ENDPOINT, {
+        /*let socket = io(ENDPOINT, {
                                     transports: ['websocket', 'polling', 'flashsocket'],
                                     reconnection: true,
-                                    reconnectionAttempts: Infinity})
+                                    //upgrade: true,
+                                    reconnectionAttempts: Infinity})  */
         const interval = setInterval(() => {
             console.log("kaputo@taxiconnect")
             socket.on("getRideOverview-response", (data) => {
@@ -266,31 +136,29 @@ function RideOverview() {
                         console.log(ride)
                     }) */
                     console.log("**********************************")
-                    console.log("Received statistics object:")
-                    console.log(data)
+                    console.log("Received statistics ")
+                    //console.log(data)
                     console.log("**********************************")
                     setRides(data)
-                    // Get inprogress, scheduled and completed data to update count state
-                    new Promise((res) => {
-                        progressScheduledCompleted(data, res)
-                    }).then((future) => {
-                        console.log(future)
-                        setInProgressCount(future.inprogress)
-                        setMoneyInProgress(future.moneyInprogress)
-                        setScheduledCount(future.scheduled)
-                        setMoneyScheduled(future.moneyScheduled)
-                        setCompletedCount(future.completed)
-                        setMoneyCompleted(future.moneyCompleted)
-                        setCompletedTodayCount(future.completed_today)
-                        setMoneyCompletedToday(future.moneyCompletedToday)
-                        
-                    }).catch((error) => {
-                        console.log(error)
-                    })
+                   
 
                 } else {
                     console.log(data.error) // data.error ?
                     alert("Something went wrong while retrieving Data")
+                }
+            })
+
+            socket.on("getRideOverview-response-scatter", (future) => {
+                if((future != undefined) && (future != null)) {
+                    
+                    setInProgressCount(future.inprogress)
+                    setMoneyInProgress(future.moneyInprogress)
+                    setScheduledCount(future.scheduled)
+                    setMoneyScheduled(future.moneyScheduled)
+                    setCompletedCount(future.completed)
+                    setMoneyCompleted(future.moneyCompleted)
+                    setCompletedTodayCount(future.completed_today)
+                    setMoneyCompletedToday(future.moneyCompletedToday)
                 }
             })
             socket.emit("getRideOverview", {data: "Get ride-overview Data!"})
@@ -303,7 +171,7 @@ function RideOverview() {
     }, [
         // re-render whenever any of these changes
         rides,
-        ENDPOINT
+      
     ])
 
     /**
@@ -569,7 +437,7 @@ function RideOverview() {
                             <div >
                                 <div className="container">
                                     <div className="row text-center">
-                                        <div class="col-sm">
+                                        <div className="col-sm">
                                             <div className="card" style={card}>
                                             <div className="card-header" style={card_header}>
                                                 cash

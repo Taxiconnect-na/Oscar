@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react"
 import Sidebar from "../sidebar/sidebar"
-import io from "socket.io-client"
+//import io from "socket.io"
+import socket from '../socket'
 import "./PassengerList.css"
 import { FaUserAlt } from "react-icons/fa"
 require("dotenv").config({ path : "../../../.env"})
+
+
+Date.prototype.addHours = function(h) {
+    this.setTime(this.getTime() + (h*60*60*1000));
+    return this;
+}
+ 
 
 const PassengerRow = (props) => {
     return(
@@ -14,7 +22,7 @@ const PassengerRow = (props) => {
             <td>{ props.passenger.gender }</td>
             <td>{ props.passenger.phone_number }</td>
             <td>{ props.passenger.email }</td>
-            <td>{ props.passenger.date_registered.date }</td>
+            <td>{ props.passenger.date_registered.date.toString().slice(0,10) }</td>
             <td>{ props.passenger.totaltrip }</td>
         </tr>
     )
@@ -26,13 +34,14 @@ function PassengerList() {
     let [passengers, setPassengers] = useState([])
     let [totalNewPassengerToday, setTotalNewPassengerToday] = useState(0)
 
-    let ENDPOINT = process.env.GATEWAY
+    //let ENDPOINT = process.env.GATEWAY
 
     useEffect(() => { 
-        let socket = io(ENDPOINT, {
+        /*let socket = io(ENDPOINT, {
                                     transports: ['websocket', 'polling', 'flashsocket'],
                                     reconnection: true,
-                                    reconnectionAttempts: Infinity})
+                                    upgrade: true,
+                                    reconnectionAttempts: Infinity})  */
         const interval = setInterval(() => {
             console.log("passengerslist@taxiconnect")
             socket.on("getPassengers-feedback", (data) => {
@@ -61,7 +70,7 @@ function PassengerList() {
         })
     },[ // Re-render whenever any of the following variables changes
         
-        ENDPOINT
+       
     ])
 
     const passengerData = () => {

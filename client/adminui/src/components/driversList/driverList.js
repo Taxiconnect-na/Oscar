@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
-import io from 'socket.io-client'
+//import io from 'socket.io'
+import socket from '../socket'
 import Sidebar from '../sidebar/sidebar'
 import "./driverList.css"
 import { FaUserAlt } from "react-icons/fa"
@@ -33,15 +34,16 @@ const DriverRow = (props) => {
 
 function DriverList() {
     
-    let ENDPOINT = process.env.GATEWAY
+    //let ENDPOINT = process.env.GATEWAY
     let [drivers, setDrivers] = useState([])
     let [online_drivers_count, setOnlineDriversCount] = useState(0)
 
     useEffect(() => { 
-        let socket = io(ENDPOINT, {
+       /* let socket = io(ENDPOINT, {
                                     transports: ['websocket', 'polling', 'flashsocket'],
                                     reconnection: true,
-                                    reconnectionAttempts: Infinity})
+                                    //upgrade: true,
+                                    reconnectionAttempts: Infinity})  */
         const interval = setInterval(() => {
             console.log("driverslist@taxiconnect")
             socket.on("getDrivers-response", (data) => {
@@ -69,7 +71,7 @@ function DriverList() {
         })
     },[ // Re-render whenever any of the following variables changes
         
-        ENDPOINT
+      
     ])
 
     const driverData = () => {
