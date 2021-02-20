@@ -58,11 +58,10 @@ module.exports = {
       }, 
       {
         name: "admin-app-internal",
-        script: "cd ./client/adminui && npm start",
-        instances: 2,
+        script: "cd ./client/adminui && npm -- start",
         autorestart: true,
         watch: false,
-        max_memory_restart: "2G",
+        max_memory_restart: "1G",
         env: {
           NODE_ENV: "development",
         },
@@ -72,8 +71,7 @@ module.exports = {
       }, 
       {
         name: "partner-app-dashboard",
-        script: "cd ./client/partnerui && npm start",
-        instances: 4,
+        script: "cd ./client/partnerui && npm -- start",
         autorestart: true,
         watch: false,
         max_memory_restart: "1G",

@@ -16,4 +16,3 @@ services:
       - "10300:10300"
       - "10305:10305"
     restart: always
-      

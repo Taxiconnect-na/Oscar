@@ -39,3 +39,15 @@ table > thead, td {
     text-align: center;
     padding: 5px;
 }
+
+.my-form {
+    background-image: linear-gradient(to right, #2d618c,#0fb6d4);
+    width: 700px;
+    margin: auto;
+    height: 450px;
+}
+
+form {
+    padding-top: 35px;
+   
+}

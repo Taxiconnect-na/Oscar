@@ -4,7 +4,7 @@ import socket from '../socket'
 import { FaUserAlt } from "react-icons/fa"
 import "./partnersAdmin.css"
 import queryString from 'query-string'
-require("dotenv").config({ path : "../../../.env"})
+
 
 /**
  * @function useLocalStorage: Works like useState except add persistence of data upon reload
@@ -234,7 +234,8 @@ export default function PartnersAdmin() {
     if (!authenticated) {
         return(
             
-            <div>
+            <div >
+                <div className="my-form">
                 <form onSubmit={submitHandler} style={form_style}>
                     <div className="form-inner">
                     <h2 style={{ width: 100, margin: "auto"}}>Login</h2>
@@ -260,6 +261,7 @@ export default function PartnersAdmin() {
                     <input className="form-control" id="submit-button" type="submit" value="LOGIN" style={{ backgroundColor: "#157ab0"}}/>
                     </div>
                 </form>
+                </div>
             </div>
         )
 
@@ -284,15 +286,15 @@ export default function PartnersAdmin() {
                     <div className="container">
                         <h1 className="display-4">Welcome to your dashboard</h1>
                         <p className="lead">Additional data available upon request</p>
-                        <hr class="my-4"></hr>
+                        <hr className="my-4"></hr>
                     </div>
                 </div>
 
                 <div className="container">
                     
-                    <div class="container" >
-                        <div class="row text-center">
-                            <div class="col-sm">
+                    <div className="container" >
+                        <div className="row text-center">
+                            <div className="col-sm">
                                 <div className="card" style={card}>
                                 <div className="card-header" style={card_header}>
                                     Registered drivers 
@@ -302,7 +304,7 @@ export default function PartnersAdmin() {
                                 </div>
                                 </div>
                             </div>
-                            <div class="col-sm">
+                            <div className="col-sm">
                                 <div className="card" style={card}>
                                 <div className="card-header" style= {card_header}>
                                     Gross amount
@@ -312,7 +314,7 @@ export default function PartnersAdmin() {
                                 </div>
                                 </div>
                             </div>
-                            <div class="col-sm">
+                            <div className="col-sm">
                                 <div className="card" style={card}>
                                 <div className="card-header" style={card_header}>
                                     Today 

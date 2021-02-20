@@ -1,6 +1,7 @@
-require("dotenv").config({ path: "../.env"});
+const path = require('path')
+require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
-const app = express()
+const app = express()  
 const axios = require("axios")
 const cors = require("cors")
 const http = require("http")
@@ -8,8 +9,8 @@ const server = http.createServer(app)
 const socketIo = require("socket.io")
 const io = socketIo(server)
 
-app.use(express.json())
-app.use(express.urlencoded({extended: true}))
+app.use(express.json({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
+app.use(express.urlencoded({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
 app.use(cors())
 
 const PORT = process.env.CENTRAL_PORT

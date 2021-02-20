@@ -1,18 +1,18 @@
-require("dotenv").config({ path: "../.env"})
+const path = require('path')
+require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
 const fileUpload = require("express-fileupload")
 const app = express()
 const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
-const path = require("path")
 const crypto = require("crypto")
 
 const uri = process.env.DB_URI
 const dbName = process.env.DB_NAME
 app.use(cors())
 app.use(fileUpload())
-app.use(express.json())
-app.use(express.urlencoded({extended: true}))
+app.use(express.json({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
+app.use(express.urlencoded({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
 PORT = process.env.DRIVER_ROOT
 
 const clientMongo = new MongoClient(uri, {
