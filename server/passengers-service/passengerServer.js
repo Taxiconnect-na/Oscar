@@ -5,6 +5,16 @@ const app = express()
 const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
 
+const redis = require("redis")
+const client = redis.createClient({
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT
+})
+
+//const { promisify } = require("util");
+//const getAsync = promisify(client.get).bind(client)
+
+
 const uri = process.env.DB_URI
 const dbName = process.env.DB_NAME
 app.use(express.json({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
@@ -12,7 +22,6 @@ app.use(express.urlencoded({extended: true, limit: process.env.MAX_DATA_BANDWIDT
 app.use(cors())
 
 const PORT = process.env.PASSENGER_ROOT
-
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
   });
@@ -31,62 +40,274 @@ app.get("/", (req, res) => {
 
 function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
 
-    IndividualsCollection
-    .find({})
-    .toArray()
-    .then((individualsList) => {
-        let passengers = individualsList.map((individual) => {
-            return new Promise((outcome) => {
-                // Get the following:
-                const name = individual.name
-                const surname = individual.surname
-                const gender = individual.gender
-                const phone_number = individual.phone_number
-                const email = individual.email
-                const date_registered = individual.date_registered
-                // And so on...
-
-                //Then:
-                query = {
-                    client_id: individual.user_fingerprint
-                }
+    //getAsync("passengers-cache").then( (reply) => {
+    client.get("passengers-cash", (err, reply) => {    
+        console.log("looking for data...", reply)
+        if (err) {
+            // Connect to db and fetch:
+            IndividualsCollection
+            .find({})
+            .toArray()
+            .then((individualsList) => {
+                let passengers = individualsList.map((individual) => {
+                    return new Promise((outcome) => {
+                        // Get the following:
+                        const name = individual.name
+                        const surname = individual.surname
+                        const gender = individual.gender
+                        const phone_number = individual.phone_number
+                        const email = individual.email
+                        const date_registered = individual.date_registered
+                        // And so on...
+        
+                        //Then:
+                        query = {
+                            client_id: individual.user_fingerprint
+                        }
+                        
+                        FilteringCollection
+                        .find(query)
+                        .toArray()
+                        .then((result) => {
+                            // Initialize the individual's data Object
+                            const Individual_info = {}
+                            
+                            // Append data to the individual's data Object
+                            Individual_info.name = name
+                            Individual_info.surname = surname
+                            Individual_info.gender = gender
+                            Individual_info.phone_number = phone_number
+                            Individual_info.email = email
+                            Individual_info.date_registered = date_registered
+                            Individual_info.totaltrip = result.length
+        
+                            // append the resulting object to the passengers array
+                            outcome(Individual_info)
+        
+                        }).catch((error) => {
+                            console.log(error)
+                        })
+                    })
+                })
+                Promise.all(passengers).then(
+                    (result) => {
+                        client.set("passengers-cash", JSON.stringify(result), redis.print)
+                        resolve(result)
+                        
+                    },
+                    (error) => {
+                        console.log(error)
+                        resolve({ response: "error", flag: "Invalid_params_maybe" })
+                    }
+                )
+            }).catch((error) => {
+                console.log(error) 
+            })  
+        } else if(reply) {
+            if(reply !== null) {
+                // Resolve reply
+                resolve(JSON.parse(reply))
+                //!! Update cash but do not resolve anything:
+                console.log("updating passengers cache...")
+                new Promise((cashUpdateRes) => {
+                    // Connect to db, do the operation and save result in redis:
+                    IndividualsCollection
+                    .find({})
+                    .toArray()
+                    .then((individualsList) => {
+                        let passengers = individualsList.map((individual) => {
+                            return new Promise((outcome) => {
+                                // Get the following:
+                                const name = individual.name
+                                const surname = individual.surname
+                                const gender = individual.gender
+                                const phone_number = individual.phone_number
+                                const email = individual.email
+                                const date_registered = individual.date_registered
+                                // And so on...
                 
-                FilteringCollection
-                .find(query)
-                .toArray()
-                .then((result) => {
-                    // Initialize the individual's data Object
-                    const Individual_info = {}
+                                //Then:
+                                query = {
+                                    client_id: individual.user_fingerprint
+                                }
+                                
+                                FilteringCollection
+                                .find(query)
+                                .toArray()
+                                .then((result) => {
+                                    // Initialize the individual's data Object
+                                    const Individual_info = {}
+                                    
+                                    // Append data to the individual's data Object
+                                    Individual_info.name = name
+                                    Individual_info.surname = surname
+                                    Individual_info.gender = gender
+                                    Individual_info.phone_number = phone_number
+                                    Individual_info.email = email
+                                    Individual_info.date_registered = date_registered
+                                    Individual_info.totaltrip = result.length
+                
+                                    // append the resulting object to the passengers array
+                                    outcome(Individual_info)
+                
+                                }).catch((error) => {
+                                    console.log(error)
+                                })
+                            })
+                        })
+                        Promise.all(passengers).then(
+                            (result) => {
+                                //resolve(result)
+                                // save in cache
+                                client.set("passengers-cash", JSON.stringify(result), redis.print)
+                                console.log("UPDATING cash in progress....")
+                            },
+                            (error) => {
+                                console.log(error)
+                                resolve({ response: "error", flag: "Invalid_params_maybe" })
+                            }
+                        )
+                    }).catch((error) => {
+                        console.log(error)
+                    })  
                     
-                    // Append data to the individual's data Object
-                    Individual_info.name = name
-                    Individual_info.surname = surname
-                    Individual_info.gender = gender
-                    Individual_info.phone_number = phone_number
-                    Individual_info.email = email
-                    Individual_info.date_registered = date_registered
-                    Individual_info.totaltrip = result.length
 
-                    // append the resulting object to the passengers array
-                    outcome(Individual_info)
+                }).then((result) => {
+                    console.log("Updating passengers cache complete...")
+                }, (error) => {
+                    console.log(error)
+                    resolve({error: "something went wrong"})
+                })
 
+            } else {
+
+                // Connect to db and fetch data
+                IndividualsCollection
+                .find({})
+                .toArray()
+                .then((individualsList) => {
+                    let passengers = individualsList.map((individual) => {
+                        return new Promise((outcome) => {
+                            // Get the following:
+                            const name = individual.name
+                            const surname = individual.surname
+                            const gender = individual.gender
+                            const phone_number = individual.phone_number
+                            const email = individual.email
+                            const date_registered = individual.date_registered
+                            // And so on...
+            
+                            //Then:
+                            query = {
+                                client_id: individual.user_fingerprint
+                            }
+                            
+                            FilteringCollection
+                            .find(query)
+                            .toArray()
+                            .then((result) => {
+                                // Initialize the individual's data Object
+                                const Individual_info = {}
+                                
+                                // Append data to the individual's data Object
+                                Individual_info.name = name
+                                Individual_info.surname = surname
+                                Individual_info.gender = gender
+                                Individual_info.phone_number = phone_number
+                                Individual_info.email = email
+                                Individual_info.date_registered = date_registered
+                                Individual_info.totaltrip = result.length
+            
+                                // append the resulting object to the passengers array
+                                outcome(Individual_info)
+            
+                            }).catch((error) => {
+                                console.log(error)
+                            })
+                        })
+                    })
+                    Promise.all(passengers).then(
+                        (result) => {
+                            client.set("passengers-cash", JSON.stringify(result))
+                            resolve(result)
+                            // save in cache
+                        },
+                        (error) => {
+                            console.log(error)
+                            resolve({ response: "error", flag: "Invalid_params_maybe" })
+                        }
+                    )
                 }).catch((error) => {
                     console.log(error)
                 })
-            })
-        })
-        Promise.all(passengers).then(
-            (result) => {
-                resolve(result)
-            },
-            (error) => {
-                console.log(error)
-                resolve({ response: "error", flag: "Invalid_params_maybe" })
+                
             }
-        )
-    }).catch((error) => {
-        console.log(error)
-    })  
+        } else {
+            // Connect to db and fetch
+            console.log("No cache...getting passengers data from db")
+            IndividualsCollection
+                .find({})
+                .toArray()
+                .then((individualsList) => {
+                    let passengers = individualsList.map((individual) => {
+                        return new Promise((outcome) => {
+                            // Get the following:
+                            const name = individual.name
+                            const surname = individual.surname
+                            const gender = individual.gender
+                            const phone_number = individual.phone_number
+                            const email = individual.email
+                            const date_registered = individual.date_registered
+                            // And so on...
+            
+                            //Then:
+                            query = {
+                                client_id: individual.user_fingerprint
+                            }
+                            
+                            FilteringCollection
+                            .find(query)
+                            .toArray()
+                            .then((result) => {
+                                // Initialize the individual's data Object
+                                const Individual_info = {}
+                                
+                                // Append data to the individual's data Object
+                                Individual_info.name = name
+                                Individual_info.surname = surname
+                                Individual_info.gender = gender
+                                Individual_info.phone_number = phone_number
+                                Individual_info.email = email
+                                Individual_info.date_registered = date_registered
+                                Individual_info.totaltrip = result.length
+            
+                                // append the resulting object to the passengers array
+                                outcome(Individual_info)
+            
+                            }).catch((error) => {
+                                console.log(error)
+                            })
+                        })
+                    })
+                    Promise.all(passengers).then(
+                        (result) => {
+                            client.set("passengers-cash", JSON.stringify(result))
+                            resolve(result)
+                            // save in cache
+                          
+                        },
+                        (error) => {
+                            console.log(error)
+                            resolve({ response: "error", flag: "Invalid_params_maybe" })
+                        }
+                    )
+                }).catch((error) => {
+                    console.log(error)
+                })
+        }
+
+    })
+    
 }
 
 

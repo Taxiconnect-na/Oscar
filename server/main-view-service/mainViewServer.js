@@ -3,8 +3,15 @@ require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express");
 const app = express();
 const cors = require("cors")
-const MongoClient = require("mongodb").MongoClient;
- 
+const MongoClient = require("mongodb").MongoClient
+// Set up redis
+const redis = require("redis")
+const client = redis.createClient({
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT
+})
+
+
 app.use(cors())
 app.use(express.json({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
 app.use(express.urlencoded({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
@@ -242,43 +249,619 @@ function getRideOverview(collectionRidesDeliveryData,
   collectionPassengers_profiles,
   collectionDrivers_profiles,
   resolve ) {
-    collectionRidesDeliveryData
-      .find({ride_mode:"RIDE"})
-      .sort({ date_requested: -1})
-      .toArray()
-      .then((result) => {
-          // Initialize the list of all trips
-          //console.log(result)
-          let alltrips =result.map((trip) => {
-              return new Promise((res0) => {
-                 
-              // Get the following for each trip
-                const passengers_number = trip.passengers_number
-                const request_type = trip.request_type
-                const date_time = trip.date_requested
-                const wished_pickup_time = trip.wished_pickup_time
-                const isAccepted = trip.ride_state_vars.isAccepted
-                const isPickedUp = trip.ride_state_vars.inRideToDestination
-                const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
-                const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
-                const isArrivedToDestination = trip.isArrivedToDestination
-                const connect_type = trip.connect_type
-                const payment_method = trip.payment_method
-                const amount = trip.fare
-                const destinations = trip.destinationData
-                const origin = trip.pickup_location_infos.suburb
-                //console.log(trip.client_id)
-                // Request for corresponding passenger
-                query = {
-                    user_fingerprint: trip.client_id
-                }
-                // Make Database request of corrresponding passenger
 
-                collectionPassengers_profiles
-                .find(query)
-                .toArray()
-                .then((user)=> {
-                    // request for the driver to get the taxi number
+    // Attempt to get data from cache first, if fail, get from mongodb
+    client.get("rideOverview-cache", (err, reply) => {
+      console.log("looking for data in redis...")
+      console.log("Found ride cache: ", reply)
+
+      if (err) {
+        // Get directly from mongodb
+        collectionRidesDeliveryData
+        .find({ride_mode:"RIDE"})
+        .sort({ date_requested: -1})
+        .toArray()
+        .then((result) => {
+            // Initialize the list of all trips
+            //console.log(result)
+            let alltrips =result.map((trip) => {
+                return new Promise((res0) => {
+                   
+                // Get the following for each trip
+                  const passengers_number = trip.passengers_number
+                  const request_type = trip.request_type
+                  const date_time = trip.date_requested
+                  const wished_pickup_time = trip.wished_pickup_time
+                  const isAccepted = trip.ride_state_vars.isAccepted
+                  const isPickedUp = trip.ride_state_vars.inRideToDestination
+                  const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
+                  const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                  const isArrivedToDestination = trip.isArrivedToDestination
+                  const connect_type = trip.connect_type
+                  const payment_method = trip.payment_method
+                  const amount = trip.fare
+                  const destinations = trip.destinationData
+                  const origin = trip.pickup_location_infos.suburb
+                  //console.log(trip.client_id)
+                  // Request for corresponding passenger
+                  query = {
+                      user_fingerprint: trip.client_id
+                  }
+                  // Make Database request of corrresponding passenger
+  
+                  collectionPassengers_profiles
+                  .find(query)
+                  .toArray()
+                  .then((user)=> {
+                      // request for the driver to get the taxi number
+                      queryDriver = {
+                        driver_fingerprint: trip.taxi_id
+                      }
+                      collectionDrivers_profiles
+                      .findOne(queryDriver)
+                      .then((driver) => {
+                        const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+  
+                        // initialize the trip details object
+                        const tripDetails = {}
+                        if (user[0]){
+  
+                          const name = user[0]["name"]
+                          const surname = user[0]["surname"]
+                          const gender = user[0]["gender"]
+                          const cellphone = user[0]["phone_number"]
+                        
+                          //create the Object containing collected data
+                          tripDetails.passengers_number = passengers_number
+                          tripDetails.request_type = request_type
+                          tripDetails.date_time = date_time
+                          tripDetails.isAccepted = isAccepted
+                          tripDetails.wished_pickup_time = wished_pickup_time
+                          tripDetails.isPickedUp = isPickedUp
+                          tripDetails.isDroppedPassenger = isDroppedPassenger
+                          tripDetails.isDroppedDriver = isDroppedDriver
+                          tripDetails.isArrivedToDestination = isArrivedToDestination
+                          tripDetails.connect_type = connect_type
+                          tripDetails.payment_method = payment_method 
+                          tripDetails.amount = amount 
+                          tripDetails.destinations = destinations
+                          tripDetails.name = name 
+                          tripDetails.surname = surname
+                          tripDetails.gender = gender
+                          tripDetails.cellphone = cellphone
+                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                          tripDetails.origin = origin
+                          // Add trip detail to final response 
+                          res0(tripDetails)
+                        
+                        } else {
+                          //! Set the passenger details to "not found" if fingerprint is 
+                          //!   unknown(suspecious case)
+                          const name = "not found"
+                          const surname = "not found"
+                          const gender = "not found"
+                          const cellphone = "not found"
+  
+                          tripDetails.passengers_number = passengers_number
+                          tripDetails.request_type = request_type
+                          tripDetails.date_time = date_time
+                          tripDetails.isAccepted = isAccepted
+                          tripDetails.wished_pickup_time = wished_pickup_time
+                          tripDetails.isPickedUp = isPickedUp
+                          tripDetails.isDroppedPassenger = isDroppedPassenger
+                          tripDetails.isDroppedDriver = isDroppedDriver
+                          tripDetails.isArrivedToDestination = isArrivedToDestination
+                          tripDetails.connect_type = connect_type
+                          tripDetails.payment_method = payment_method 
+                          tripDetails.amount = amount 
+                          tripDetails.destinations = destinations
+                          tripDetails.name = name 
+                          tripDetails.surname = surname
+                          tripDetails.gender = gender
+                          tripDetails.cellphone = cellphone 
+                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                          tripDetails.origin = origin
+                          // Add trip detail to final response 
+                          res0(tripDetails)
+                      }
+  
+                      }, (error) => {
+                        console.log(error)
+                      })
+  
+                  }).catch((error) => { 
+                      console.log(error)
+                  })
+                });
+            })
+            // Get all added objects from res0
+            Promise.all(alltrips).then(
+                (result) => {
+                    console.log(`No cache found with error, ${result.length} rides found`)
+                    resolve(result)
+                },
+                (error) => {
+                    console.log(error)
+                }
+            )
+  
+        })
+        .catch((err) => console.log(err))
+
+      } else if(reply) {
+        if(reply !== null) {
+          // return found cash
+          resolve(JSON.parse(reply))
+          
+          // !! Update cash in background
+          new Promise((cashupdate) => {
+              console.log("Updating ride-overview...")
+              collectionRidesDeliveryData
+              .find({ride_mode:"RIDE"})
+              .sort({ date_requested: -1})
+              .toArray()
+              .then((result) => {
+                  // Initialize the list of all trips
+                  //console.log(result)
+                  let alltrips =result.map((trip) => {
+                      return new Promise((res0) => {
+                        
+                      // Get the following for each trip
+                        const passengers_number = trip.passengers_number
+                        const request_type = trip.request_type
+                        const date_time = trip.date_requested
+                        const wished_pickup_time = trip.wished_pickup_time
+                        const isAccepted = trip.ride_state_vars.isAccepted
+                        const isPickedUp = trip.ride_state_vars.inRideToDestination
+                        const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
+                        const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                        const isArrivedToDestination = trip.isArrivedToDestination
+                        const connect_type = trip.connect_type
+                        const payment_method = trip.payment_method
+                        const amount = trip.fare
+                        const destinations = trip.destinationData
+                        const origin = trip.pickup_location_infos.suburb
+                        //console.log(trip.client_id)
+                        // Request for corresponding passenger
+                        query = {
+                            user_fingerprint: trip.client_id
+                        }
+                        // Make Database request of corrresponding passenger
+
+                        collectionPassengers_profiles
+                        .find(query)
+                        .toArray()
+                        .then((user)=> {
+                            // request for the driver to get the taxi number
+                            queryDriver = {
+                              driver_fingerprint: trip.taxi_id
+                            }
+                            collectionDrivers_profiles
+                            .findOne(queryDriver)
+                            .then((driver) => {
+                              const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+
+                              // initialize the trip details object
+                              const tripDetails = {}
+                              if (user[0]){
+
+                                const name = user[0]["name"]
+                                const surname = user[0]["surname"]
+                                const gender = user[0]["gender"]
+                                const cellphone = user[0]["phone_number"]
+                              
+                                //create the Object containing collected data
+                                tripDetails.passengers_number = passengers_number
+                                tripDetails.request_type = request_type
+                                tripDetails.date_time = date_time
+                                tripDetails.isAccepted = isAccepted
+                                tripDetails.wished_pickup_time = wished_pickup_time
+                                tripDetails.isPickedUp = isPickedUp
+                                tripDetails.isDroppedPassenger = isDroppedPassenger
+                                tripDetails.isDroppedDriver = isDroppedDriver
+                                tripDetails.isArrivedToDestination = isArrivedToDestination
+                                tripDetails.connect_type = connect_type
+                                tripDetails.payment_method = payment_method 
+                                tripDetails.amount = amount 
+                                tripDetails.destinations = destinations
+                                tripDetails.name = name 
+                                tripDetails.surname = surname
+                                tripDetails.gender = gender
+                                tripDetails.cellphone = cellphone
+                                tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                                tripDetails.origin = origin
+                                // Add trip detail to final response 
+                                res0(tripDetails)
+                              
+                              } else {
+                                //! Set the passenger details to "not found" if fingerprint is 
+                                //!   unknown(suspecious case)
+                                const name = "not found"
+                                const surname = "not found"
+                                const gender = "not found"
+                                const cellphone = "not found"
+
+                                tripDetails.passengers_number = passengers_number
+                                tripDetails.request_type = request_type
+                                tripDetails.date_time = date_time
+                                tripDetails.isAccepted = isAccepted
+                                tripDetails.wished_pickup_time = wished_pickup_time
+                                tripDetails.isPickedUp = isPickedUp
+                                tripDetails.isDroppedPassenger = isDroppedPassenger
+                                tripDetails.isDroppedDriver = isDroppedDriver
+                                tripDetails.isArrivedToDestination = isArrivedToDestination
+                                tripDetails.connect_type = connect_type
+                                tripDetails.payment_method = payment_method 
+                                tripDetails.amount = amount 
+                                tripDetails.destinations = destinations
+                                tripDetails.name = name 
+                                tripDetails.surname = surname
+                                tripDetails.gender = gender
+                                tripDetails.cellphone = cellphone 
+                                tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                                tripDetails.origin = origin
+                                // Add trip detail to final response 
+                                res0(tripDetails)
+                            }
+
+                            }, (error) => {
+                              console.log(error)
+                            })
+
+                        }).catch((error) => { 
+                            console.log(error)
+                        })
+                      });
+                  })
+                  // Get all added objects from res0
+                  Promise.all(alltrips).then(
+                      (result) => {
+                          console.log(`${result.length} rides found`)
+                          // Cash 
+                          client.set("rideOverview-cache", JSON.stringify(result), redis.print)
+                          //!! No return : !resolve(result)
+                          console.log("update of ride-overview completed")
+                      },
+                      (error) => {
+                          console.log(error)
+                      }
+                  )
+
+              })
+              .catch((err) => console.log(err))
+          })
+          .then((result) => {
+            console.log("cash returned")
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+
+        } else {
+
+          collectionRidesDeliveryData
+          .find({ride_mode:"RIDE"})
+          .sort({ date_requested: -1})
+          .toArray()
+          .then((result) => {
+              // Initialize the list of all trips
+              //console.log(result)
+              let alltrips =result.map((trip) => {
+                  return new Promise((res0) => {
+                    
+                  // Get the following for each trip
+                    const passengers_number = trip.passengers_number
+                    const request_type = trip.request_type
+                    const date_time = trip.date_requested
+                    const wished_pickup_time = trip.wished_pickup_time
+                    const isAccepted = trip.ride_state_vars.isAccepted
+                    const isPickedUp = trip.ride_state_vars.inRideToDestination
+                    const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
+                    const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                    const isArrivedToDestination = trip.isArrivedToDestination
+                    const connect_type = trip.connect_type
+                    const payment_method = trip.payment_method
+                    const amount = trip.fare
+                    const destinations = trip.destinationData
+                    const origin = trip.pickup_location_infos.suburb
+                    //console.log(trip.client_id)
+                    // Request for corresponding passenger
+                    query = {
+                        user_fingerprint: trip.client_id
+                    }
+                    // Make Database request of corrresponding passenger
+
+                    collectionPassengers_profiles
+                    .find(query)
+                    .toArray()
+                    .then((user)=> {
+                        // request for the driver to get the taxi number
+                        queryDriver = {
+                          driver_fingerprint: trip.taxi_id
+                        }
+                        collectionDrivers_profiles
+                        .findOne(queryDriver)
+                        .then((driver) => {
+                          const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+
+                          // initialize the trip details object
+                          const tripDetails = {}
+                          if (user[0]){
+
+                            const name = user[0]["name"]
+                            const surname = user[0]["surname"]
+                            const gender = user[0]["gender"]
+                            const cellphone = user[0]["phone_number"]
+                          
+                            //create the Object containing collected data
+                            tripDetails.passengers_number = passengers_number
+                            tripDetails.request_type = request_type
+                            tripDetails.date_time = date_time
+                            tripDetails.isAccepted = isAccepted
+                            tripDetails.wished_pickup_time = wished_pickup_time
+                            tripDetails.isPickedUp = isPickedUp
+                            tripDetails.isDroppedPassenger = isDroppedPassenger
+                            tripDetails.isDroppedDriver = isDroppedDriver
+                            tripDetails.isArrivedToDestination = isArrivedToDestination
+                            tripDetails.connect_type = connect_type
+                            tripDetails.payment_method = payment_method 
+                            tripDetails.amount = amount 
+                            tripDetails.destinations = destinations
+                            tripDetails.name = name 
+                            tripDetails.surname = surname
+                            tripDetails.gender = gender
+                            tripDetails.cellphone = cellphone
+                            tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                            tripDetails.origin = origin
+                            // Add trip detail to final response 
+                            res0(tripDetails)
+                          
+                          } else {
+                            //! Set the passenger details to "not found" if fingerprint is 
+                            //!   unknown(suspecious case)
+                            const name = "not found"
+                            const surname = "not found"
+                            const gender = "not found"
+                            const cellphone = "not found"
+
+                            tripDetails.passengers_number = passengers_number
+                            tripDetails.request_type = request_type
+                            tripDetails.date_time = date_time
+                            tripDetails.isAccepted = isAccepted
+                            tripDetails.wished_pickup_time = wished_pickup_time
+                            tripDetails.isPickedUp = isPickedUp
+                            tripDetails.isDroppedPassenger = isDroppedPassenger
+                            tripDetails.isDroppedDriver = isDroppedDriver
+                            tripDetails.isArrivedToDestination = isArrivedToDestination
+                            tripDetails.connect_type = connect_type
+                            tripDetails.payment_method = payment_method 
+                            tripDetails.amount = amount 
+                            tripDetails.destinations = destinations
+                            tripDetails.name = name 
+                            tripDetails.surname = surname
+                            tripDetails.gender = gender
+                            tripDetails.cellphone = cellphone 
+                            tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                            tripDetails.origin = origin
+                            // Add trip detail to final response 
+                            res0(tripDetails)
+                        }
+
+                        }, (error) => {
+                          console.log(error)
+                        })
+
+                    }).catch((error) => { 
+                        console.log(error)
+                    })
+                  });
+              })
+              // Get all added objects from res0
+              Promise.all(alltrips).then(
+                  (result) => {
+                      console.log(`${result.length} rides found`)
+                      client.set("rideOverview-cache", JSON.stringify(result), redis.print)
+                      resolve(result)
+                  },
+                  (error) => {
+                      console.log(error)
+                  }
+              )
+          })
+          .catch((err) => console.log(err))
+
+        }
+      } else {
+          // Get directly from mongodb
+        collectionRidesDeliveryData
+        .find({ride_mode:"RIDE"})
+        .sort({ date_requested: -1})
+        .toArray()
+        .then((result) => {
+            // Initialize the list of all trips
+            //console.log(result)
+            let alltrips =result.map((trip) => {
+                return new Promise((res0) => {
+                   
+                // Get the following for each trip
+                  const passengers_number = trip.passengers_number
+                  const request_type = trip.request_type
+                  const date_time = trip.date_requested
+                  const wished_pickup_time = trip.wished_pickup_time
+                  const isAccepted = trip.ride_state_vars.isAccepted
+                  const isPickedUp = trip.ride_state_vars.inRideToDestination
+                  const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
+                  const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                  const isArrivedToDestination = trip.isArrivedToDestination
+                  const connect_type = trip.connect_type
+                  const payment_method = trip.payment_method
+                  const amount = trip.fare
+                  const destinations = trip.destinationData
+                  const origin = trip.pickup_location_infos.suburb
+                  //console.log(trip.client_id)
+                  // Request for corresponding passenger
+                  query = {
+                      user_fingerprint: trip.client_id
+                  }
+                  // Make Database request of corrresponding passenger
+  
+                  collectionPassengers_profiles
+                  .find(query)
+                  .toArray()
+                  .then((user)=> {
+                      // request for the driver to get the taxi number
+                      queryDriver = {
+                        driver_fingerprint: trip.taxi_id
+                      }
+                      collectionDrivers_profiles
+                      .findOne(queryDriver)
+                      .then((driver) => {
+                        const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+  
+                        // initialize the trip details object
+                        const tripDetails = {}
+                        if (user[0]){
+  
+                          const name = user[0]["name"]
+                          const surname = user[0]["surname"]
+                          const gender = user[0]["gender"]
+                          const cellphone = user[0]["phone_number"]
+                        
+                          //create the Object containing collected data
+                          tripDetails.passengers_number = passengers_number
+                          tripDetails.request_type = request_type
+                          tripDetails.date_time = date_time
+                          tripDetails.isAccepted = isAccepted
+                          tripDetails.wished_pickup_time = wished_pickup_time
+                          tripDetails.isPickedUp = isPickedUp
+                          tripDetails.isDroppedPassenger = isDroppedPassenger
+                          tripDetails.isDroppedDriver = isDroppedDriver
+                          tripDetails.isArrivedToDestination = isArrivedToDestination
+                          tripDetails.connect_type = connect_type
+                          tripDetails.payment_method = payment_method 
+                          tripDetails.amount = amount 
+                          tripDetails.destinations = destinations
+                          tripDetails.name = name 
+                          tripDetails.surname = surname
+                          tripDetails.gender = gender
+                          tripDetails.cellphone = cellphone
+                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                          tripDetails.origin = origin
+                          // Add trip detail to final response 
+                          res0(tripDetails)
+                        
+                        } else {
+                          //! Set the passenger details to "not found" if fingerprint is 
+                          //!   unknown(suspecious case)
+                          const name = "not found"
+                          const surname = "not found"
+                          const gender = "not found"
+                          const cellphone = "not found"
+  
+                          tripDetails.passengers_number = passengers_number
+                          tripDetails.request_type = request_type
+                          tripDetails.date_time = date_time
+                          tripDetails.isAccepted = isAccepted
+                          tripDetails.wished_pickup_time = wished_pickup_time
+                          tripDetails.isPickedUp = isPickedUp
+                          tripDetails.isDroppedPassenger = isDroppedPassenger
+                          tripDetails.isDroppedDriver = isDroppedDriver
+                          tripDetails.isArrivedToDestination = isArrivedToDestination
+                          tripDetails.connect_type = connect_type
+                          tripDetails.payment_method = payment_method 
+                          tripDetails.amount = amount 
+                          tripDetails.destinations = destinations
+                          tripDetails.name = name 
+                          tripDetails.surname = surname
+                          tripDetails.gender = gender
+                          tripDetails.cellphone = cellphone 
+                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                          tripDetails.origin = origin
+                          // Add trip detail to final response 
+                          res0(tripDetails)
+                      }
+  
+                      }, (error) => {
+                        console.log(error)
+                      })
+  
+                  }).catch((error) => { 
+                      console.log(error)
+                  })
+                });
+            })
+            // Get all added objects from res0
+            Promise.all(alltrips).then(
+                (result) => {
+                    console.log("No cache found...")
+                    console.log(`${result.length} rides found`)
+                    client.set("rideOverview-cache", JSON.stringify(result), redis.print)
+                    resolve(result)
+                },
+                (error) => {
+                    console.log(error)
+                }
+            )
+  
+        })
+        .catch((err) => console.log(err))
+      }
+    })
+   
+}
+
+
+
+function getDeliveryOverview(collectionRidesDeliveryData, 
+  collectionPassengers_profiles,
+  collectionDrivers_profiles,
+  resolve ) {
+
+    // Getting data from redis cache or mongodb otherwise
+    client.get("deliveryOverview-cache", (err, reply) => {
+      console.log("searching for delivery-overview cache...")
+      console.log("Found deliveries in cache: ", reply)
+
+      if (err) {
+        // Get from database:
+        collectionRidesDeliveryData
+        .find({ride_mode:"DELIVERY"})
+        .toArray()
+        .then((result) => {
+            // Initialize the list of all trips
+            //console.log(result)
+            let alltrips =result.map((trip) => {
+                return new Promise((res0) => {
+                  
+                // Get the following for each trip
+                  const delivery_receiver = trip.delivery_infos.receiverName_delivery
+                  const delivery_phone = trip.delivery_infos.receiverPhone_delivery
+                  
+                  const request_type = trip.request_type
+                  const isAccepted = trip.ride_state_vars.isAccepted
+                  const date_time = trip.date_requested
+                  const wished_pickup_time = trip.wished_pickup_time
+                  const isPickedUp = trip.ride_state_vars.inRideToDestination
+                  const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
+                  const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                  const isArrivedToDestination = trip.isArrivedToDestination
+                  const payment_method = trip.payment_method
+                  const amount = trip.fare
+                  const destinations = trip.destinationData
+                  
+                  const origin = trip.pickup_location_infos.location_name
+                  //console.log(trip.client_id)
+                  // Request for corresponding passenger
+                  query = {
+                      user_fingerprint: trip.client_id
+                  }
+                  // Make Database request of corrresponding passenger
+
+                  collectionPassengers_profiles
+                  .find(query)
+                  .toArray()
+                  .then((user)=> {
+                    // Request for the driver's info
                     queryDriver = {
                       driver_fingerprint: trip.taxi_id
                     }
@@ -291,233 +874,536 @@ function getRideOverview(collectionRidesDeliveryData,
                       const tripDetails = {}
                       if (user[0]){
 
-                        const name = user[0]["name"]
-                        const surname = user[0]["surname"]
-                        const gender = user[0]["gender"]
-                        const cellphone = user[0]["phone_number"]
-                      
-                        //create the Object containing collected data
-                        tripDetails.passengers_number = passengers_number
-                        tripDetails.request_type = request_type
-                        tripDetails.date_time = date_time
-                        tripDetails.isAccepted = isAccepted
-                        tripDetails.wished_pickup_time = wished_pickup_time
-                        tripDetails.isPickedUp = isPickedUp
-                        tripDetails.isDroppedPassenger = isDroppedPassenger
-                        tripDetails.isDroppedDriver = isDroppedDriver
-                        tripDetails.isArrivedToDestination = isArrivedToDestination
-                        tripDetails.connect_type = connect_type
-                        tripDetails.payment_method = payment_method 
-                        tripDetails.amount = amount 
-                        tripDetails.destinations = destinations
-                        tripDetails.name = name 
-                        tripDetails.surname = surname
-                        tripDetails.gender = gender
-                        tripDetails.cellphone = cellphone
-                        tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
-                        tripDetails.origin = origin
-                        // Add trip detail to final response 
-                        res0(tripDetails)
-                      
+                          const name = user[0]["name"]
+                          const surname = user[0]["surname"]
+                          const gender = user[0]["gender"]
+                          const cellphone = user[0]["phone_number"]
+                        
+                          //create the Object containing collected data
+                          
+                          tripDetails.delivery_receiver = delivery_receiver
+                          tripDetails.delivery_phone = delivery_phone
+                        
+                          tripDetails.request_type = request_type
+                          tripDetails.isAccepted = isAccepted
+                          tripDetails.wished_pickup_time = wished_pickup_time
+                          tripDetails.date_time = date_time
+                          tripDetails.isPickedUp = isPickedUp
+                          tripDetails.isDroppedPassenger = isDroppedPassenger
+                          tripDetails.isDroppedDriver = isDroppedDriver
+                          tripDetails.isArrivedToDestination = isArrivedToDestination
+                          //tripDetails.connect_type = connect_type
+                          tripDetails.payment_method = payment_method 
+                          tripDetails.amount = amount 
+                          tripDetails.destinations = destinations
+                          tripDetails.name = name 
+                          tripDetails.surname = surname
+                          tripDetails.gender = gender
+                          tripDetails.cellphone = cellphone 
+                          tripDetails.origin = origin
+                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
+                          // Add trip detail to final response 
+                          res0(tripDetails)
+                        
                       } else {
-                        //! Set the passenger details to "not found" if fingerprint is 
-                        //!   unknown(suspecious case)
-                        const name = "not found"
-                        const surname = "not found"
-                        const gender = "not found"
-                        const cellphone = "not found"
+                          //! Set the sender details to "not found" if fingerprint is 
+                          //!   unknown(suspecious case)
+                          const name = "not found"
+                          const surname = "not found"
+                          const gender = "not found"
+                          const cellphone = "not found"
 
-                        tripDetails.passengers_number = passengers_number
-                        tripDetails.request_type = request_type
-                        tripDetails.date_time = date_time
-                        tripDetails.isAccepted = isAccepted
-                        tripDetails.wished_pickup_time = wished_pickup_time
-                        tripDetails.isPickedUp = isPickedUp
-                        tripDetails.isDroppedPassenger = isDroppedPassenger
-                        tripDetails.isDroppedDriver = isDroppedDriver
-                        tripDetails.isArrivedToDestination = isArrivedToDestination
-                        tripDetails.connect_type = connect_type
-                        tripDetails.payment_method = payment_method 
-                        tripDetails.amount = amount 
-                        tripDetails.destinations = destinations
-                        tripDetails.name = name 
-                        tripDetails.surname = surname
-                        tripDetails.gender = gender
-                        tripDetails.cellphone = cellphone 
-                        tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
-                        tripDetails.origin = origin
-                        // Add trip detail to final response 
-                        res0(tripDetails)
-                    }
+                          tripDetails.delivery_receiver = delivery_receiver
+                          tripDetails.delivery_phone = delivery_phone
 
-                    }, (error) => {
+                          //tripDetails.passengers_number = passengers_number
+                          tripDetails.request_type = request_type
+                          tripDetails.isAccepted = isAccepted
+                          tripDetails.wished_pickup_time = wished_pickup_time
+                          tripDetails.date_time = date_time
+                          tripDetails.isPickedUp = isPickedUp
+                          tripDetails.isDroppedPassenger = isDroppedPassenger
+                          tripDetails.isDroppedDriver = isDroppedDriver
+                          tripDetails.isArrivedToDestination = isArrivedToDestination
+                          //tripDetails.connect_type = connect_type
+                          tripDetails.payment_method = payment_method 
+                          tripDetails.amount = amount 
+                          tripDetails.destinations = destinations
+                          tripDetails.name = name 
+                          tripDetails.surname = surname
+                          tripDetails.gender = gender
+                          tripDetails.cellphone = cellphone 
+                          tripDetails.origin = origin
+                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
+                          // Add trip detail to final response 
+                          res0(tripDetails)
+                      }
+
+                    })
+                    .catch((error) =>{
                       console.log(error)
                     })
 
-                }).catch((error) => { 
+                  }).catch((error) => { 
+                      console.log(error)
+                  })
+                });
+            })
+            // Get all added objects from res0
+            Promise.all(alltrips).then(
+                (result) => {
+                    // Cache result:
+                    client.set("deliveryOverview-cache", JSON.stringify(result), redis.print)
+                    console.log(`${result.length}Deliveries found`)
+                    resolve(result)
+                },
+                (error) => {
                     console.log(error)
-                })
-              });
-          })
-          // Get all added objects from res0
-          Promise.all(alltrips).then(
-              (result) => {
-                  console.log(`${result.length} rides found`)
-                  resolve(result)
-              },
-              (error) => {
-                  console.log(error)
-              }
-          )
-
-      })
-      .catch((err) => console.log(err))
-}
-
-
-
-function getDeliveryOverview(collectionRidesDeliveryData, 
-  collectionPassengers_profiles,
-  collectionDrivers_profiles,
-  resolve ) {
-    collectionRidesDeliveryData
-      .find({ride_mode:"DELIVERY"})
-      .toArray()
-      .then((result) => {
-          // Initialize the list of all trips
-          //console.log(result)
-          let alltrips =result.map((trip) => {
-              return new Promise((res0) => {
-                 
-              // Get the following for each trip
-                const delivery_receiver = trip.delivery_infos.receiverName_delivery
-                const delivery_phone = trip.delivery_infos.receiverPhone_delivery
-                
-                const request_type = trip.request_type
-                const isAccepted = trip.ride_state_vars.isAccepted
-                const date_time = trip.date_requested
-                const wished_pickup_time = trip.wished_pickup_time
-                const isPickedUp = trip.ride_state_vars.inRideToDestination
-                const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
-                const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
-                const isArrivedToDestination = trip.isArrivedToDestination
-                const payment_method = trip.payment_method
-                const amount = trip.fare
-                const destinations = trip.destinationData
-                
-                const origin = trip.pickup_location_infos.location_name
-                //console.log(trip.client_id)
-                // Request for corresponding passenger
-                query = {
-                    user_fingerprint: trip.client_id
                 }
-                // Make Database request of corrresponding passenger
+            )
 
-                collectionPassengers_profiles
-                .find(query)
-                .toArray()
-                .then((user)=> {
-                  // Request for the driver's info
-                  queryDriver = {
-                    driver_fingerprint: trip.taxi_id
-                  }
-                  collectionDrivers_profiles
-                  .findOne(queryDriver)
-                  .then((driver) => {
-                    const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+        })
+        .catch((err) => console.log(err))
 
-                    // initialize the trip details object
-                    const tripDetails = {}
-                    if (user[0]){
+      } else if(reply) {
+        if(reply !== null ) {
+          // return the cached data
+          resolve(JSON.parse(reply))
 
-                        const name = user[0]["name"]
-                        const surname = user[0]["surname"]
-                        const gender = user[0]["gender"]
-                        const cellphone = user[0]["phone_number"]
+          //!!Update cache in background (no resolve() included)
+          new Promise((cashUpdate) => {
+            collectionRidesDeliveryData
+            .find({ride_mode:"DELIVERY"})
+            .toArray()
+            .then((result) => {
+                // Initialize the list of all trips
+                //console.log(result)
+                let alltrips =result.map((trip) => {
+                    return new Promise((res0) => {
+                       
+                    // Get the following for each trip
+                      const delivery_receiver = trip.delivery_infos.receiverName_delivery
+                      const delivery_phone = trip.delivery_infos.receiverPhone_delivery
                       
-                        //create the Object containing collected data
-                        
-                        tripDetails.delivery_receiver = delivery_receiver
-                        tripDetails.delivery_phone = delivery_phone
+                      const request_type = trip.request_type
+                      const isAccepted = trip.ride_state_vars.isAccepted
+                      const date_time = trip.date_requested
+                      const wished_pickup_time = trip.wished_pickup_time
+                      const isPickedUp = trip.ride_state_vars.inRideToDestination
+                      const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
+                      const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                      const isArrivedToDestination = trip.isArrivedToDestination
+                      const payment_method = trip.payment_method
+                      const amount = trip.fare
+                      const destinations = trip.destinationData
                       
-                        tripDetails.request_type = request_type
-                        tripDetails.isAccepted = isAccepted
-                        tripDetails.wished_pickup_time = wished_pickup_time
-                        tripDetails.date_time = date_time
-                        tripDetails.isPickedUp = isPickedUp
-                        tripDetails.isDroppedPassenger = isDroppedPassenger
-                        tripDetails.isDroppedDriver = isDroppedDriver
-                        tripDetails.isArrivedToDestination = isArrivedToDestination
-                        //tripDetails.connect_type = connect_type
-                        tripDetails.payment_method = payment_method 
-                        tripDetails.amount = amount 
-                        tripDetails.destinations = destinations
-                        tripDetails.name = name 
-                        tripDetails.surname = surname
-                        tripDetails.gender = gender
-                        tripDetails.cellphone = cellphone 
-                        tripDetails.origin = origin
-                        tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
-                        // Add trip detail to final response 
-                        res0(tripDetails)
-                      
-                    } else {
-                        //! Set the sender details to "not found" if fingerprint is 
-                        //!   unknown(suspecious case)
-                        const name = "not found"
-                        const surname = "not found"
-                        const gender = "not found"
-                        const cellphone = "not found"
-
-                        tripDetails.delivery_receiver = delivery_receiver
-                        tripDetails.delivery_phone = delivery_phone
-
-                        //tripDetails.passengers_number = passengers_number
-                        tripDetails.request_type = request_type
-                        tripDetails.isAccepted = isAccepted
-                        tripDetails.wished_pickup_time = wished_pickup_time
-                        tripDetails.date_time = date_time
-                        tripDetails.isPickedUp = isPickedUp
-                        tripDetails.isDroppedPassenger = isDroppedPassenger
-                        tripDetails.isDroppedDriver = isDroppedDriver
-                        tripDetails.isArrivedToDestination = isArrivedToDestination
-                        //tripDetails.connect_type = connect_type
-                        tripDetails.payment_method = payment_method 
-                        tripDetails.amount = amount 
-                        tripDetails.destinations = destinations
-                        tripDetails.name = name 
-                        tripDetails.surname = surname
-                        tripDetails.gender = gender
-                        tripDetails.cellphone = cellphone 
-                        tripDetails.origin = origin
-                        tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
-                        // Add trip detail to final response 
-                        res0(tripDetails)
-                    }
-
-                  })
-                  .catch((error) =>{
-                    console.log(error)
-                  })
-
-                }).catch((error) => { 
-                    console.log(error)
+                      const origin = trip.pickup_location_infos.location_name
+                      //console.log(trip.client_id)
+                      // Request for corresponding passenger
+                      query = {
+                          user_fingerprint: trip.client_id
+                      }
+                      // Make Database request of corrresponding passenger
+      
+                      collectionPassengers_profiles
+                      .find(query)
+                      .toArray()
+                      .then((user)=> {
+                        // Request for the driver's info
+                        queryDriver = {
+                          driver_fingerprint: trip.taxi_id
+                        }
+                        collectionDrivers_profiles
+                        .findOne(queryDriver)
+                        .then((driver) => {
+                          const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+      
+                          // initialize the trip details object
+                          const tripDetails = {}
+                          if (user[0]){
+      
+                              const name = user[0]["name"]
+                              const surname = user[0]["surname"]
+                              const gender = user[0]["gender"]
+                              const cellphone = user[0]["phone_number"]
+                            
+                              //create the Object containing collected data
+                              
+                              tripDetails.delivery_receiver = delivery_receiver
+                              tripDetails.delivery_phone = delivery_phone
+                            
+                              tripDetails.request_type = request_type
+                              tripDetails.isAccepted = isAccepted
+                              tripDetails.wished_pickup_time = wished_pickup_time
+                              tripDetails.date_time = date_time
+                              tripDetails.isPickedUp = isPickedUp
+                              tripDetails.isDroppedPassenger = isDroppedPassenger
+                              tripDetails.isDroppedDriver = isDroppedDriver
+                              tripDetails.isArrivedToDestination = isArrivedToDestination
+                              //tripDetails.connect_type = connect_type
+                              tripDetails.payment_method = payment_method 
+                              tripDetails.amount = amount 
+                              tripDetails.destinations = destinations
+                              tripDetails.name = name 
+                              tripDetails.surname = surname
+                              tripDetails.gender = gender
+                              tripDetails.cellphone = cellphone 
+                              tripDetails.origin = origin
+                              tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
+                              // Add trip detail to final response 
+                              res0(tripDetails)
+                            
+                          } else {
+                              //! Set the sender details to "not found" if fingerprint is 
+                              //!   unknown(suspecious case)
+                              const name = "not found"
+                              const surname = "not found"
+                              const gender = "not found"
+                              const cellphone = "not found"
+      
+                              tripDetails.delivery_receiver = delivery_receiver
+                              tripDetails.delivery_phone = delivery_phone
+      
+                              //tripDetails.passengers_number = passengers_number
+                              tripDetails.request_type = request_type
+                              tripDetails.isAccepted = isAccepted
+                              tripDetails.wished_pickup_time = wished_pickup_time
+                              tripDetails.date_time = date_time
+                              tripDetails.isPickedUp = isPickedUp
+                              tripDetails.isDroppedPassenger = isDroppedPassenger
+                              tripDetails.isDroppedDriver = isDroppedDriver
+                              tripDetails.isArrivedToDestination = isArrivedToDestination
+                              //tripDetails.connect_type = connect_type
+                              tripDetails.payment_method = payment_method 
+                              tripDetails.amount = amount 
+                              tripDetails.destinations = destinations
+                              tripDetails.name = name 
+                              tripDetails.surname = surname
+                              tripDetails.gender = gender
+                              tripDetails.cellphone = cellphone 
+                              tripDetails.origin = origin
+                              tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
+                              // Add trip detail to final response 
+                              res0(tripDetails)
+                          }
+      
+                        })
+                        .catch((error) =>{
+                          console.log(error)
+                        })
+      
+                      }).catch((error) => { 
+                          console.log(error)
+                      })
+                    });
                 })
-              });
+                // Get all added objects from res0
+                Promise.all(alltrips).then(
+                    (result) => {
+                        console.log(`${result.length}Deliveries found`)
+                        //!! DO NOT RETURN : !resolve(result), rather cache updated value
+                        client.set("deliveryOverview-cache", JSON.stringify(result))
+                        console.log("delivery-overview updated in background...")
+                    },
+                    (error) => {
+                        console.log(error)
+                    }
+                )
+      
+            })
+            .catch((err) => console.log(err))
           })
-          // Get all added objects from res0
-          Promise.all(alltrips).then(
-              (result) => {
-                  console.log(`${result.length}Deliveries found`)
-                  resolve(result)
-              },
-              (error) => {
-                  console.log(error)
-              }
-          )
+          .then((cache) => {
+            console.log("caching delivery-overview completed")
+          })
+          .catch((error) => {
+            console.log(error)
+            resolve({error: "something went wrong while updating cache"})
+          })
+        } else {
+          collectionRidesDeliveryData
+          .find({ride_mode:"DELIVERY"})
+          .toArray()
+          .then((result) => {
+              // Initialize the list of all trips
+              //console.log(result)
+              let alltrips =result.map((trip) => {
+                  return new Promise((res0) => {
+                    
+                  // Get the following for each trip
+                    const delivery_receiver = trip.delivery_infos.receiverName_delivery
+                    const delivery_phone = trip.delivery_infos.receiverPhone_delivery
+                    
+                    const request_type = trip.request_type
+                    const isAccepted = trip.ride_state_vars.isAccepted
+                    const date_time = trip.date_requested
+                    const wished_pickup_time = trip.wished_pickup_time
+                    const isPickedUp = trip.ride_state_vars.inRideToDestination
+                    const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
+                    const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                    const isArrivedToDestination = trip.isArrivedToDestination
+                    const payment_method = trip.payment_method
+                    const amount = trip.fare
+                    const destinations = trip.destinationData
+                    
+                    const origin = trip.pickup_location_infos.location_name
+                    //console.log(trip.client_id)
+                    // Request for corresponding passenger
+                    query = {
+                        user_fingerprint: trip.client_id
+                    }
+                    // Make Database request of corrresponding passenger
 
+                    collectionPassengers_profiles
+                    .find(query)
+                    .toArray()
+                    .then((user)=> {
+                      // Request for the driver's info
+                      queryDriver = {
+                        driver_fingerprint: trip.taxi_id
+                      }
+                      collectionDrivers_profiles
+                      .findOne(queryDriver)
+                      .then((driver) => {
+                        const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+
+                        // initialize the trip details object
+                        const tripDetails = {}
+                        if (user[0]){
+
+                            const name = user[0]["name"]
+                            const surname = user[0]["surname"]
+                            const gender = user[0]["gender"]
+                            const cellphone = user[0]["phone_number"]
+                          
+                            //create the Object containing collected data
+                            
+                            tripDetails.delivery_receiver = delivery_receiver
+                            tripDetails.delivery_phone = delivery_phone
+                          
+                            tripDetails.request_type = request_type
+                            tripDetails.isAccepted = isAccepted
+                            tripDetails.wished_pickup_time = wished_pickup_time
+                            tripDetails.date_time = date_time
+                            tripDetails.isPickedUp = isPickedUp
+                            tripDetails.isDroppedPassenger = isDroppedPassenger
+                            tripDetails.isDroppedDriver = isDroppedDriver
+                            tripDetails.isArrivedToDestination = isArrivedToDestination
+                            //tripDetails.connect_type = connect_type
+                            tripDetails.payment_method = payment_method 
+                            tripDetails.amount = amount 
+                            tripDetails.destinations = destinations
+                            tripDetails.name = name 
+                            tripDetails.surname = surname
+                            tripDetails.gender = gender
+                            tripDetails.cellphone = cellphone 
+                            tripDetails.origin = origin
+                            tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
+                            // Add trip detail to final response 
+                            res0(tripDetails)
+                          
+                        } else {
+                            //! Set the sender details to "not found" if fingerprint is 
+                            //!   unknown(suspecious case)
+                            const name = "not found"
+                            const surname = "not found"
+                            const gender = "not found"
+                            const cellphone = "not found"
+
+                            tripDetails.delivery_receiver = delivery_receiver
+                            tripDetails.delivery_phone = delivery_phone
+
+                            //tripDetails.passengers_number = passengers_number
+                            tripDetails.request_type = request_type
+                            tripDetails.isAccepted = isAccepted
+                            tripDetails.wished_pickup_time = wished_pickup_time
+                            tripDetails.date_time = date_time
+                            tripDetails.isPickedUp = isPickedUp
+                            tripDetails.isDroppedPassenger = isDroppedPassenger
+                            tripDetails.isDroppedDriver = isDroppedDriver
+                            tripDetails.isArrivedToDestination = isArrivedToDestination
+                            //tripDetails.connect_type = connect_type
+                            tripDetails.payment_method = payment_method 
+                            tripDetails.amount = amount 
+                            tripDetails.destinations = destinations
+                            tripDetails.name = name 
+                            tripDetails.surname = surname
+                            tripDetails.gender = gender
+                            tripDetails.cellphone = cellphone 
+                            tripDetails.origin = origin
+                            tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
+                            // Add trip detail to final response 
+                            res0(tripDetails)
+                        }
+
+                      })
+                      .catch((error) =>{
+                        console.log(error)
+                      })
+
+                    }).catch((error) => { 
+                        console.log(error)
+                    })
+                  });
+              })
+              // Get all added objects from res0
+              Promise.all(alltrips).then(
+                  (result) => {
+                      client.set("deliveryOverview-cache", JSON.stringify(result))
+                      console.log(`${result.length}Deliveries found`)
+                      resolve(result)
+                  },
+                  (error) => {
+                      console.log(error)
+                  }
+              )
+
+          })
+          .catch((err) => console.log(err))
+        }
+      } else {
+        collectionRidesDeliveryData
+        .find({ride_mode:"DELIVERY"})
+        .toArray()
+        .then((result) => {
+            // Initialize the list of all trips
+            //console.log(result)
+            let alltrips =result.map((trip) => {
+                return new Promise((res0) => {
+                  
+                // Get the following for each trip
+                  const delivery_receiver = trip.delivery_infos.receiverName_delivery
+                  const delivery_phone = trip.delivery_infos.receiverPhone_delivery
+                  
+                  const request_type = trip.request_type
+                  const isAccepted = trip.ride_state_vars.isAccepted
+                  const date_time = trip.date_requested
+                  const wished_pickup_time = trip.wished_pickup_time
+                  const isPickedUp = trip.ride_state_vars.inRideToDestination
+                  const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
+                  const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                  const isArrivedToDestination = trip.isArrivedToDestination
+                  const payment_method = trip.payment_method
+                  const amount = trip.fare
+                  const destinations = trip.destinationData
+                  
+                  const origin = trip.pickup_location_infos.location_name
+                  //console.log(trip.client_id)
+                  // Request for corresponding passenger
+                  query = {
+                      user_fingerprint: trip.client_id
+                  }
+                  // Make Database request of corrresponding passenger
+
+                  collectionPassengers_profiles
+                  .find(query)
+                  .toArray()
+                  .then((user)=> {
+                    // Request for the driver's info
+                    queryDriver = {
+                      driver_fingerprint: trip.taxi_id
+                    }
+                    collectionDrivers_profiles
+                    .findOne(queryDriver)
+                    .then((driver) => {
+                      const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+
+                      // initialize the trip details object
+                      const tripDetails = {}
+                      if (user[0]){
+
+                          const name = user[0]["name"]
+                          const surname = user[0]["surname"]
+                          const gender = user[0]["gender"]
+                          const cellphone = user[0]["phone_number"]
+                        
+                          //create the Object containing collected data
+                          
+                          tripDetails.delivery_receiver = delivery_receiver
+                          tripDetails.delivery_phone = delivery_phone
+                        
+                          tripDetails.request_type = request_type
+                          tripDetails.isAccepted = isAccepted
+                          tripDetails.wished_pickup_time = wished_pickup_time
+                          tripDetails.date_time = date_time
+                          tripDetails.isPickedUp = isPickedUp
+                          tripDetails.isDroppedPassenger = isDroppedPassenger
+                          tripDetails.isDroppedDriver = isDroppedDriver
+                          tripDetails.isArrivedToDestination = isArrivedToDestination
+                          //tripDetails.connect_type = connect_type
+                          tripDetails.payment_method = payment_method 
+                          tripDetails.amount = amount 
+                          tripDetails.destinations = destinations
+                          tripDetails.name = name 
+                          tripDetails.surname = surname
+                          tripDetails.gender = gender
+                          tripDetails.cellphone = cellphone 
+                          tripDetails.origin = origin
+                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
+                          // Add trip detail to final response 
+                          res0(tripDetails)
+                        
+                      } else {
+                          //! Set the sender details to "not found" if fingerprint is 
+                          //!   unknown(suspecious case)
+                          const name = "not found"
+                          const surname = "not found"
+                          const gender = "not found"
+                          const cellphone = "not found"
+
+                          tripDetails.delivery_receiver = delivery_receiver
+                          tripDetails.delivery_phone = delivery_phone
+
+                          //tripDetails.passengers_number = passengers_number
+                          tripDetails.request_type = request_type
+                          tripDetails.isAccepted = isAccepted
+                          tripDetails.wished_pickup_time = wished_pickup_time
+                          tripDetails.date_time = date_time
+                          tripDetails.isPickedUp = isPickedUp
+                          tripDetails.isDroppedPassenger = isDroppedPassenger
+                          tripDetails.isDroppedDriver = isDroppedDriver
+                          tripDetails.isArrivedToDestination = isArrivedToDestination
+                          //tripDetails.connect_type = connect_type
+                          tripDetails.payment_method = payment_method 
+                          tripDetails.amount = amount 
+                          tripDetails.destinations = destinations
+                          tripDetails.name = name 
+                          tripDetails.surname = surname
+                          tripDetails.gender = gender
+                          tripDetails.cellphone = cellphone 
+                          tripDetails.origin = origin
+                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown"
+                          // Add trip detail to final response 
+                          res0(tripDetails)
+                      }
+
+                    })
+                    .catch((error) =>{
+                      console.log(error)
+                    })
+
+                  }).catch((error) => { 
+                      console.log(error)
+                  })
+                });
+            })
+            // Get all added objects from res0
+            Promise.all(alltrips).then(
+                (result) => {
+                    client.set("deliveryOverview-cache", JSON.stringify(result), redis.print)
+                    console.log(`${result.length}Deliveries found`)
+                    resolve(result)
+                },
+                (error) => {
+                    console.log(error)
+                }
+            )
+
+        })
+        .catch((err) => console.log(err))
+
+        }
       })
-      .catch((err) => console.log(err))
 }
 
 
@@ -720,7 +1606,7 @@ function getDeliveryProviderInfo(DriversCollection,FilteringCollection,deliveryP
   }).catch((error) => {
       console.log(error)
       resolve({ response: "error", flag: "Invalid_params_maybe" })
-  })  
+  })   
 }
 
 /**
@@ -797,7 +1683,7 @@ console.log(userExists("deliveryGuy", "delivery@guy","12345678",[
 // All APIs : 
 
 clientMongo.connect(function (err) {
-  //if (err) throw err;
+  if (err) throw err;
 
   const dbMongo = clientMongo.db(dbName);
   const collectionPassengers_profiles = dbMongo.collection(

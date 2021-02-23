@@ -1,13 +1,12 @@
 version: "3"
 services:
-  mongo:
-    image: mongo:latest
+  redis-cache:
+    image: redis
+    ports:
+      - "6379:6379"
     restart: always
   admin-server:
-    depends_on: 
-      - mongo
     image: admin-image:1.0
-    build: .
     ports:
       - "10014:10014"
       - "10011:10011"
