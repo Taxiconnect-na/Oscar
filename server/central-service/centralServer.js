@@ -84,15 +84,15 @@ function progressScheduledCompleted(arrayData, resolve) {
     })
 
     let completed_today = arrayData.filter( current => {
-        let startOfToday = (new Date()).addHours(2)
-        let convertToday = new Date(startOfToday.setHours(0, 0, 0, 0)).toISOString()
-        //console.log(current.date_time)
-        //console.log(startOfToday)
+        let startOfToday = (new Date())
+        let convertToday = ((new Date(startOfToday.setHours(0, 0, 0, 0))).addHours(2).toISOString())
+        console.log(current.date_time)
+        console.log(startOfToday)
         
-        //console.log(`today start: ${convertToday}`)
-        //console.log(`received date: ${current.date_time}`)
+        console.log(`today start: ${convertToday}`)
+        console.log(`received date: ${current.date_time}`)
         let today = (new Date(current.date_time)) > (new Date(convertToday))
-        //console.log(`Date comparison result: ${today}`)
+        console.log(`Date comparison result: ${today}`)
         return (today && current.isArrivedToDestination)
     })
     console.log(completed_today)

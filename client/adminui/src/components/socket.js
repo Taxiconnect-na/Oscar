@@ -1,6 +1,6 @@
 import io from 'socket.io-client'
 
-const ENDPOINT = "http://192.168.8.151:10014/"
+const ENDPOINT = process.env.REACT_APP_GATEWAY
 //const ENDPOINT = process.env.REACT_APP_GATEWAY
 
 const socket = io(ENDPOINT, {

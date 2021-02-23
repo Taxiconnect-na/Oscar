@@ -23,6 +23,11 @@ const clientMongo = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
+Date.prototype.addHours = function(h) {
+  this.setTime(this.getTime() + (h*60*60*1000));
+  return this;
+}
+
 /**
  * 
  * @param {collection} collectionName 
@@ -143,7 +148,7 @@ function activelyGet_allThe_stats(
             GetTotal(
               collectionRidesDeliveryData,
               {
-                date_requested: { $gte : startOfToday } ,
+                date_requested: { $gte : startOfToday.addHours(2) } , //!! Resolved date +2
                 
                 isArrivedToDestination: true,
               },
@@ -158,7 +163,7 @@ function activelyGet_allThe_stats(
                 GetTotal(
                   collectionRidesDeliveryDataCancelled,
                   {
-                    date_requested: { $gte : startOfToday }
+                    date_requested: { $gte : startOfToday.addHours(2) }  //!! Resolved date +2
                     //date_requested: {
                       //$regex: new Date().toISOString().replace(/\T.*/, " "),
                       //$options: "i",
@@ -1529,7 +1534,7 @@ function getDeliveryProviderInfo(DriversCollection,FilteringCollection,deliveryP
                       .find( {
                           taxi_id: individual.driver_fingerprint,
                           isArrivedToDestination: true,
-                          date_requested: { $gte: startOfToday }
+                          date_requested: { $gte: startOfToday.addHours(2) }  //!! Resolved date +2
                       })
                       .toArray()
                       .then((todaydata) => {
