@@ -6,7 +6,8 @@ services:
       - "6379:6379"
     restart: always
   admin-server:
-    image: admin-image:1.0
+    image: taxiconnect/general_administration:1.1
+    stdin_open: true
     ports:
       - "10014:10014"
       - "10011:10011"
