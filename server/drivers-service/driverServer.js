@@ -359,12 +359,13 @@ clientMongo.connect(function(err) {
      * API responsible to return drivers list
      */
     app.get("/driver-data", (req, res) => {
+        console.log("Driver's Data API called")
         let response = res
         new Promise((res) => {
             getDriversInfo(collectionDrivers_profiles, collectionRidesDeliveryData, res)
         }).then((result) => {
             let driverDataList = result
-            console.log("Driver's Data API called")
+            
             console.log(result)
             response.json(driverDataList)
         }).catch((error) => {
@@ -624,7 +625,7 @@ clientMongo.connect(function(err) {
                     default_selected_car: {
                         max_passengers: parseInt(req.body.max_passengers),
                         car_fingerprint: car_fingerprint,
-                        vehicle_type: req.body.category,
+                        vehicle_type: req.body.vehicle_type,
                         date_Selected: (new Date()).addHours(2)
                     },
                     push_notification_token: null

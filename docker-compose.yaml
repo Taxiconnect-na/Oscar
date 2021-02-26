@@ -3,10 +3,10 @@ services:
   redis-cache:
     image: redis
     ports:
-      - "6379:6379"
+      - "63790:6379"
     restart: always
   admin-server:
-    image: taxiconnect/general_administration:1.1
+    image: taxiconnect/general_administration:1.3
     stdin_open: true
     ports:
       - "10014:10014"
