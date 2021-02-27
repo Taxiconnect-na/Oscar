@@ -3,7 +3,7 @@ module.exports = {
       {
         name: "passengers-service",
         script: "./server/passengers-service/passengerServer.js",
-        instances: 2,
+        instances: 1,
         autorestart: true,
         watch: false,
         max_memory_restart: "1G",
@@ -17,7 +17,7 @@ module.exports = {
       {
         name: "drivers-service",
         script: "./server/drivers-service/driverServer.js",
-        instances: 3,
+        instances: 1,
         autorestart: true,
         watch: false,
         max_memory_restart: "1G",
@@ -31,7 +31,7 @@ module.exports = {
       {
         name: "central-service",
         script: "./server/central-service/centralServer.js",
-        instances: 4,
+        instances: 2,
         autorestart: true,
         watch: false,
         max_memory_restart: "1G",
@@ -45,7 +45,7 @@ module.exports = {
       {
         name: "main-view-service",
         script: "./server/main-view-service/mainViewServer.js",
-        instances: 5,
+        instances: 2,
         autorestart: true,
         watch: false,
         max_memory_restart: "1G",
