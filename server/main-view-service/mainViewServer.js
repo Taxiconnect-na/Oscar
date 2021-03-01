@@ -122,100 +122,386 @@ function activelyGet_allThe_stats(
   collectionPassengers_profiles,
   resolve
 ) {
-  let finalObject = new Object();
-  new Promise((res) => {
-    GetTotal(
-      collectionRidesDeliveryData,
-      { isArrivedToDestination: true },
-      res
-    );
-  })
-    .then((result) => {
-      console.log(result);
+
+  client.get("statistics-cache", (err, reply) => {
+    
+    // Get Data from db and save it in cache if there's an error
+    if (err) {
+      console.log("Error occured")
+
+      let finalObject = new Object();
       new Promise((res) => {
-        GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
+        GetTotal(
+          collectionRidesDeliveryData,
+          { isArrivedToDestination: true },
+          res
+        );
       })
-        .then((result2) => {
-          console.log(result2);
-          Fullcollect = { result, result2 };
-          console.log(`Final: ${Fullcollect}`);
-          //let finalObject = new Object()
+      .then((result) => {
+        console.log(result);
+        new Promise((res) => {
+          GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
+        })
+          .then((result2) => {
+            console.log(result2);
+            Fullcollect = { result, result2 };
+            console.log(`Final: ${Fullcollect}`);
+            //let finalObject = new Object()
+    
+    
+            let startOfToday = new Date();
+            startOfToday.setHours(0, 0, 0, 0)
+            new Promise((res) => {
+              GetTotal(
+                collectionRidesDeliveryData,
+                {
+                  date_requested: { $gte : startOfToday.addHours(2) } , //!! Resolved date +2
+                  
+                  isArrivedToDestination: true,
+                },
+                res
+              );
+            })
+              .then((result3) => {
+                console.log(result3);
+    
+                console.log(finalObject);
+                new Promise((res) => {
+                  GetTotal(
+                    collectionRidesDeliveryDataCancelled,
+                    {
+                      date_requested: { $gte : startOfToday.addHours(2) }  //!! Resolved date +2
+                      //date_requested: {
+                        //$regex: new Date().toISOString().replace(/\T.*/, " "),
+                        //$options: "i",
+                      },
+                    res
+                  );
+                })
+                  .then((result4) => {
+                    console.log(result4);
+    
+                    Promise.all([
+                      new Promise((res) => {
+                        GetDailyRegistered(collectionDrivers_profiles, res);
+                      }),
+                      new Promise((res) => {
+                        GetDailyRegistered(collectionPassengers_profiles, res);
+                      }),
+                      new Promise((res) => {
+                        GetCashWalletCollection(collectionRidesDeliveryData, res);
+                      }),
+                    ])
+                      .then((data) => {
+                        let [dataDriver, dataPassenger, dataCashWallet] = data;
+    
+                        finalObject.totalFareSuccessful = result.total_fare;
+                        finalObject.totalTripSuccessful = result.total_rides;
+                        finalObject.totalFareCancelled = result2.total_fare;
+                        finalObject.totalTripCancelled = result2.total_rides;
+                        finalObject.totalFareSuccessfulToday = result3.total_fare;
+                        finalObject.totalTripSuccessfulToday =
+                          result3.total_rides;
+                        finalObject.totalFareCancelledToday = result4.total_fare;
+                        finalObject.totalTripCancelledToday = result4.total_rides;
+                        finalObject.totalNewDriverToday =
+                          dataDriver.totalRegisteredToday;
+                        finalObject.totalNewPassengerToday =
+                          dataPassenger.totalRegisteredToday;
+                        finalObject.totalCash = dataCashWallet.totalCash;
+                        finalObject.totalWallet = dataCashWallet.totalWallet;
+    
+                        //Done
+                        console.log(finalObject);
 
+                        //? Cache final object:
+                        client.set("statistics-cache", JSON.stringify(finalObject), redis.print)
 
-          let startOfToday = new Date();
-          startOfToday.setHours(0, 0, 0, 0)
+                        //? resolve the main object with the successfull request
+                        resolve(finalObject);
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                        //! Return an error response
+                        resolve({
+                          response: "error",
+                          flag: "Invalid_params_maybe",
+                        });
+                      });
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                    //! Return an error response
+                    resolve({ response: "error", flag: "Invalid_params_maybe" });
+                  });
+              })
+              .catch((error) => {
+                console.log(error);
+                //! Return an error response
+                resolve({ response: "error", flag: "Invalid_params_maybe" });
+              });
+          })
+          .catch((error) => {
+            console.log(error);
+            //! Return an error response
+            resolve({ response: "error", flag: "Invalid_params_maybe" });
+          });
+      })
+      .catch((error) => {
+        console.log(error);
+        //! Return an error response
+        resolve({ response: "error", flag: "Invalid_params_maybe" });
+      });
+
+    } else if(reply) {
+      // Resolve reply first and then update cache if result is not null
+      if (reply !== null) {
+        console.log("Statistics cache found: ", reply)
+
+        resolve(JSON.parse(reply))
+
+        //Update cache
+        new Promise((statsCashUpdate) => {
+          let finalObject = new Object();
           new Promise((res) => {
             GetTotal(
               collectionRidesDeliveryData,
-              {
-                date_requested: { $gte : startOfToday.addHours(2) } , //!! Resolved date +2
-                
-                isArrivedToDestination: true,
-              },
+              { isArrivedToDestination: true },
               res
             );
           })
-            .then((result3) => {
-              console.log(result3);
+          .then((result) => {
+            console.log(result);
+            new Promise((res) => {
+              GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
+            })
+              .then((result2) => {
+                console.log(result2);
+                Fullcollect = { result, result2 };
+                console.log(`Final: ${Fullcollect}`);
+                //let finalObject = new Object()
+        
+        
+                let startOfToday = new Date();
+                startOfToday.setHours(0, 0, 0, 0)
+                new Promise((res) => {
+                  GetTotal(
+                    collectionRidesDeliveryData,
+                    {
+                      date_requested: { $gte : startOfToday.addHours(2) } , //!! Resolved date +2
+                      
+                      isArrivedToDestination: true,
+                    },
+                    res
+                  );
+                })
+                  .then((result3) => {
+                    console.log(result3);
+        
+                    console.log(finalObject);
+                    new Promise((res) => {
+                      GetTotal(
+                        collectionRidesDeliveryDataCancelled,
+                        {
+                          date_requested: { $gte : startOfToday.addHours(2) }  //!! Resolved date +2
+                          //date_requested: {
+                            //$regex: new Date().toISOString().replace(/\T.*/, " "),
+                            //$options: "i",
+                          },
+                        res
+                      );
+                    })
+                      .then((result4) => {
+                        console.log(result4);
+        
+                        Promise.all([
+                          new Promise((res) => {
+                            GetDailyRegistered(collectionDrivers_profiles, res);
+                          }),
+                          new Promise((res) => {
+                            GetDailyRegistered(collectionPassengers_profiles, res);
+                          }),
+                          new Promise((res) => {
+                            GetCashWalletCollection(collectionRidesDeliveryData, res);
+                          }),
+                        ])
+                          .then((data) => {
+                            let [dataDriver, dataPassenger, dataCashWallet] = data;
+        
+                            finalObject.totalFareSuccessful = result.total_fare;
+                            finalObject.totalTripSuccessful = result.total_rides;
+                            finalObject.totalFareCancelled = result2.total_fare;
+                            finalObject.totalTripCancelled = result2.total_rides;
+                            finalObject.totalFareSuccessfulToday = result3.total_fare;
+                            finalObject.totalTripSuccessfulToday =
+                              result3.total_rides;
+                            finalObject.totalFareCancelledToday = result4.total_fare;
+                            finalObject.totalTripCancelledToday = result4.total_rides;
+                            finalObject.totalNewDriverToday =
+                              dataDriver.totalRegisteredToday;
+                            finalObject.totalNewPassengerToday =
+                              dataPassenger.totalRegisteredToday;
+                            finalObject.totalCash = dataCashWallet.totalCash;
+                            finalObject.totalWallet = dataCashWallet.totalWallet;
+        
+                            //Done
+                            //console.log(finalObject);
+    
+                            //? Cache final object:
+                            client.set("statistics-cache", JSON.stringify(finalObject), redis.print)
+    
+                            //! Do not resolve the main object with the successfull request
+                            
+                          })
+                          .catch((error) => {
+                            console.log(error);
+                            //! Return an error response
+                            resolve({
+                              response: "error",
+                              flag: "Invalid_params_maybe",
+                            });
+                          });
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                        //! Return an error response
+                        resolve({ response: "error", flag: "Invalid_params_maybe" });
+                      });
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                    //! Return an error response
+                    resolve({ response: "error", flag: "Invalid_params_maybe" });
+                  });
+              })
+              .catch((error) => {
+                console.log(error);
+                //! Return an error response
+                resolve({ response: "error", flag: "Invalid_params_maybe" });
+              });
+          })
+          .catch((error) => {
+            console.log(error);
+            //! Return an error response
+            resolve({ response: "error", flag: "Invalid_params_maybe" });
+          });
+    
+        })
+        .then((result) => {
+            console.log("Stats cash updated")
+        })
+        .catch((error) => {
+          console.log(error)
+          resolve({response: "error", flag: "Failed to update cache @background"})
+        })
+      } else {
 
-              console.log(finalObject);
+        console.log("NO cash found, requesting from db...")
+
+        let finalObject = new Object();
+        new Promise((res) => {
+          GetTotal(
+            collectionRidesDeliveryData,
+            { isArrivedToDestination: true },
+            res
+          );
+        })
+        .then((result) => {
+          console.log(result);
+          new Promise((res) => {
+            GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
+          })
+            .then((result2) => {
+              console.log(result2);
+              Fullcollect = { result, result2 };
+              //console.log(`Final: ${Fullcollect}`);
+              //let finalObject = new Object()
+      
+      
+              let startOfToday = new Date();
+              startOfToday.setHours(0, 0, 0, 0)
               new Promise((res) => {
                 GetTotal(
-                  collectionRidesDeliveryDataCancelled,
+                  collectionRidesDeliveryData,
                   {
-                    date_requested: { $gte : startOfToday.addHours(2) }  //!! Resolved date +2
-                    //date_requested: {
-                      //$regex: new Date().toISOString().replace(/\T.*/, " "),
-                      //$options: "i",
-                    },
+                    date_requested: { $gte : startOfToday.addHours(2) } , //!! Resolved date +2
+                    
+                    isArrivedToDestination: true,
+                  },
                   res
                 );
               })
-                .then((result4) => {
-                  console.log(result4);
+                .then((result3) => {
+                  console.log(result3);
+      
+                  console.log(finalObject);
+                  new Promise((res) => {
+                    GetTotal(
+                      collectionRidesDeliveryDataCancelled,
+                      {
+                        date_requested: { $gte : startOfToday.addHours(2) }  //!! Resolved date +2
+                        //date_requested: {
+                          //$regex: new Date().toISOString().replace(/\T.*/, " "),
+                          //$options: "i",
+                        },
+                      res
+                    );
+                  })
+                    .then((result4) => {
+                      console.log(result4);
+      
+                      Promise.all([
+                        new Promise((res) => {
+                          GetDailyRegistered(collectionDrivers_profiles, res);
+                        }),
+                        new Promise((res) => {
+                          GetDailyRegistered(collectionPassengers_profiles, res);
+                        }),
+                        new Promise((res) => {
+                          GetCashWalletCollection(collectionRidesDeliveryData, res);
+                        }),
+                      ])
+                        .then((data) => {
+                          let [dataDriver, dataPassenger, dataCashWallet] = data;
+      
+                          finalObject.totalFareSuccessful = result.total_fare;
+                          finalObject.totalTripSuccessful = result.total_rides;
+                          finalObject.totalFareCancelled = result2.total_fare;
+                          finalObject.totalTripCancelled = result2.total_rides;
+                          finalObject.totalFareSuccessfulToday = result3.total_fare;
+                          finalObject.totalTripSuccessfulToday =
+                            result3.total_rides;
+                          finalObject.totalFareCancelledToday = result4.total_fare;
+                          finalObject.totalTripCancelledToday = result4.total_rides;
+                          finalObject.totalNewDriverToday =
+                            dataDriver.totalRegisteredToday;
+                          finalObject.totalNewPassengerToday =
+                            dataPassenger.totalRegisteredToday;
+                          finalObject.totalCash = dataCashWallet.totalCash;
+                          finalObject.totalWallet = dataCashWallet.totalWallet;
+      
+                          //Done
+                          console.log(finalObject);
 
-                  Promise.all([
-                    new Promise((res) => {
-                      GetDailyRegistered(collectionDrivers_profiles, res);
-                    }),
-                    new Promise((res) => {
-                      GetDailyRegistered(collectionPassengers_profiles, res);
-                    }),
-                    new Promise((res) => {
-                      GetCashWalletCollection(collectionRidesDeliveryData, res);
-                    }),
-                  ])
-                    .then((data) => {
-                      let [dataDriver, dataPassenger, dataCashWallet] = data;
+                          //? Cache final object:
+                          client.set("statistics-cache", JSON.stringify(finalObject), redis.print)
 
-                      finalObject.totalFareSuccessful = result.total_fare;
-                      finalObject.totalTripSuccessful = result.total_rides;
-                      finalObject.totalFareCancelled = result2.total_fare;
-                      finalObject.totalTripCancelled = result2.total_rides;
-                      finalObject.totalFareSuccessfulToday = result3.total_fare;
-                      finalObject.totalTripSuccessfulToday =
-                        result3.total_rides;
-                      finalObject.totalFareCancelledToday = result4.total_fare;
-                      finalObject.totalTripCancelledToday = result4.total_rides;
-                      finalObject.totalNewDriverToday =
-                        dataDriver.totalRegisteredToday;
-                      finalObject.totalNewPassengerToday =
-                        dataPassenger.totalRegisteredToday;
-                      finalObject.totalCash = dataCashWallet.totalCash;
-                      finalObject.totalWallet = dataCashWallet.totalWallet;
-
-                      //Done
-                      console.log(finalObject);
-                      //? resolve the main object with the successfull request
-                      resolve(finalObject);
+                          //? resolve the main object with the successfull request
+                          resolve(finalObject);
+                        })
+                        .catch((error) => {
+                          console.log(error);
+                          //! Return an error response
+                          resolve({
+                            response: "error",
+                            flag: "Invalid_params_maybe",
+                          });
+                        });
                     })
                     .catch((error) => {
                       console.log(error);
                       //! Return an error response
-                      resolve({
-                        response: "error",
-                        flag: "Invalid_params_maybe",
-                      });
+                      resolve({ response: "error", flag: "Invalid_params_maybe" });
                     });
                 })
                 .catch((error) => {
@@ -234,13 +520,140 @@ function activelyGet_allThe_stats(
           console.log(error);
           //! Return an error response
           resolve({ response: "error", flag: "Invalid_params_maybe" });
-        });
-    })
-    .catch((error) => {
-      console.log(error);
-      //! Return an error response
-      resolve({ response: "error", flag: "Invalid_params_maybe" });
-    });
+        })
+
+      }
+    } else {
+
+      console.log("Error occured")
+
+      let finalObject = new Object();
+      new Promise((res) => {
+        GetTotal(
+          collectionRidesDeliveryData,
+          { isArrivedToDestination: true },
+          res
+        );
+      })
+      .then((result) => {
+        console.log(result);
+        new Promise((res) => {
+          GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
+        })
+          .then((result2) => {
+            console.log(result2);
+            Fullcollect = { result, result2 };
+            console.log(`Final: ${Fullcollect}`);
+            //let finalObject = new Object()
+    
+    
+            let startOfToday = new Date();
+            startOfToday.setHours(0, 0, 0, 0)
+            new Promise((res) => {
+              GetTotal(
+                collectionRidesDeliveryData,
+                {
+                  date_requested: { $gte : startOfToday.addHours(2) } , //!! Resolved date +2
+                  
+                  isArrivedToDestination: true,
+                },
+                res
+              );
+            })
+              .then((result3) => {
+                console.log(result3);
+    
+                console.log(finalObject);
+                new Promise((res) => {
+                  GetTotal(
+                    collectionRidesDeliveryDataCancelled,
+                    {
+                      date_requested: { $gte : startOfToday.addHours(2) }  //!! Resolved date +2
+                      //date_requested: {
+                        //$regex: new Date().toISOString().replace(/\T.*/, " "),
+                        //$options: "i",
+                      },
+                    res
+                  );
+                })
+                  .then((result4) => {
+                    console.log(result4);
+    
+                    Promise.all([
+                      new Promise((res) => {
+                        GetDailyRegistered(collectionDrivers_profiles, res);
+                      }),
+                      new Promise((res) => {
+                        GetDailyRegistered(collectionPassengers_profiles, res);
+                      }),
+                      new Promise((res) => {
+                        GetCashWalletCollection(collectionRidesDeliveryData, res);
+                      }),
+                    ])
+                      .then((data) => {
+                        let [dataDriver, dataPassenger, dataCashWallet] = data;
+    
+                        finalObject.totalFareSuccessful = result.total_fare;
+                        finalObject.totalTripSuccessful = result.total_rides;
+                        finalObject.totalFareCancelled = result2.total_fare;
+                        finalObject.totalTripCancelled = result2.total_rides;
+                        finalObject.totalFareSuccessfulToday = result3.total_fare;
+                        finalObject.totalTripSuccessfulToday =
+                          result3.total_rides;
+                        finalObject.totalFareCancelledToday = result4.total_fare;
+                        finalObject.totalTripCancelledToday = result4.total_rides;
+                        finalObject.totalNewDriverToday =
+                          dataDriver.totalRegisteredToday;
+                        finalObject.totalNewPassengerToday =
+                          dataPassenger.totalRegisteredToday;
+                        finalObject.totalCash = dataCashWallet.totalCash;
+                        finalObject.totalWallet = dataCashWallet.totalWallet;
+    
+                        //Done
+                        console.log(finalObject);
+
+                        //? Cache final object:
+                        client.set("statistics-cache", JSON.stringify(finalObject), redis.print)
+
+                        //? resolve the main object with the successfull request
+                        resolve(finalObject);
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                        //! Return an error response
+                        resolve({
+                          response: "error",
+                          flag: "Invalid_params_maybe",
+                        });
+                      });
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                    //! Return an error response
+                    resolve({ response: "error", flag: "Invalid_params_maybe" });
+                  });
+              })
+              .catch((error) => {
+                console.log(error);
+                //! Return an error response
+                resolve({ response: "error", flag: "Invalid_params_maybe" });
+              });
+          })
+          .catch((error) => {
+            console.log(error);
+            //! Return an error response
+            resolve({ response: "error", flag: "Invalid_params_maybe" });
+          });
+      })
+      .catch((error) => {
+        console.log(error);
+        //! Return an error response
+        resolve({ response: "error", flag: "Invalid_params_maybe" });
+      })
+
+    }
+  })
+
 }
 
 
@@ -827,8 +1240,8 @@ function getDeliveryOverview(collectionRidesDeliveryData,
       console.log("searching for delivery-overview cache...")
       console.log("Found deliveries in cache: ", reply)
 
+      // Get from database if error
       if (err) {
-        // Get from database:
         collectionRidesDeliveryData
         .find({ride_mode:"DELIVERY"})
         .toArray()
@@ -957,7 +1370,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
             // Get all added objects from res0
             Promise.all(alltrips).then(
                 (result) => {
-                    // Cache result:
+                    //! Cache result:
                     client.set("deliveryOverview-cache", JSON.stringify(result), redis.print)
                     console.log(`${result.length}Deliveries found`)
                     resolve(result)
@@ -1732,7 +2145,7 @@ clientMongo.connect(function (err) {
       );
     }).then(
       (result) => {
-        console.log(result);
+        //console.log(result);
         res.send(result);
       },
       (error) => {
