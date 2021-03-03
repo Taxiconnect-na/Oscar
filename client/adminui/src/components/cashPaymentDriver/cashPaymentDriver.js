@@ -22,8 +22,15 @@ export default function CashPaymentDriver() {
         console.log("Submitting...")
         
         try {
-
+            /**
+             * *local setup
             const res = await axios.post(`http://localhost:10011/cash-payment`, formData , {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                } 
+            }) */
+            //*production
+            const res = await axios.post(`http://taxiconnectna.com:10011/cash-payment`, formData , {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 } 
