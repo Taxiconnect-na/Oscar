@@ -143,7 +143,16 @@ const DriverRegistration = () => {
             //passenger-data
             // Send data to server
             try {
+                /*
+                * local setup
                 const res = await axios.post(`http://localhost:10011/upload`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    } 
+                })
+                    */
+                //*production:
+                const res = await axios.post(`http://taxiconnectna.com:10011/upload`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     } 

@@ -7,7 +7,12 @@ const cors = require("cors")
 const http = require("http")
 const server = http.createServer(app)
 const socketIo = require("socket.io")
-const io = socketIo(server)
+const io = socketIo(server, { cors: {
+    origin: "http://taxiconnectna.com",
+    methods: ["GET", "POST"],
+    credentials: true
+    }
+})
 
 app.use(express.json({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
 app.use(express.urlencoded({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
