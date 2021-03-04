@@ -341,14 +341,17 @@ function InsertcashPayment(driversCollection,walletTransactionsLogsCollection, q
 
 /**
  * @function uploadFile: Takes is a file object and saves its name and content to AWS S3 bucket
- * @param {file} fileObject 
+ * @param {file} fileObject
+ * @param {string} subdir : subdirectory of the bucket
+ * @param {string} driverFingerPrint : generated fingerprint of the driver upon registration
+ * @param {string} papercategory : category of the paper, options: white_paper, blue_paper, etc.
  */
-const uploadFile = (fileObject) => {
+const uploadFile = (fileObject, subdir, driverFingerPrint, paperCategory) => {
 
     // Setting up S3 upload parameters
     const params = {
-        Bucket: BUCKET_NAME_DRIVER,
-        Key: fileObject.name, // File name to be saved as @s3 bucket
+        Bucket: `${ BUCKET_NAME_DRIVER }/${ subdir }`,
+        Key: `${ driverFingerPrint }-${ paperCategory}` + "."+ fileObject.name.split('.') [fileObject.name.split('.').length - 1], // File name to be "saved as" @s3 bucket
         Body: fileObject.data // File data of the file object (actual object)
     };
 
@@ -357,7 +360,7 @@ const uploadFile = (fileObject) => {
         if (err) {
             throw err;
         }
-        console.log(`${ fileObject.name } [File] uploaded successfully @ ${data.Location}`);
+        console.log(`${ params.Key } successfully uploaded @ ${data.Location}`);
     });
 };
 
@@ -495,16 +498,8 @@ clientMongo.connect(function(err) {
         } else {
             console.log("Delivery provider present")
         }
-        /*
-         * Upload files to s3 bucket
-         */
-        uploadFile(profile_picture)
-        uploadFile(driver_licence_doc)
-        uploadFile(copy_id_paper)
-        uploadFile(copy_white_paper)
-        uploadFile(copy_public_permit)
-        uploadFile(copy_blue_paper)
-        uploadFile(taxi_picture)
+        
+
         /*
         * Local setup to save files locally (replaced by s3 bucket for production)
         const savedFiles = {}
@@ -604,6 +599,17 @@ clientMongo.connect(function(err) {
 
             [driverFingerprint, car_fingerprint, paymentNumber] = result
 
+                /*
+            * Upload files to s3 bucket
+            */
+            uploadFile(profile_picture, "Profiles_pictures", driverFingerprint, "profile_picture")
+            uploadFile(driver_licence_doc, "Driver_licence", driverFingerprint, "driver_licence")
+            uploadFile(copy_id_paper, "Id_paper", driverFingerprint, "id_paper")
+            uploadFile(copy_white_paper, "White_paper", driverFingerprint, "white_paper")
+            uploadFile(copy_public_permit, "Public_permit", driverFingerprint, "public_permit")
+            uploadFile(copy_blue_paper, "Blue_paper", driverFingerprint, "blue_paper")
+            uploadFile(taxi_picture, "Taxi_picture", driverFingerprint, "taxi_picture")
+
             // Driver's object to be stored in db
             let driver = {
                 name: req.body.name,
@@ -616,12 +622,13 @@ clientMongo.connect(function(err) {
                 delivery_provider: req.body.delivery_provider.length>0 ? req.body.delivery_provider : false,
                 identification_data: {
                     // Required files:
-                    profile_picture: req.files.profile_picture.name,
-                    driver_licence_doc: req.files.driver_licence_doc.name,
-                    copy_id_paper: req.files.copy_id_paper.name,
-                    copy_white_paper: req.files.copy_white_paper.name,
-                    copy_public_permit: req.files.copy_public_permit.name,
-                    copy_blue_paper: req.files.copy_blue_paper.name,
+                    profile_picture: driverFingerprint + "-profile_picture" + "."+ req.files.profile_picture.name.split('.') [req.files.profile_picture.name.split('.').length - 1],
+                    driver_licence_doc: driverFingerprint + "-driver_licence" + "."+ req.files.driver_licence_doc.name.split('.') [req.files.driver_licence_doc.name.split('.').length - 1],
+                    copy_id_paper: driverFingerprint + "-id_paper" + "."+ req.files.copy_id_paper.name.split('.') [req.files.copy_id_paper.name.split('.').length - 1],
+                    copy_white_paper: driverFingerprint + "-white_paper" + "."+ req.files.copy_white_paper.name.split('.') [req.files.copy_white_paper.name.split('.').length - 1],
+                    copy_public_permit: driverFingerprint + "-public_permit" + "."+ req.files.copy_public_permit.name.split('.') [req.files.copy_public_permit.name.split('.').length - 1],
+                    copy_blue_paper: driverFingerprint + "-blue_paper" + "."+ req.files.copy_blue_paper.name.split('.') [req.files.copy_blue_paper.name.split('.').length - 1],
+                    
                     blue_paper_expiration: new Date(req.body.blue_paper_expiration),
                     driver_licence_expiration: new Date(req.body.driver_licence_expiration),
                     // Other identification info
@@ -660,7 +667,7 @@ clientMongo.connect(function(err) {
                         category: req.body.category,
                         date_registered: (new Date()).addHours(2),
                         date_updated: (new Date()).addHours(2),
-                        taxi_picture: req.files.taxi_picture.name
+                        taxi_picture: driverFingerprint + "-taxi_picture" + "."+ req.files.taxi_picture.name.split('.') [req.files.taxi_picture.name.split('.').length - 1]
                     },
                 ],
                 operational_state : {
@@ -683,8 +690,8 @@ clientMongo.connect(function(err) {
                 if (err) throw err
                 console.log("*************   New Driver Registered   ********************")
             })
-            // Return uploaded files
-            res.json(UploadedFiles)
+            // Signal files uploaded
+            res.json({response: "************ files uploaded ************"})
            
                 
         }).catch((error) => {
