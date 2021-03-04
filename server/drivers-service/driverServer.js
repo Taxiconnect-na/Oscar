@@ -6,6 +6,7 @@ const app = express()
 const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
 const crypto = require("crypto")
+const AWS = require('aws-sdk')
 
 const uri = process.env.DB_URI
 const dbName = process.env.DB_NAME
@@ -17,6 +18,15 @@ PORT = process.env.DRIVER_ROOT
 
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
+});
+
+/*
+* AWS Bucket credentials
+*/
+const BUCKET_NAME_DRIVER = process.env.BACKET_NAME_DRIVER
+const s3 = new AWS.S3({
+    accessKeyId: process.env.AWS_S3_ID,
+    secretAccessKey: process.env.AWS_S3_SECRET
 });
 
 
@@ -329,6 +339,28 @@ function InsertcashPayment(driversCollection,walletTransactionsLogsCollection, q
 }
 
 
+/**
+ * @function uploadFile: Takes is a file object and saves its name and content to AWS S3 bucket
+ * @param {file} fileObject 
+ */
+const uploadFile = (fileObject) => {
+
+    // Setting up S3 upload parameters
+    const params = {
+        Bucket: BUCKET_NAME_DRIVER,
+        Key: fileObject.name, // File name to be saved as @s3 bucket
+        Body: fileObject.data // File data of the file object (actual object)
+    };
+
+    // Uploading files to the bucket
+    s3.upload(params, function(err, data) {
+        if (err) {
+            throw err;
+        }
+        console.log(`${ fileObject.name } [File] uploaded successfully @ ${data.Location}`);
+    });
+};
+
 
 
 
@@ -463,7 +495,18 @@ clientMongo.connect(function(err) {
         } else {
             console.log("Delivery provider present")
         }
-        
+        /*
+         * Upload files to s3 bucket
+         */
+        uploadFile(profile_picture)
+        uploadFile(driver_licence_doc)
+        uploadFile(copy_id_paper)
+        uploadFile(copy_white_paper)
+        uploadFile(copy_public_permit)
+        uploadFile(copy_blue_paper)
+        uploadFile(taxi_picture)
+        /*
+        * Local setup to save files locally (replaced by s3 bucket for production)
         const savedFiles = {}
         profile_picture.mv(path.join(__dirname,
             `./uploads/${profile_picture.name}`), err => {  //mv move method on file object
@@ -534,6 +577,8 @@ clientMongo.connect(function(err) {
         const UploadedFiles = {
             uploaded_files : savedFiles
         }
+
+        */
 
         let fingerprintSource = req.body.name + req.body.surname + req.body.personal_id_number
         let carFingerprintSource = req.body.car_brand + req.body.plate_number + req.body.taxi_number

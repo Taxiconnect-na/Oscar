@@ -25,7 +25,9 @@ const DriverRow = (props) => {
             <td>{ props.driver.taxi_number }</td>
             <td>{ props.driver.plate_number }</td>
             <td>{ props.driver.car_brand }</td>
-            <td>{ props.driver.status }</td>
+            <td style={{ color: "white", 
+                         backgroundColor: props.driver.status==="online"? "green":"red"}}>
+                    { props.driver.status } </td>
             <td>{ props.driver.totalMoneyToday }</td> 
             <td>{ props.driver.todaytrip }</td>
         </tr>
