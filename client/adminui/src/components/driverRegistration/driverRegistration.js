@@ -164,8 +164,7 @@ const DriverRegistration = () => {
                 
             } catch(err) {
                 console.log(err)
-                alert("There was an error with the server, " + 
-                "make sure all the fields were properly entered")
+                alert("There was an error with the server" )
             }   
         }
 
