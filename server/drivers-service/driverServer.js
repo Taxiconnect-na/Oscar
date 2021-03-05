@@ -734,9 +734,10 @@ clientMongo.connect(function(err) {
 
                     }
                     // Insert object into the database
-                    collectionDrivers_profiles.insertOne(driver, function(err, res) {
+                    collectionDrivers_profiles.insertOne(driver, function(err, response) {
                         if (err) throw err
                         console.log("*************   New Driver Registered   ********************")
+                        res.status(200).json({success: "successful registration"})
 
                     })
         
