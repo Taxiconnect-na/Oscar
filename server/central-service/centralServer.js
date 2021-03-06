@@ -5,6 +5,7 @@ const app = express()
 const axios = require("axios")
 const cors = require("cors")
 const http = require("http")
+const helmet = require("helmet")
 const server = http.createServer(app)
 const socketIo = require("socket.io")
 const io = socketIo(server, { cors: {
@@ -14,6 +15,7 @@ const io = socketIo(server, { cors: {
     }
 })
 
+app.use(helmet())
 app.use(express.json({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
 app.use(express.urlencoded({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
 app.use(cors())

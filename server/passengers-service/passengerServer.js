@@ -2,6 +2,7 @@ const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
 const app = express()
+const helmet = require(helmet())
 const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
 
@@ -20,6 +21,7 @@ const dbName = process.env.DB_NAME
 app.use(express.json({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
 app.use(express.urlencoded({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
 app.use(cors())
+app.use(helmet())
 
 const PORT = process.env.PASSENGER_ROOT
 const clientMongo = new MongoClient(uri, {

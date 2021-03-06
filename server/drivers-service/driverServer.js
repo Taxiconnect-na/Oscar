@@ -3,6 +3,7 @@ require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
 const fileUpload = require("express-fileupload")
 const app = express()
+const helmet = require("helmet")
 const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
 const crypto = require("crypto")
@@ -10,6 +11,8 @@ const AWS = require('aws-sdk')
 
 const uri = process.env.DB_URI
 const dbName = process.env.DB_NAME
+
+app.use(helmet())
 app.use(cors())
 app.use(fileUpload())
 app.use(express.json({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
