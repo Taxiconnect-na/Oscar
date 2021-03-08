@@ -1,88 +1,53 @@
-@font-face {
-  font-family: "MoveMedium";
-  src: local("MoveMedium"), url(./fonts/MoveMedium.otf);
-}
-@font-face {
-  font-family: "MoveRegular";
-  src: local("MoveRegular"), url(./fonts/MoveRegular.ttf);
-}
-@font-face {
-  font-family: "MoveLight";
-  src: local("MoveLight"), url(./fonts/MoveLight.ttf);
-}
-@font-face {
-  font-family: "MoveTextBold";
-  src: local("MoveTextBold"), url(./fonts/UberMoveTextBold.otf);
-}
-@font-face {
-  font-family: "UberMoveTextMedium";
-  src: local("UberMoveTextMedium"), url(./fonts/UberMoveTextMedium.otf);
-}
-@font-face {
-  font-family: "UberMoveTextRegular";
-  src: local("UberMoveTextRegular"), url(./fonts/UberMoveTextRegular.otf);
-}
-@font-face {
-  font-family: "UberMoveTextLight";
-  src: local("UberMoveTextLight"), url(./fonts/UberMoveTextLight.otf);
-}
-
-input:focus,
-select:focus,
-textarea:focus,
-button:focus {
-  outline: none;
-}
-
 nav {
-  margin-bottom: 0px;
+    margin-bottom: 0px;
 }
 
 .col-sm {
-  margin: auto;
+   
+    margin: auto;
 
-  padding: 10px;
+    padding: 10px;
 }
 
 @keyframes move {
-  0% {
-    left: 0%;
-  }
-  50% {
-    left: 30%;
-  }
-  100% {
-    left: 0%;
-  }
+    0% {
+        left: 0%;
+    }
+    50% {
+        left: 30%;
+    }
+    100% {
+        left:  0%;
+    }
 }
 
-h1,
-p {
-  position: relative;
-  animation-name: move;
-  animation-duration: 6s;
-  animation-fill-mode: forwards;
+h1,p {
+    position: relative;
+    animation-name: move;
+    animation-duration: 6s;
+    animation-fill-mode: forwards;
 }
 
 table {
-  table-layout: fixed;
-  width: 100%;
-  font-size: 13px;
+    table-layout: fixed;
+    width: 100%;
+    font-size: 13px;
+
 }
 
-table > thead,
-td {
-  text-align: center;
-  padding: 5px;
+table > thead, td {
+    text-align: center;
+    padding: 5px;
 }
 
 .my-form {
-  border-width: 1px;
-  width: 700px;
-  margin: auto;
-  height: 450px;
+    background-image: linear-gradient(to right, #2d618c,#0fb6d4);
+    width: 700px;
+    margin: auto;
+    height: 450px;
 }
 
 form {
-  padding-top: 35px;
+    padding-top: 35px;
+   
 }
