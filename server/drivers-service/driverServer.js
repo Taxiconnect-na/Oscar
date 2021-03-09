@@ -8,8 +8,8 @@ const https = require("https")
 const fs = require("fs")
 //Options to be passed to https server
 const sslOptions = {
-    key: fs.readFileSync("../Encryptions/key.pem"),
-    cert: fs.readFileSync("../Encryptions/cert.pem")
+    key: fs.readFileSync(path.resolve(__dirname, "../Encryptions/key.pem")),
+    cert: fs.readFileSync(path.resolve(__dirname, "../Encryptions/key.pem"))
 }
 const server = https.createServer(sslOptions, app)
 
