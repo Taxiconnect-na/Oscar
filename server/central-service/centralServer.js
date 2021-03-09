@@ -4,9 +4,19 @@ const express = require("express")
 const app = express()  
 const axios = require("axios")
 const cors = require("cors")
-const http = require("http")
+//const http = require("http")
+const https = require("https")
+const fs = require("fs")
+//Options to be passed to https server
+const sslOptions = {
+    key: fs.readFileSync("./Encriptions/key.pem"),
+    cert: fs.readFileSync("./Encriptions/cert.pem")
+}
+// Import helmet for http headers protection
 const helmet = require("helmet")
-const server = http.createServer(app)
+
+//const server = http.createServer(app)
+const server = https.createServer(sslOptions, app)
 const socketIo = require("socket.io")
 const io = socketIo(server, { cors: {
     origin: "https://taxiconnectna.com",
