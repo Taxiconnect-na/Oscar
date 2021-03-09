@@ -3,6 +3,17 @@ require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
 const fileUpload = require("express-fileupload")
 const app = express()
+//const http = require("http")
+const https = require("https")
+const fs = require("fs")
+//Options to be passed to https server
+const sslOptions = {
+    key: fs.readFileSync("../Encryptions/key.pem"),
+    cert: fs.readFileSync("../Encryptions/cert.pem")
+}
+const server = https.createServer(sslOptions, app)
+
+
 const helmet = require("helmet")
 const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
@@ -762,6 +773,6 @@ clientMongo.connect(function(err) {
 
 })
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Driver server up and running @ port ${ PORT } `)
 })

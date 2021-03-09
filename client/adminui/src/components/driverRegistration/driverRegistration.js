@@ -152,7 +152,7 @@ const DriverRegistration = () => {
                 })
                     */
                 //*production:
-                const res = await axios.post(`http://taxiconnectna.com:10011/upload`, formData, {
+                const res = await axios.post(`https://taxiconnectna.com:10011/upload`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     } 

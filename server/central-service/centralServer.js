@@ -9,8 +9,8 @@ const https = require("https")
 const fs = require("fs")
 //Options to be passed to https server
 const sslOptions = {
-    key: fs.readFileSync("./Encriptions/key.pem"),
-    cert: fs.readFileSync("./Encriptions/cert.pem")
+    key: fs.readFileSync("../Encryptions/key.pem"),
+    cert: fs.readFileSync("../Encryptions/cert.pem")
 }
 // Import helmet for http headers protection
 const helmet = require("helmet")

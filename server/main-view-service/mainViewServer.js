@@ -12,6 +12,17 @@ const client = redis.createClient({
   port: process.env.REDIS_PORT
 })
 
+//const http = require("http")
+const https = require("https")
+const fs = require("fs")
+//Options to be passed to https server
+const sslOptions = {
+    key: fs.readFileSync("../Encryptions/key.pem"),
+    cert: fs.readFileSync("../Encryptions/cert.pem")
+}
+const server = https.createServer(sslOptions, app)
+
+
 app.use(helmet())
 app.use(cors())
 app.use(express.json({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
@@ -2268,6 +2279,6 @@ clientMongo.connect(function (err) {
 });
 
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Main view server up and running at port ${PORT}`);
 });

@@ -12,6 +12,16 @@ const client = redis.createClient({
     port: process.env.REDIS_PORT
 })
 
+//const http = require("http")
+const https = require("https")
+const fs = require("fs")
+//Options to be passed to https server
+const sslOptions = {
+    key: fs.readFileSync("../Encryptions/key.pem"),
+    cert: fs.readFileSync("../Encryptions/cert.pem")
+}
+const server = https.createServer(sslOptions, app)
+
 //const { promisify } = require("util");
 //const getAsync = promisify(client.get).bind(client)
 
@@ -352,7 +362,7 @@ clientMongo.connect(function(err) {
     
 })
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Passenger server up and running @ port ${PORT}`)
 })
 
