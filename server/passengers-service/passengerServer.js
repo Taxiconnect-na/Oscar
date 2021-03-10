@@ -12,16 +12,16 @@ const client = redis.createClient({
     port: process.env.REDIS_PORT
 })
 
-//const http = require("http")
-const https = require("https")
+const http = require("http")
+/*const https = require("https")
 const fs = require("fs")
 //Options to be passed to https server
 const sslOptions = {
     key: fs.readFileSync(path.resolve(__dirname, "../Encryptions/key.pem")),
     cert: fs.readFileSync(path.resolve(__dirname, "../Encryptions/cert.pem"))
 }
-const server = https.createServer(sslOptions, app)
-
+const server = https.createServer(sslOptions, app) */
+const server = http.createServer(app)
 //const { promisify } = require("util");
 //const getAsync = promisify(client.get).bind(client)
 
@@ -323,42 +323,43 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
 }
 
 
-
-
-
 clientMongo.connect(function(err) {
-    //if (err) throw err
-    console.log("Successful connection to Database")
+    if (err) {
+        console.log(`Error occured: ${err}`)
+    } else {
 
-    const dbMongo = clientMongo.db(dbName)
-    const collectionPassengers_profiles = dbMongo.collection(
-        "passengers_profiles"
-    )
-    const collectionDrivers_profiles = dbMongo.collection("drivers_profiles");
-    const collectionRidesDeliveryData = dbMongo.collection(
-        "rides_deliveries_requests"
-    )
-    const collectionRidesDeliveryDataCancelled = dbMongo.collection(
-        "cancelled_rides_deliveries_requests"
-    )
-    // Initialize the passenger list variable
-    let passengerDataList
+        console.log("Successful connection to Database")
 
-    app.get("/passenger-data", (req, res) => {
-        let response = res
-      
-        new Promise((res) => {
-            getPassengersInfo(collectionPassengers_profiles, collectionRidesDeliveryData, res)
-        }).then((result) => {
-            let passengerList = result
-            console.log("Passenger's Data API called")
-            console.log(result)
-            response.json(passengerList)
-        }).catch((error) => {
-            console.log(error)
-            response.json({"error": "something went wrong. Maybe no connection or wrong parameters"})
+        const dbMongo = clientMongo.db(dbName)
+        const collectionPassengers_profiles = dbMongo.collection(
+            "passengers_profiles"
+        )
+        const collectionDrivers_profiles = dbMongo.collection("drivers_profiles");
+        const collectionRidesDeliveryData = dbMongo.collection(
+            "rides_deliveries_requests"
+        )
+        const collectionRidesDeliveryDataCancelled = dbMongo.collection(
+            "cancelled_rides_deliveries_requests"
+        )
+        // Initialize the passenger list variable
+        let passengerDataList
+
+        app.get("/passenger-data", (req, res) => {
+            let response = res
+        
+            new Promise((res) => {
+                getPassengersInfo(collectionPassengers_profiles, collectionRidesDeliveryData, res)
+            }).then((result) => {
+                let passengerList = result
+                console.log("Passenger's Data API called")
+                console.log(result)
+                response.json(passengerList)
+            }).catch((error) => {
+                console.log(error)
+                response.json({"error": "something went wrong. Maybe no connection or wrong parameters"})
+            })
         })
-    })
+    }
     
 })
 

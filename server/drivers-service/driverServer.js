@@ -3,15 +3,18 @@ require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
 const fileUpload = require("express-fileupload")
 const app = express()
-//const http = require("http")
-const https = require("https")
+
+const http = require("http")
+const server = http.createServer(app)
+/*const https = require("https")
 const fs = require("fs")
 //Options to be passed to https server
 const sslOptions = {
     key: fs.readFileSync(path.resolve(__dirname, "../Encryptions/key.pem")),
     cert: fs.readFileSync(path.resolve(__dirname, "../Encryptions/cert.pem"))
 }
-const server = https.createServer(sslOptions, app)
+const server = https.createServer(sslOptions, app) */
+
 
 
 const helmet = require("helmet")

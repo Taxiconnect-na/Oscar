@@ -1,0 +1,15 @@
+#loginButton {
+    width: 35%;
+    position: relative;
+    background-color: darkgray;
+}
+
+#loginButton-child {
+  width: 50px;
+  height: 50px;
+  /* Center vertically and horizontally */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -25px 0 0 -25px; /* apply negative top and left margins to truly center the element */
+}

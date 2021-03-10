@@ -30,7 +30,7 @@ export default function CashPaymentDriver() {
                 } 
             }) */
             //*production
-            const res = await axios.post(`https://taxiconnectna.com:10011/cash-payment`, formData , {
+            const res = await axios.post(`http://taxiconnectna.com:10011/cash-payment`, formData , {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 } 

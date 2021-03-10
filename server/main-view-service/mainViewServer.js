@@ -12,15 +12,16 @@ const client = redis.createClient({
   port: process.env.REDIS_PORT
 })
 
-//const http = require("http")
-const https = require("https")
+const http = require("http")
+/*const https = require("https")
 const fs = require("fs")
 //Options to be passed to https server
-const sslOptions = {
+/*const sslOptions = {
     key: fs.readFileSync(path.resolve(__dirname, "../Encryptions/key.pem")),
     cert: fs.readFileSync(path.resolve(__dirname, "../Encryptions/cert.pem"))
 }
-const server = https.createServer(sslOptions, app)
+const server = https.createServer(sslOptions, app) */
+const server = http.createServer(app)
 
 
 app.use(helmet())
@@ -2062,7 +2063,7 @@ function getOwners(ownersCollection, resolve) {
               email: email,
               password: password 
           }
-
+          //return owner's data
           outcome(ownerData)
       })
     })
@@ -2239,12 +2240,12 @@ clientMongo.connect(function (err) {
 
       },  (error) => {
         console.log(error)
-        response.send({message: "error", flag: "Maybe Invalid parameters"})
+        response.status(500).send({message: "error", flag: "Maybe Invalid parameters"})
       })
 
     }).catch((error) => {
       console.log(error)
-      response.send({message: "error", flag: "Maybe Invalid parameters of owners"})
+      response.status(500).send({message: "error", flag: "Maybe Invalid parameters of owners"})
     })
   })
 
