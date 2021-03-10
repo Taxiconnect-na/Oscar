@@ -29,6 +29,85 @@ const car_data_style = {
     marginTop: 10,
     padding: 40
 }
+
+function MyFormData(
+    // Input data:
+    name,
+    surname,
+    title,
+    personal_id_number,
+    phone_number,
+    email,
+    operation_clearances,
+    delivery_provider,
+    profile_picture,
+    driver_licence_doc,
+    copy_id_paper,
+    copy_white_paper,
+    copy_public_permit,
+    copy_blue_paper,
+    blue_paper_expiration,
+    driver_licence_expiration,
+    bank_name,
+    account_number,
+    branch_number,
+    branch_name,
+    car_brand,
+    permit_number,
+    taxi_number,
+    plate_number,
+    max_passengers,
+    taxi_picture,
+    vehicle_type,
+    car_nature,
+    //Resolve: to be used as return for async
+    resolve) {
+
+    // Initialize formData
+    const formData = new FormData()
+
+    // Append data to formData
+    formData.append('name', name)
+    formData.append('surname', surname)
+    formData.append('title', title)
+    formData.append('personal_id_number', personal_id_number)
+    formData.append('phone_number', phone_number)
+    formData.append('email', email)
+    //formData.append('password', password)
+    formData.append('operation_clearances', operation_clearances)
+    formData.append('delivery_provider', delivery_provider)
+
+    formData.append('profile_picture', profile_picture)
+    formData.append('driver_licence_doc', driver_licence_doc)
+    formData.append('copy_id_paper', copy_id_paper)
+    formData.append('copy_white_paper', copy_white_paper)
+    formData.append('copy_public_permit', copy_public_permit)
+    formData.append('copy_blue_paper', copy_blue_paper)
+    formData.append('blue_paper_expiration', blue_paper_expiration)
+    formData.append('driver_licence_expiration', driver_licence_expiration)
+    formData.append('bank_name', bank_name)
+    formData.append('account_number', account_number)
+    formData.append('branch_number', branch_number)
+    formData.append('branch_name', branch_name)
+
+    if (formData.get('operation_clearances') === "Ride") {
+        formData.set('delivery_provider', "")
+    }
+
+    // Car's data
+    formData.append('car_brand', car_brand)
+    formData.append('permit_number', permit_number)
+    formData.append('taxi_number', taxi_number)
+    formData.append('plate_number', plate_number)
+    formData.append('max_passengers', max_passengers)
+    formData.append('taxi_picture', taxi_picture)
+    formData.append('vehicle_type', vehicle_type)
+    formData.append('car_nature', car_nature)
+
+    resolve(formData)
+
+}
+
 const DriverRegistration = () => {
 
         let [name, setName] = useState('')
@@ -96,84 +175,49 @@ const DriverRegistration = () => {
             }
         ] */
 
-        const onSubmit = async (e) => {
+        const onSubmit = (e) => {
             e.preventDefault()
-            // Crete a formData to contain all submitted information
-            const formData = new FormData()
-            formData.append('name', name)
-            formData.append('surname', surname)
-            formData.append('title', title)
-            formData.append('personal_id_number', personal_id_number)
-            formData.append('phone_number', phone_number)
-            formData.append('email', email)
-            //formData.append('password', password)
-            formData.append('operation_clearances', operation_clearances)
-            formData.append('delivery_provider', delivery_provider)
-
-            if (formData.get('operation_clearances') === "Ride") {
-                formData.set('delivery_provider', "")
-            }
-
-            formData.append('profile_picture', profile_picture)
-            formData.append('driver_licence_doc', driver_licence_doc)
-            formData.append('copy_id_paper', copy_id_paper)
-            formData.append('copy_white_paper', copy_white_paper)
-            formData.append('copy_public_permit', copy_public_permit)
-            formData.append('copy_blue_paper', copy_blue_paper)
-            formData.append('blue_paper_expiration', blue_paper_expiration)
-            formData.append('driver_licence_expiration', driver_licence_expiration)
-            formData.append('bank_name', bank_name)
-            formData.append('account_number', account_number)
-            formData.append('branch_number', branch_number)
-            formData.append('branch_name', branch_name)
-
-            // Car's data
-            formData.append('car_brand', car_brand)
-            formData.append('permit_number', permit_number)
-            formData.append('taxi_number', taxi_number)
-            formData.append('plate_number', plate_number)
-            formData.append('max_passengers', max_passengers)
-            formData.append('taxi_picture', taxi_picture)
-            formData.append('vehicle_type', vehicle_type)
-            formData.append('car_nature', car_nature)
-           
-            console.log(formData.get('title'))
-            console.log(formData.get('delivery_provider'))
-            console.log(formData.get('operation_clearances'))
-            console.log(formData.get('copy_id_paper'))
-            //passenger-data
-            // Send data to server
-            try {
-                /*
-                * local setup
-                const res = await axios.post(`http://localhost:10011/upload`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    } 
-                })
-                    */
-                //*production:
-                /*
-                const res = await axios.post(`http://taxiconnectna.com:10011/upload`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    } 
-                })
             
-                console.log(res.data)
-                alert("Successfully submitted") */
-                socket.emit("registerDriver", formData)
-              
-                 /* socket.on("authenticate-response", (data) => {
-                    if (data.authenticated) {
-                      //  Upon successful authentication:
-                      setAuthentication(true);
-                      setName(details.name);
-                      setEmail(details.email);
-                      setPassword(details.password); */
+            new Promise((res) => {
+
+                MyFormData(
+                    // Input data:
+                    name,
+                    surname,
+                    title,
+                    personal_id_number,
+                    phone_number,
+                    email,
+                    operation_clearances,
+                    delivery_provider,
+                    profile_picture,
+                    driver_licence_doc,
+                    copy_id_paper,
+                    copy_white_paper,
+                    copy_public_permit,
+                    copy_blue_paper,
+                    blue_paper_expiration,
+                    driver_licence_expiration,
+                    bank_name,
+                    account_number,
+                    branch_number,
+                    branch_name,
+                    car_brand,
+                    permit_number,
+                    taxi_number,
+                    plate_number,
+                    max_passengers,
+                    taxi_picture,
+                    vehicle_type,
+                    car_nature,
+                    //Resolve: to be used as return for async
+                    res)
+            })
+            .then((outcome) => {
+
                 socket.on("registerDriver-response", (data) => {
                     console.log(data)
-
+    
                     // Basic pages style
                     const errorStyle = {
                         color: "red",
@@ -185,10 +229,10 @@ const DriverRegistration = () => {
                         width: 150,
                         margin: "auto"
                     }
-
+    
                     // Return success or Error page:
                     if (data.error) {
-
+    
                         return (
                             <div className="container">
                                 <h1 style={errorStyle}> An error occured at the server</h1>
@@ -203,21 +247,25 @@ const DriverRegistration = () => {
                         )
                     }
                 })
+
+                socket.emit("registerDriver", outcome)
                 
-            } catch(err) {
-                console.log(err)
+            })
+            .catch((error) => {
+                console.log(error)
                 const errorStyle = {
                     color: "red",
                     width: 150,
                     margin: "auto"
                 }
-                //alert("There was an error with the server" )
                 return (
                     <div className="container">
-                        <h1 style={errorStyle}> An error occured at the server</h1>
+                        <h1 style={errorStyle}> An error occured during registration</h1>
                     </div>
                 )
-            }   
+
+            })
+                 
         }
 
         return (

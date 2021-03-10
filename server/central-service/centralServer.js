@@ -338,6 +338,7 @@ io.on("connection", (socket) => {
                 })
                 .catch((error) => {
                     console.log(error)
+                    socket.emit("registerDriver-response", {error: "An error occured while posting data"})
                 })
 
             } catch (error) {
