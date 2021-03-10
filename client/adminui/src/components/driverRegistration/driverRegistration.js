@@ -206,6 +206,11 @@ const DriverRegistration = () => {
                 
             } catch(err) {
                 console.log(err)
+                const errorStyle = {
+                    color: "red",
+                    width: 150,
+                    margin: "auto"
+                }
                 //alert("There was an error with the server" )
                 return (
                     <div className="container">
