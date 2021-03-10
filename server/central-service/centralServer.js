@@ -292,7 +292,7 @@ io.on("connection", (socket) => {
     // Authenticate owner:
     socket.on("authenticate", function(data) {
 
-        if ((data !== undefined) && (data != null)) {
+        if ((data !== undefined) && (data !== null)) {
             console.log("Authenticating...")
             console.log(data)
 
@@ -313,6 +313,38 @@ io.on("connection", (socket) => {
             }
         }
         
+    })
+    
+
+    // Register Driver:
+    socket.on("registerDriver", function(data) {
+
+        if ((data !== undefined) && (data !== null)) {
+            console.log("Driver registration in progress driver...")
+            console.log(`Received data -------> ${data}`)
+
+            try {
+                // Make the post request to driver's endpoint with received data
+                axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, data, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                })
+                .then((feedback) => {
+                    console.log(feedback.data)
+                    // Return the server's response data to client
+                    socket.emit("registerDriver-response", feedback.data)
+
+                })
+                .catch((error) => {
+                    console.log(error)
+                })
+
+            } catch (error) {
+                console.log(error)
+                socket.emit("registerDriver-response", {error: "An error occured while posting data"})
+            }
+        }
     })
 
 
@@ -343,7 +375,6 @@ io.on("connection", (socket) => {
         console.log(error)
         })
     })
-    // Get the Passenger list
     
     
 

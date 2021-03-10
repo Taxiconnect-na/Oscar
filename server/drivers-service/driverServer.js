@@ -506,7 +506,7 @@ clientMongo.connect(function(err) {
 
     })
 
-        // Upload Endpoint (where we will send our requests to from the react app)
+    // Upload Endpoint for driver registration
     app.post('/upload', (req, res) => {
         if (req.files === null || req.files === undefined) {
             return res.status(400).json({ msg: 'No file uploaded'})

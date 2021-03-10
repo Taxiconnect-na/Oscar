@@ -1,5 +1,6 @@
 import React, { Fragment, useState } from 'react'
-import axios from 'axios'
+//import axios from 'axios'
+import socket from '../socket'
 import DatePicker from 'react-datepicker'
 import './driverRegistration.css'
 import Sidebar from '../sidebar/sidebar'
@@ -152,6 +153,7 @@ const DriverRegistration = () => {
                 })
                     */
                 //*production:
+                /*
                 const res = await axios.post(`http://taxiconnectna.com:10011/upload`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
@@ -159,12 +161,57 @@ const DriverRegistration = () => {
                 })
             
                 console.log(res.data)
-                alert("Successfully submitted")
-    
+                alert("Successfully submitted") */
+                socket.emit("registerDriver", formData)
+              
+                 /* socket.on("authenticate-response", (data) => {
+                    if (data.authenticated) {
+                      //  Upon successful authentication:
+                      setAuthentication(true);
+                      setName(details.name);
+                      setEmail(details.email);
+                      setPassword(details.password); */
+                socket.on("registerDriver-response", (data) => {
+                    console.log(data)
+
+                    // Basic pages style
+                    const errorStyle = {
+                        color: "red",
+                        width: 150,
+                        margin: "auto"
+                    }
+                    const successStyle = {
+                        color: "green",
+                        width: 150,
+                        margin: "auto"
+                    }
+
+                    // Return success or Error page:
+                    if (data.error) {
+
+                        return (
+                            <div className="container">
+                                <h1 style={errorStyle}> An error occured at the server</h1>
+                            </div>
+                        )
+                    } else {
+                        console.log(data)
+                        return (
+                            <div className="container">
+                                <h1 style={successStyle}> Driver Successfully registered</h1>
+                            </div>
+                        )
+                    }
+                })
                 
             } catch(err) {
                 console.log(err)
-                alert("There was an error with the server" )
+                //alert("There was an error with the server" )
+                return (
+                    <div className="container">
+                        <h1 style={errorStyle}> An error occured at the server</h1>
+                    </div>
+                )
             }   
         }
 

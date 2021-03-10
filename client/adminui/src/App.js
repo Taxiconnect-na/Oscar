@@ -27,7 +27,7 @@ function App() {
   // If not authenticated, return the login page/button
   return !isAuthenticated ?
   (
-    <div style= {{ float: "right"}}>
+    <div>
       <LoginButton />
     </div>
   ) :
