@@ -34,6 +34,7 @@ function App() {
    ( <>
      <div style= {{ float: "right"}}>
       <LogoutButton />
+      <Profile />
     </div>
    <Router>
       <Switch>

@@ -7,11 +7,13 @@ const Profile = () => {
     const { name, picture } = user
     // Available user: { JSON.stringify(user, null, 2)}
     const nameStyle = {
-        fontSize: 18
+        fontSize: 12,
+        float: "right"
     }
   return (
     <div>
-      <div> Logged in as <span style={nameStyle}><strong>{ name }</strong></span><br></br> </div>  
+      <strong style={nameStyle}> { name } </strong>
+      <img style={{ borderRadius: 50, float: "right"}} src={picture} alt={user.email} />
     </div>
   )
 }
