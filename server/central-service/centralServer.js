@@ -219,9 +219,9 @@ function MyFormData(
     formData.append('branch_number', branch_number)
     formData.append('branch_name', branch_name)
 
-    if (formData.get('operation_clearances') === "Ride") {
+    /*if (formData.get('operation_clearances') === "Ride") {
         formData.set('delivery_provider', "")
-    }
+    }*/
 
     // Car's data
     formData.append('car_brand', car_brand)
@@ -444,7 +444,7 @@ io.on("connection", (socket) => {
 
                 try {
 
-                    console.log(`Posting With following Driver Name ######------->> ${outputForm.get("name")}`)
+                    console.log(`Posting With following Driver Name ######------->> ${outputForm}`)
     
                     // Make the post request to driver's endpoint with received data
                     axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, outputForm, {
