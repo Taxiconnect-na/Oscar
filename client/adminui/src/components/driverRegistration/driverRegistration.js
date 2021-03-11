@@ -217,7 +217,8 @@ const DriverRegistration = () => {
 
                 console.log("Posting following data to server: ")
                 console.log(outcome)
-                
+                console.log(`the name: ${outcome.get('name')}| email: ${outcome.get('email')}`)
+
                 socket.on("registerDriver-response", (data) => {
                     console.log(data)
     
