@@ -322,11 +322,13 @@ io.on("connection", (socket) => {
 
         if ((data !== undefined) && (data !== null)) {
             console.log("Driver registration in progress driver...")
-            console.log(`Received data -------> ${data}`)
+            console.log(`Received data (also printed below) -------> ${data}`)
+            // View received data:
+            console.log(data)
             const dataForm = new FormData(data)
 
             try {
-                
+
                 console.log(`Trying with transformed data ------> ${dataForm}`)
 
                 // Make the post request to driver's endpoint with received data
