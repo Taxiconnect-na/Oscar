@@ -157,6 +157,86 @@ function progressScheduledCompleted(arrayData, resolve) {
  
 }
 
+
+
+function MyFormData(
+    // Input data:
+    name,
+    surname,
+    title,
+    personal_id_number,
+    phone_number,
+    email,
+    operation_clearances,
+    delivery_provider,
+    profile_picture,
+    driver_licence_doc,
+    copy_id_paper,
+    copy_white_paper,
+    copy_public_permit,
+    copy_blue_paper,
+    blue_paper_expiration,
+    driver_licence_expiration,
+    bank_name,
+    account_number,
+    branch_number,
+    branch_name,
+    car_brand,
+    permit_number,
+    taxi_number,
+    plate_number,
+    max_passengers,
+    taxi_picture,
+    vehicle_type,
+    car_nature,
+    //Resolve: to be used as return for async
+    resolve) {
+
+    // Initialize formData
+    const formData = new FormData()
+
+    // Append data to formData
+    formData.append('name', name)
+    formData.append('surname', surname)
+    formData.append('title', title)
+    formData.append('personal_id_number', personal_id_number)
+    formData.append('phone_number', phone_number)
+    formData.append('email', email)
+    //formData.append('password', password)
+    formData.append('operation_clearances', operation_clearances)
+    formData.append('delivery_provider', delivery_provider)
+
+    formData.append('profile_picture', profile_picture)
+    formData.append('driver_licence_doc', driver_licence_doc)
+    formData.append('copy_id_paper', copy_id_paper)
+    formData.append('copy_white_paper', copy_white_paper)
+    formData.append('copy_public_permit', copy_public_permit)
+    formData.append('copy_blue_paper', copy_blue_paper)
+    formData.append('blue_paper_expiration', blue_paper_expiration)
+    formData.append('driver_licence_expiration', driver_licence_expiration)
+    formData.append('bank_name', bank_name)
+    formData.append('account_number', account_number)
+    formData.append('branch_number', branch_number)
+    formData.append('branch_name', branch_name)
+
+    if (formData.get('operation_clearances') === "Ride") {
+        formData.set('delivery_provider', "")
+    }
+
+    // Car's data
+    formData.append('car_brand', car_brand)
+    formData.append('permit_number', permit_number)
+    formData.append('taxi_number', taxi_number)
+    formData.append('plate_number', plate_number)
+    formData.append('max_passengers', max_passengers)
+    formData.append('taxi_picture', taxi_picture)
+    formData.append('vehicle_type', vehicle_type)
+    formData.append('car_nature', car_nature)
+
+    resolve(formData)
+
+}
+
 // All Events: 
 
 io.on("connection", (socket) => {
@@ -325,35 +405,78 @@ io.on("connection", (socket) => {
             console.log(`Received data (also printed below) -------> ${data}`)
             // View received data:
             console.log(data)
-            const dataForm = new FormData(data)
+            
+            new Promise((res) => {
+                MyFormData(
+                    // Input data:
+                    data.name,
+                    data.surname,
+                    data.title,
+                    data.personal_id_number,
+                    data.phone_number,
+                    data.email,
+                    data.operation_clearances,
+                    data.delivery_provider,
+                    data.profile_picture,
+                    data.driver_licence_doc,
+                    data.copy_id_paper,
+                    data.copy_white_paper,
+                    data.copy_public_permit,
+                    data.copy_blue_paper,
+                    data.blue_paper_expiration,
+                    data.driver_licence_expiration,
+                    data.bank_name,
+                    data.account_number,
+                    data.branch_number,
+                    data.branch_name,
+                    data.car_brand,
+                    data.permit_number,
+                    data.taxi_number,
+                    data.plate_number,
+                    data.max_passengers,
+                    data.taxi_picture,
+                    data.vehicle_type,
+                    data.car_nature,
+                    //Resolve: to be used as return for async
+                    res)
+            })
+            .then((outputForm) => {
 
-            try {
+                try {
 
-                console.log(`Trying with transformed data ------> ${dataForm}`)
-
-                // Make the post request to driver's endpoint with received data
-                axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, dataForm, {
-                    headers: {  //dataForm.getHeaders()
-                        'Content-Type': 'multipart/form-data'
-                    }
-                    
-                })
-                .then((feedback) => {
-                    console.log(feedback.data)
-                    // Return the server's response data to client
-                    socket.emit("registerDriver-response", feedback.data)
-
-                })
-                .catch((error) => {
+                    console.log(`Posting With following Driver Name ######------->> ${outputForm.get("name")}`)
+    
+                    // Make the post request to driver's endpoint with received data
+                    axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, outputForm, {
+                        headers: outputForm.getHeaders()
+                        /* headers: { // headers option 
+                            'Content-Type': 'multipart/form-data'
+                        } */
+                        
+                    })
+                    .then((feedback) => {
+                        console.log(feedback.data)
+                        // Return the server's response data to client
+                        socket.emit("registerDriver-response", feedback.data)
+    
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        socket.emit("registerDriver-response", {error: "An error occured while posting data"})
+                    })
+    
+                } catch (error) {
                     console.log(error)
                     socket.emit("registerDriver-response", {error: "An error occured while posting data"})
-                })
-
-            } catch (error) {
+                }
+            })
+            .catch((error) => {
                 console.log(error)
-                socket.emit("registerDriver-response", {error: "An error occured while posting data"})
-            }
+                socket.emit("registerDriver-response", {error: "An error occured while trying to post data"})
+            })
+            
         }
+        //! Handled undefined and null data below with else
     })
 
 
