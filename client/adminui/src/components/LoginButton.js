@@ -5,7 +5,7 @@ import "./LoginButton.css"
 export default function LoginButton() {
     const { loginWithRedirect } = useAuth0()
     const buttonStyle = {
-
+      width: 120
     }
   return (
     <div className="container" id="loginButton">

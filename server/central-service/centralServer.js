@@ -3,6 +3,7 @@ require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
 const app = express()  
 const axios = require("axios")
+const FormData = require("form-data")
 const cors = require("cors")
 //const http = require("http")
 const https = require("https")
@@ -322,13 +323,15 @@ io.on("connection", (socket) => {
         if ((data !== undefined) && (data !== null)) {
             console.log("Driver registration in progress driver...")
             console.log(`Received data -------> ${data}`)
+            const dataForm = new FormData(data)
 
             try {
+                
+                console.log(`Trying with transformed data ------> ${dataForm}`)
+
                 // Make the post request to driver's endpoint with received data
-                axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, data, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
+                axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, dataForm, {
+                    headers: dataForm.getHeaders()
                 })
                 .then((feedback) => {
                     console.log(feedback.data)

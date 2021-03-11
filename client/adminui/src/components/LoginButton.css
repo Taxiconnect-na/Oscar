@@ -2,6 +2,7 @@
     width: 35%;
     position: relative;
     background-color: darkgray;
+    margin: 20%
 }
 
 #loginButton-child {
