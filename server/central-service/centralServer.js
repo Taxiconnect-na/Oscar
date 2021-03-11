@@ -333,7 +333,10 @@ io.on("connection", (socket) => {
 
                 // Make the post request to driver's endpoint with received data
                 axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, dataForm, {
-                    headers: dataForm.getHeaders()
+                    headers: {  //dataForm.getHeaders()
+                        'Content-Type': 'multipart/form-data'
+                    }
+                    
                 })
                 .then((feedback) => {
                     console.log(feedback.data)

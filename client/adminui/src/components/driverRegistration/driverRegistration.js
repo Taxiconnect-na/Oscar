@@ -30,6 +30,74 @@ const car_data_style = {
     padding: 40
 }
 
+
+function formObject(
+    // Input data:
+    name,
+    surname,
+    title,
+    personal_id_number,
+    phone_number,
+    email,
+    operation_clearances,
+    delivery_provider,
+    profile_picture,
+    driver_licence_doc,
+    copy_id_paper,
+    copy_white_paper,
+    copy_public_permit,
+    copy_blue_paper,
+    blue_paper_expiration,
+    driver_licence_expiration,
+    bank_name,
+    account_number,
+    branch_number,
+    branch_name,
+    car_brand,
+    permit_number,
+    taxi_number,
+    plate_number,
+    max_passengers,
+    taxi_picture,
+    vehicle_type,
+    car_nature,
+    //Resolve: to be used as return for async
+    resolve) {
+
+        resolve({
+            name,
+            surname,
+            title,
+            personal_id_number,
+            phone_number,
+            email,
+            operation_clearances,
+            delivery_provider,
+            profile_picture,
+            driver_licence_doc,
+            copy_id_paper,
+            copy_white_paper,
+            copy_public_permit,
+            copy_blue_paper,
+            blue_paper_expiration,
+            driver_licence_expiration,
+            bank_name,
+            account_number,
+            branch_number,
+            branch_name,
+            car_brand,
+            permit_number,
+            taxi_number,
+            plate_number,
+            max_passengers,
+            taxi_picture,
+            vehicle_type,
+            car_nature,
+        })
+    }
+
+
+
 function MyFormData(
     // Input data:
     name,
@@ -175,6 +243,8 @@ const DriverRegistration = () => {
             }
         ] */
 
+        /*
+        * Submitting with formData:
         const onSubmit = (e) => {
             e.preventDefault()
             
@@ -270,6 +340,90 @@ const DriverRegistration = () => {
 
             })
                  
+        }   */
+        //*Attempting to submit without formData */
+        const onSubmit = (e) => {
+            e.preventDefault()
+            
+            new Promise((res) => {
+                // Form the object:
+                formObject(
+                    // Input data:
+                    name,
+                    surname,
+                    title,
+                    personal_id_number,
+                    phone_number,
+                    email,
+                    operation_clearances,
+                    delivery_provider,
+                    profile_picture,
+                    driver_licence_doc,
+                    copy_id_paper,
+                    copy_white_paper,
+                    copy_public_permit,
+                    copy_blue_paper,
+                    blue_paper_expiration,
+                    driver_licence_expiration,
+                    bank_name,
+                    account_number,
+                    branch_number,
+                    branch_name,
+                    car_brand,
+                    permit_number,
+                    taxi_number,
+                    plate_number,
+                    max_passengers,
+                    taxi_picture,
+                    vehicle_type,
+                    car_nature,
+                    //Resolve: to be used as return for async
+                    res)
+
+            })
+            .then((output) => {
+
+                socket.on("registerDriver-response", (data) => {
+                    console.log(data)
+    
+                    // Basic pages style
+                    const errorStyle = {
+                        color: "red",
+                        width: 150,
+                        margin: "auto"
+                    }
+                    const successStyle = {
+                        color: "green",
+                        width: 150,
+                        margin: "auto"
+                    }
+    
+                    // Return success or Error page:
+                    if (data.error) {
+    
+                        return (
+                            <div className="container">
+                                <h1 style={errorStyle}> An error occured at the server</h1>
+                            </div>
+                        )
+                    } else {
+                        console.log(data)
+                        return (
+                            <div className="container">
+                                <h1 style={successStyle}> Driver Successfully registered</h1>
+                            </div>
+                        )
+                    }
+                })
+    
+                socket.emit("registerDriver", output)
+
+            })
+            .catch((error) => {
+                console.error(error)
+                alert("Error occured @client")
+            })
+                     
         }
 
         return (
