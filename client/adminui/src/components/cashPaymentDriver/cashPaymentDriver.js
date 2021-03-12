@@ -1,9 +1,15 @@
 import React, { Fragment, useState } from 'react'
-import axios from 'axios'
 import socket from '../socket'
 import Sidebar from '../sidebar/sidebar'
 require('dotenv').config({ path: "../../../.env"})
 
+/**
+ * @function paymentObject: Returns an object with payment info
+ * @param {string} taxi_number 
+ * @param {string} paymentNumber 
+ * @param {float} amount 
+ * @param {return} resolve 
+ */
 function paymentObject(taxi_number, paymentNumber, amount, resolve) {
     resolve({
         taxi_number,
@@ -20,8 +26,9 @@ export default function CashPaymentDriver() {
     let [payment_with, setPaymentWith] = useState("")
 
     const onSubmitHandler = async (e) => {
+        // Prevent default form submission
         e.preventDefault()
-
+        // Make payment via socket
         new Promise((res) => {
             paymentObject(taxi_number, paymentNumber, amount, res)
         })
@@ -53,49 +60,7 @@ export default function CashPaymentDriver() {
             alert("OOps! Something went wrong")
         })
 
-        /*
-        const formData = new FormData()
-
-        formData.append("taxi_number", taxi_number)
-        formData.append("paymentNumber", paymentNumber)
-        formData.append("amount", amount)
-
-        console.log("Submitting...")
-        
-        try {
-            /**
-             * *local setup
-            const res = await axios.post(`http://localhost:10011/cash-payment`, formData , {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                } 
-            }) 
-            //*production
-            const res = await axios.post(`http://taxiconnectna.com:10011/cash-payment`, formData , {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                } 
-            })
-
-            console.log(res.data)
-            alert("Successfully submitted")
-
-            setTaxiNumber("")
-            setPaymentNumber("")
-            setAmount("")
-            setPaymentWith("")
-
-        } catch(err) {
-            console.log(err)
-            if (err.response.status === 500) {
-                alert("No driver match, enter correct taxi number or payment number")
-            } else {
-                alert("Error: The payment was not made. Maybe server error or wrong parameters")
-            }
-            
-        } 
-        /*axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/cash-payment`, formData)
-        .then((result) => { console.log(result)}) */
+       
     }
 
   return (
