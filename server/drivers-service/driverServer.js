@@ -466,7 +466,7 @@ clientMongo.connect(function(err) {
                  if (!result.error) {
                     console.log("-------------DONE-----------------------")
                     console.log(result)
-                    res.json({"response": "SUCCESSFUL INSERTION"})
+                    res.json({success: "SUCCESSFUL INSERTION"})
                  } else {
                      res.status(500).send({error: "no match for provided taxi number" })
                  }
@@ -491,17 +491,17 @@ clientMongo.connect(function(err) {
                 if (!result.error) {
                     console.log("-------------DONE-----------------------")
                     console.log(result)
-                    res.json({"response": "SUCCESSFUL INSERTION"})
+                    res.json({success: "SUCCESSFUL INSERTION"})
                  } else {
                     res.status(500).send({error: "no match for provided payment number" })
                  }
              })
              .catch((error) => {
                  console.log(error)
-                 res.status(500).send({"error": "Something went wrong"})
+                 res.status(500).send({error: "Something went wrong"})
              })
         } else {
-            res.status(500).send({"error": "Something went wrong!!"})
+            res.status(500).send({error: "Something went wrong!!"})
         }
 
     })

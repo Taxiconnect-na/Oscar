@@ -237,6 +237,16 @@ function MyFormData(
 
 }
 
+function driverPaymentForm(taxi_number, paymentNumber, amount, resolve) {
+    // Initialize form
+    const paymentForm = new FormData()
+    //Append data to form:
+    paymentForm.append('taxi_number', taxi_number)
+    paymentForm.append('paymentNumber', paymentNumber)
+    paymentForm.append('amount', amount)
+
+    resolve(paymentForm)
+}
 // All Events: 
 
 io.on("connection", (socket) => {
@@ -444,7 +454,7 @@ io.on("connection", (socket) => {
 
                 try {
 
-                    console.log(`Posting With following Driver Name ######------->> ${outputForm}`)
+                    console.log(`Posting With following Driver Data ######------->> ${outputForm}`)
     
                     // Make the post request to driver's endpoint with received data
                     axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, outputForm, {
@@ -477,6 +487,44 @@ io.on("connection", (socket) => {
             
         }
         //! Handled undefined and null data below with else
+    })
+
+    //Make Driver payment
+    socket.on("makeDriverPayment", (data) => {
+        if ((data !== undefined) && (data !== null)) {
+            console.log("Attempting to make payment...")
+
+            new Promise((res) => {
+                driverPaymentForm(data.taxi_number, data.paymentNumber, data.amount, res)
+            })
+            .then((outPaymentForm) => {
+
+                // Make the post request to driver's endpoint with received data
+                axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/cash-payment`, outPaymentForm, {
+                    headers: outPaymentForm.getHeaders()
+                    /* headers: { // headers option 
+                        'Content-Type': 'multipart/form-data'
+                    } */
+                    
+                })
+                .then((feedback) => {
+                    console.log(feedback.data)
+                    // Return the server's response data to client
+                    socket.emit("makeDriverPayment-response", feedback.data)
+
+                })
+                .catch((error) => {
+                    console.log(error)
+                    socket.emit("makeDriverPayment-response", {error: "An error occured while posting data"})
+                })
+
+            })
+            .catch((error) => {
+                console.log("********An error occured while attempting to make Driver payment @central****")
+                socket.emit("makeDriverPayment-response", {error: "An error occured while posting data"})
+                console.log(error)
+            })
+        }
     })
 
 

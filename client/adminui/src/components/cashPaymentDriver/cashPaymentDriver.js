@@ -1,7 +1,16 @@
 import React, { Fragment, useState } from 'react'
 import axios from 'axios'
+import socket from '../socket'
 import Sidebar from '../sidebar/sidebar'
 require('dotenv').config({ path: "../../../.env"})
+
+function paymentObject(taxi_number, paymentNumber, amount, resolve) {
+    resolve({
+        taxi_number,
+        paymentNumber,
+        amount
+    })
+}
 
 export default function CashPaymentDriver() {
 
@@ -13,6 +22,38 @@ export default function CashPaymentDriver() {
     const onSubmitHandler = async (e) => {
         e.preventDefault()
 
+        new Promise((res) => {
+            paymentObject(taxi_number, paymentNumber, amount, res)
+        })
+        .then((outcome) => {
+            // Socket-response
+            socket.on("makeDriverPayment-response", (data) => {
+                console.log(data)
+
+                if (data.error) {
+
+                    alert("Something went wrong, Server error or invalid values")
+
+                } else if (data.success) {
+
+                    alert("Payment successfully made")
+                    // Empty fields
+                    setTaxiNumber("")
+                    setPaymentNumber("")
+                    setAmount("")
+                    setPaymentWith("")
+                    
+                }
+            })
+            // Make payment via socket
+            socket.emit("makeDriverPayment", outcome)
+        })
+        .catch((error) => {
+            console.error(error)
+            alert("OOps! Something went wrong")
+        })
+
+        /*
         const formData = new FormData()
 
         formData.append("taxi_number", taxi_number)
@@ -28,7 +69,7 @@ export default function CashPaymentDriver() {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 } 
-            }) */
+            }) 
             //*production
             const res = await axios.post(`http://taxiconnectna.com:10011/cash-payment`, formData , {
                 headers: {
