@@ -225,9 +225,8 @@ export default function PartnersAdmin() {
     color: "#fff",
   };
   const form_style = {
-    width: 400,
+    width: "50%",
     margin: "auto",
-    marginTop: 100,
   };
   const topTextStyle = {
     fontFamily: "UberMoveTextMedium",
@@ -254,11 +253,11 @@ export default function PartnersAdmin() {
   // Returned content:
   if (!authenticated) {
     return (
-      <div>
+      <div style={{ width: "100%"}}>
         <div className="my-form">
           <form onSubmit={submitHandler} style={form_style}>
             <div className="form-inner">
-              <img src={logo} alt="Logo" />
+              <img src={logo} alt="Logo" style={{ width: "28%", marginLeft: "35%"}}/>
               <h2
                 style={{
                   margin: "auto",
