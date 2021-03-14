@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import socket from "../socket";
 import { FaUserAlt } from "react-icons/fa";
 import "./partnersAdmin.css";
+import logo from "./Assets/Images/logo.png"
 import queryString from "query-string";
 
 /**
@@ -257,7 +258,7 @@ export default function PartnersAdmin() {
         <div className="my-form">
           <form onSubmit={submitHandler} style={form_style}>
             <div className="form-inner">
-              <img src={"./Assets/Images/logo.png"} alt="Logo" />
+              <img src={logo} alt="Logo" />
               <h2
                 style={{
                   margin: "auto",
