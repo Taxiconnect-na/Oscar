@@ -405,6 +405,32 @@ io.on("connection", (socket) => {
         }
         
     })
+
+    // Authenticate admin user:
+    socket.on("authenticate-internal-admin", function(data) {
+
+        if ((data !== undefined) && (data !== null)) {
+            console.log("Authenticating admin user...")
+            console.log(data)
+
+            try {
+
+                axios.post(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/authenticate-admin`, data)
+                .then((feedback) => {
+
+                    console.log(feedback.data)
+
+                    socket.emit("authenticate-internal-admin-response", feedback.data)
+
+                }).catch((error) => {
+                    console.log(error)               
+                })
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        
+    })
     
 
     // Register Driver:

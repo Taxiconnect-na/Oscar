@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom"
 
 //Import components
@@ -80,13 +80,13 @@ function App() {
   const submitHandler = (e) => {
     e.preventDefault();
     //Authenticate user:
-    socket.emit("authenticate", {
+    socket.emit("authenticate-internal-admin", {
       name: details.name,
       email: details.email,
       password: details.password,
     });
 
-    socket.on("authenticate-response", (data) => {
+    socket.on("authenticate-internal-admin-response", (data) => {
       if (data.authenticated) {
         //  Upon successful authentication:
         setAuthentication(true);
@@ -111,6 +111,7 @@ function App() {
   const form_style = {
     width: "50%",
     margin: "auto",
+    padding: "3%"
   };
   const topTextStyle = {
     fontFamily: "UberMoveTextMedium",
@@ -174,7 +175,7 @@ function App() {
                 style={{
                   margin: "auto",
                   fontFamily: "MoveMedium",
-                  marginBottom: "8%",
+                  marginBottom: "10%",
                 }}
               >
                 TaxiConnect Administration

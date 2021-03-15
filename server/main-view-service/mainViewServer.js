@@ -2107,7 +2107,54 @@ console.log(userExists("deliveryGuy", "delivery@guy","12345678",[
 ])  )  */   
 //! End of partners functions' data
 
+//! Start of Functions dealing with internal admin-users
 
+function getAdminUsers(adminUsersCollection, resolve) {
+  adminUsersCollection
+  .find({})
+  .toArray()
+  .then((users) => {
+    let usersData = users.map((user) => {
+      return new Promise((outcome) => {
+
+          const name = user.username
+          const email = user.email
+          const password = user.password
+
+          const userData =  {
+              name: name,
+              email: email,
+              password: password 
+          }
+          //return owner's data
+          outcome(userData)
+      })
+    })
+    Promise.all(usersData)
+    .then(
+        (result) => {
+            resolve(result)
+        },
+        (error) => {
+            console.log(error)
+            resolve({ response: "error", flag: "Wrong parameters maybe"})
+        }
+    )
+  })
+}
+/**
+ * @function userAdminExists : Authenticates the admin user
+ * @param {string} username : username of the admin user
+ * @param {string} email 
+ * @param {string} password 
+ * @param {array} adminUsersList 
+ */
+function userAdminExists(username, email, password, adminUsersList, resolve) {
+  resolve( adminUsersList.some(function(el) {
+    return (el.email === email && el.password === password && el.name === username)
+    })
+  )
+}
 
 
 
@@ -2128,6 +2175,8 @@ clientMongo.connect(function (err) {
     "cancelled_rides_deliveries_requests"
   );
   const collectionOwners = dbMongo.collection("owners_profiles") 
+
+  const collectionAdminUsers = dbMongo.collection("internal_admin_users")
   //? INITIALIZE EXPRESS ONCE
   app
     .get("/", (req, res) => {
@@ -2277,6 +2326,38 @@ clientMongo.connect(function (err) {
           response.send({ response: "error", flag: "Something went wrong, could be Invalid parameters"})
         })
    })
+
+   /**
+   * API to authenticate admin users
+   */
+  app.post("/authenticate-admin", (req, res) => {
+
+    let response = res
+
+    new Promise((res) => {
+      getAdminUsers(collectionAdminUsers, res)
+    })
+    .then((adminUsersList) => {
+      new Promise((res) => {
+
+        userAdminExists(req.body.name, req.body.email, req.body.password, adminUsersList, res)
+        
+      })
+      .then((result) => {
+
+        let authentication_response = result
+        response.send({authenticated: authentication_response})
+
+      },  (error) => {
+        console.log(error)
+        response.status(500).send({message: "error", flag: "Maybe Invalid parameters"})
+      })
+
+    }).catch((error) => {
+      console.log(error)
+      response.status(500).send({message: "error", flag: "Maybe Invalid parameters of owners"})
+    })
+  })
 });
 
 
