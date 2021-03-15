@@ -14,6 +14,9 @@ import LogoutButton from "./components/LogoutButton"
 import Profile from "./components/Profile"
 import { useAuth0 } from "@auth0/auth0-react"
 
+
+var allowed = ["mack", "elie"]
+
 function App() {
   const { isAuthenticated, isLoading } = useAuth0()
   const loadingStyle = {
@@ -30,7 +33,7 @@ function App() {
     <div>
       <LoginButton />
     </div>
-  ) :
+  ) : allowed.includes("john")?
    ( <>
      <div style= {{ float: "right"}}>
       <LogoutButton />
@@ -51,7 +54,7 @@ function App() {
    </Router>
    </>
 
-  );
+  ) : <div> Hallo  hallo</div>
 }
 
 export default App;
