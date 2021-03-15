@@ -9,7 +9,7 @@ import DeliveryOverview from "./components/deliveryOverview/deliveryOverview"
 import DriverList from "./components/driversList/driverList"
 import PassengerList from "./components/passengersList/passengerList"
 import CashPaymentDriver from './components/cashPaymentDriver/cashPaymentDriver'
-import socket from "./src/components/socket"
+import socket from "./components/socket"
 //import LoginButton from "./components/LoginButton"
 //import LogoutButton from "./components/LogoutButton"
 //import Profile from "./components/Profile"
