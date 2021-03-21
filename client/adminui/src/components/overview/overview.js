@@ -76,36 +76,40 @@ function Overview() {
 
     return(
         <div> 
-            <div className="wrapper">
-                <div className="left-column">
+            <div style={{ backgroundColor: "#03162e"}}>
+                {/*<div className="left-column">
                 <Sidebar />
-                </div>
-                <div className="right-column" >
-                    <h1 style={{ marginLeft: 100, marginTop: 15 , backgroundColor: "#b6313c", color:"black"}}>Summary</h1>
-                    <div id="title" style={{ marginLeft: 400 }}><h2 >Today </h2></div>
-                    <div className="content">
+    </div> */}
+                <div >
+                    <div id="top">
+                    <h1>SUMMARY</h1>
+                    <hr style={{width: "60%", margin:"auto"}}></hr>
+                    </div>
+                    <div id="title" ><h2 >TODAY </h2></div>
+                    
+                    <div className="content-overview">
                         <div >
-                        <h1 style={{ fontSize: 'xx-large', color:"green"}}>{ totalTripSuccessfulToday } 
+                        <h1 style={{ fontSize: 'xx-large', color:"#0d17a8"}}>{ totalTripSuccessfulToday } 
                         <span style={{ fontSize: 'small', color:"black"}}>     successful trip</span> 
                         </h1>
-                        <h1 style={{ fontSize: 'xx-large', color:"red"}}>{ totalTripCancelledToday} 
+                        <h1 style={{ fontSize: 'xx-large', color:"#a60a0a"}}>{ totalTripCancelledToday} 
                         <span style={{ fontSize: 'small', color:"black"}}>     cancelled trip</span> 
                         </h1>
                         </div> 
 
                         <div >
-                        <h1 style={{ fontSize: 'xx-large', color:"green"}}>N$ { totalFareSuccessfulToday } 
+                        <h1 style={{ fontSize: 'xx-large', color:"#0d17a8"}}>N$ { totalFareSuccessfulToday } 
                         <span style={{ fontSize: 'small', color:"black"}}>    processed </span> 
                         </h1>
-                        <h1 style={{ fontSize: 'xx-large', color:"red"}}>N$ { totalFareCancelledToday } 
+                        <h1 style={{ fontSize: 'xx-large', color:"#a60a0a"}}>N$ { totalFareCancelledToday } 
                         <span style={{ fontSize: 'small', color:"black"}}>    lost </span> 
                         </h1>
                         </div>                          
                     </div>
                     
-                    <div id="table">
-                        <table className="table" style={{ textAlign: "center", width: 500, margin:"auto"}}>
-                            <thead className="thead-light">
+                    <div style={{ width: "50%", alignContent: "center", margin: "auto"}}>
+                        <table className="table-bordered" style={{ border: "1px solid #205a8a", color: "white"}}>
+                            <thead className="thead-light" >
                                 <tr>
                                     <th colSpan="2">New Sign Up</th>
                                 </tr>
@@ -124,30 +128,30 @@ function Overview() {
                     </div><br></br>
                     <hr></hr>
 
-                    <div id="title" style={{ marginLeft: 400 }}><h2 >Overall </h2></div>
-                    <div className="content">
+                    <div id="title" ><h2 >OVERALL </h2></div>
+                    <div className="content-overview">
                         <div style={{ backgroundColor: "#8d9294"}}>
-                        <h1 style={{ fontSize: 'xx-large', color:"green"}}>{ totalTripSuccessful } 
+                        <h1 style={{ fontSize: 'xx-large', color:"#0d17a8"}}>{ totalTripSuccessful } 
                         <span style={{ fontSize: 'small', color:"black"}}>     successful trip</span> 
                         </h1>
-                        <h1 style={{ fontSize: 'xx-large', color:"red"}}>{ totalTripCancelled } 
+                        <h1 style={{ fontSize: 'xx-large', color:"#a60a0a"}}>{ totalTripCancelled } 
                         <span style={{ fontSize: 'small', color:"black"}}>     cancelled trip</span> 
                         </h1>
                         </div> 
 
                         <div style={{ backgroundColor: "#8d9294"}}>
-                        <h1 style={{ fontSize: 'xx-large', color:"green"}}>N$ { totalFareSuccessful } 
+                        <h1 style={{ fontSize: 'xx-large', color:"#0d17a8"}}>N$ { totalFareSuccessful } 
                         <span style={{ fontSize: 'small', color:"black"}}>    processed </span> 
                         </h1>
-                        <h1 style={{ fontSize: 'xx-large', color:"red"}}>N$ { totalFareCancelled } 
+                        <h1 style={{ fontSize: 'xx-large', color:"#a60a0a"}}>N$ { totalFareCancelled } 
                         <span style={{ fontSize: 'small', color:"black"}}>    lost </span> 
                         </h1>
                         </div>                          
                     </div>
 
-                    <div id="table">
-                        <table className="table" id="table2" style={{ textAlign: "center", width: 800, margin:"auto"}}>
-                            <thead className="thead-light">
+                    <div style={{ width: "55%", alignContent: "center", margin: "auto"}}>
+                        <table className="table-hover" style={{ color: "white"}}>
+                            <thead className="thead-dark">
                                 <tr>
                                     <th colSpan="2">Processed</th>
                                 </tr>

@@ -265,7 +265,7 @@ function App() {
   } else if (authenticated) {
     return (
       <>
-        <div style= {{ float: "right"}}>
+        <div style= {{ float: "right", marginRight: "0.5%", marginTop: "6px"}}>
           <button className="btn btn-primary btn-sm" type="submit" onClick={Logout} style={{ fontFamily: "MoveMedium", fontSize: 16 }}>
                     Logout
           </button>

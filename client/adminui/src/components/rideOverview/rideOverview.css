@@ -1,22 +1,14 @@
-.left-column {
-    grid-area: left-column;
-    background-color: white;
-    width: 200px;
-}
-.right-column {
-    grid-area: right-column;
-    background-color: rgba(255, 255, 255, 0.733);
-    margin-left: 15px;
+.ride-options {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-left: 25%;
+    margin-right: 25%;
+    padding-top: 2%;
 }
 
-.wrapper {
-    display: grid;
-    grid-template-columns: 250px 1fr;
-    
-    grid-template-areas: 
-    "left-column right-column";
-    gap: 10px;
-}
 
 table {
     table-layout: fixed;
@@ -26,7 +18,7 @@ table {
 
 
 #iner-table {
-    width: auto;
+    width: 100%;
 }
 
 #container {
@@ -48,8 +40,10 @@ table {
 #container-low {
     display: flex;
     flex-wrap: wrap;
-    width: 800px;
-    margin-left: 100px;
+    width: 70%;
+    align-items: center;
+    margin: auto;
+    padding-left: 4.5%;
 }
 
 #container-low > div {

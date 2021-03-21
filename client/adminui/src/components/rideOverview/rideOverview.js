@@ -59,13 +59,13 @@ const RideRow = (props) => {
             }}>{ detailButton }</button></td>    
         </tr>
         <tr style = {{ display: details? "":"none" }}>
-            <td className="data-table" >
-                <table className="table" style={{ textAlign: "center"}} id="iner-table">
+            <td className="data-table"  >
+                <table className="table" style={{ textAlign: "center", width:"1000px", margin:"auto"}} id="iner-table">
                     <thead className="thead-light">
                         <tr>
                             <th colSpan="8">Passenger info</th>
                         </tr>
-                        <tr>
+                        <tr >
                             <th>Name</th>
                             <th>Surname</th>
                             <th>Cellphone</th>
@@ -219,13 +219,16 @@ function RideOverview() {
 
     const title_style = {
         textAlign: "center",
-        marginTop: 10,
-        marginBottom: 15
+        paddingTop: "2%",
+        paddingBottom: "1%",
+        color: "white",
+        paddingLeft: "5.5%"
     }
     const subtitle_style = {
         textAlign: "center",
         marginTop: 5,
-        marginBottom: 10
+        marginBottom: 10,
+        color: "white"
     }
     const card = {
         backgroundColor: "#62bbde"
@@ -237,8 +240,8 @@ function RideOverview() {
 
     const today = () => {
         return(
-           <div style= {{ backgroundColor: "#cbd1d1", marginTop: 0, padding: 15}}>
-               <h5 style={{ width: 35, margin: "auto" }}>TODAY</h5>
+           <div style= {{ backgroundColor: "#064a52", marginTop: 0, padding: 15}}>
+               <h5 style={{ width: 35, margin: "auto", color:"white" }}>TODAY</h5>
                             <div id="container-low">
                                 <div >
                                     <h1 style={{ fontSize: 'large', color:"white", textAlign: "center"}}> N$ { moneyCompletedToday["totalCash"]} 
@@ -270,30 +273,31 @@ function RideOverview() {
        
         <div>
 
-            <div className="wrapper">
-                <div className="left-column">
-                <Sidebar />
-                </div>
-                <div className="right-column" >
-                    <h1 style={ title_style }> Rides Overview </h1>
-                    <div style= {{ marginLeft: 200, padding: 10}}>
-                        <button style={{ marginLeft: 25}} className="btn btn-info btn-sm " onClick={ () => {
+            <div >
+                
+                <div className="ride-overview" style={{ backgroundColor: "#03162e"}}>
+
+                    <h1 style={ title_style }> RIDES OVERVIEW</h1>
+                    <hr style={{ width: "60%", color: "#ffffff", margin:"auto", padding:"1px"}}></hr>
+
+                    <div className="ride-options" >
+                        <div ><button  className="btn btn-info btn-sm " onClick={ () => {
                         setScheduled (false)
                         setCompleted(false)
                         setInProgress(true)  
-                        }}>Rides in progress [{ InprogressCount }]</button>
+                        }}>Rides in progress [{ InprogressCount }]</button></div>
 
-                        <button style={{ marginLeft: 35}} className="btn btn-info btn-sm " onClick={ () => {
+                        <div><button className="btn btn-info btn-sm " onClick={ () => {
                         setInProgress (false)
                         setCompleted(false)
                         setScheduled(true)  
-                        }}>Scheduled rides [{ ScheduledCount }]</button>
+                        }}>Scheduled rides [{ ScheduledCount }]</button></div>
 
-                        <button style={{ marginLeft: 35}} className="btn btn-info btn-sm " onClick={ () => {
+                        <div><button  className="btn btn-info btn-sm " onClick={ () => {
                         setInProgress (false)
                         setCompleted(true)
                         setScheduled(false)  
-                        }}>Completed rides [{ CompletedCount }]</button>
+                        }}>Completed rides [{ CompletedCount }]</button></div>
 
                     </div>
 
@@ -342,7 +346,7 @@ function RideOverview() {
 
                             { today() }
 
-                            <h3 style={ subtitle_style }>Rides in progress </h3>
+                            <h3 style={ subtitle_style }>RIDES IN PROGRESS </h3>
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>
@@ -407,7 +411,7 @@ function RideOverview() {
 
                             { today() }
 
-                            <h3 style={ subtitle_style }>Scheduled rides </h3>
+                            <h3 style={ subtitle_style }>SCHEDULED RIDES </h3>
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>
@@ -475,7 +479,7 @@ function RideOverview() {
 
                             { today() }
 
-                            <h3 style={ subtitle_style }>Completed rides</h3>
+                            <h3 style={ subtitle_style }>COMPLETED RIDES</h3>
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>
