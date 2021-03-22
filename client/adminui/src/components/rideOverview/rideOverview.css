@@ -39,18 +39,17 @@ table {
 
 #container-low {
     display: flex;
-    flex-wrap: wrap;
-    width: 70%;
+    flex-wrap:nowrap;
+    width: 90%;
     align-items: center;
     margin: auto;
-    padding-left: 4.5%;
 }
 
 #container-low > div {
     color: white;
     margin-top: 5px;
     padding: 5px;
-    width: 200px;
+    width: 30%;
     font-size: 15px;
     background-color: rgb(12, 75, 15);
 }

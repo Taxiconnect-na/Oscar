@@ -15,7 +15,7 @@ function Sidebar() {
         <div className="sidebar">
             <ProSidebar>
                 <Menu iconShape="square">
-                    <img src={logotaxiconnect} alt="TaxiConnect" style={{ height: 73, width: 140, marginLeft:30, marginBottom: 50}}/>
+                    <img src={logotaxiconnect} alt="TaxiConnect" style={{ height: 79, width: 140, marginLeft:30, marginBottom: 50}}/>
                     <MenuItem><Link to="/"><FaChartBar style={iconStyle}/>Summary</Link></MenuItem> 
                     <MenuItem><Link to="/driver-registration"><FaRegRegistered style={iconStyle} />Register Driver</Link></MenuItem>
                     

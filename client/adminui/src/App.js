@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom"
 
 //Import components
+import Sidebar from "./components/sidebar/sidebar"
 import Overview from "./components/overview/overview"
 import DriverRegistration from "./components/driverRegistration/driverRegistration"
 import RideOverview from "./components/rideOverview/rideOverview"
@@ -13,7 +14,7 @@ import socket from "./components/socket"
 //import LoginButton from "./components/LoginButton"
 //import LogoutButton from "./components/LogoutButton"
 //import Profile from "./components/Profile"
-import { useAuth0 } from "@auth0/auth0-react"
+import "./App.css"
 
 function useLocalStorage(key, initialValue) {
   // State to store our value
@@ -56,8 +57,6 @@ function useLocalStorage(key, initialValue) {
  */
 
 function App() {
-
-  const { isAuthenticated, isLoading } = useAuth0()
 
    //Initialize state variables
    let [name, setName] = useState(null)
@@ -173,9 +172,10 @@ function App() {
              
               <h2
                 style={{
-                  margin: "auto",
+                  marginLeft: "19%",
                   fontFamily: "MoveMedium",
                   marginBottom: "10%",
+                  paddingBottom: "3%"
                 }}
               >
                 TaxiConnect Administration
@@ -265,25 +265,30 @@ function App() {
   } else if (authenticated) {
     return (
       <>
-        <div style= {{ float: "right", marginRight: "0.5%", marginTop: "6px"}}>
-          <button className="btn btn-primary btn-sm" type="submit" onClick={Logout} style={{ fontFamily: "MoveMedium", fontSize: 16 }}>
-                    Logout
-          </button>
-        </div>
+        <div >
+          
+          <div>
+            <div style= {{float:"none", height:"1%", marginTop: "2px",backgroundColor: "#03162e"}}>
+              <button className="btn btn-primary btn-sm" type="submit" onClick={Logout} style={{ fontFamily: "MoveMedium", fontSize: 15, height:"29px" }}>
+                        Logout
+              </button>
+            </div>
 
-        <Router>
-          <Switch>
-            <Route path="/" exact component={Overview} />
-            <Route path="/driver-registration"  component={DriverRegistration} />
-            <Route path= "/trip-overview/rides" component={RideOverview} />
-            <Route path ="/trip-overview/deliveries" component={DeliveryOverview} />
-            <Route path="/drivers" component={DriverList} />
-            <Route path="/passengers" component={PassengerList} />
-            <Route path="/driver-payment" component={CashPaymentDriver} />
-            
-          </Switch>
-            
-        </Router>
+            <Router>
+              <Switch>
+                <Route path="/" exact component={Overview} />
+                <Route path="/driver-registration"  component={DriverRegistration} />
+                <Route path= "/trip-overview/rides" component={RideOverview} />
+                <Route path ="/trip-overview/deliveries" component={DeliveryOverview} />
+                <Route path="/drivers" component={DriverList} />
+                <Route path="/passengers" component={PassengerList} />
+                <Route path="/driver-payment" component={CashPaymentDriver} />
+                
+              </Switch>
+            </Router>
+          </div>
+        </div>
+        
     </>
     )
   }
