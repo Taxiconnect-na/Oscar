@@ -35,10 +35,14 @@ const RideRow = (props) => {
         statepick = {backgroundColor:"red"}
         statepickword = "NO"
     }
+    const listStyle = {
+        border: "1px solid",
+        listStyle: "none"
+    }
     // Create a list of available destinations
     const dest = () =>{
         return props.ride.destinations.map((d) => {
-            return <ul><li>{d.location_name}</li></ul>
+            return <ul><li style={listStyle}>{d.location_name}</li></ul>
         })
     }
     
@@ -54,16 +58,16 @@ const RideRow = (props) => {
             <td style={ statepick }>{ statepickword }</td>
             <td style={ statedrop }>{ statedropword }</td>
             <td>{ props.ride.connect_type }</td>
-            <td><button className="btn btn-outline-info btn-sm" onClick={ () => {
+            <td><button className="btn btn-info btn-sm" onClick={ () => {
                     setDetails(!details)  
             }}>{ detailButton }</button></td>    
         </tr>
-        <tr style = {{ display: details? "":"none" }}>
-            <td className="data-table"  >
-                <table className="table" style={{ textAlign: "center", width:"1000px", margin:"auto"}} id="iner-table">
+        <tr style = {{ display: details? "":"none" }} >
+            <td className="data-table"  colSpan={9}>
+                <table className="table" style={{ textAlign: "center", width:"100%", margin:"auto"}} id="iner-table">
                     <thead className="thead-light">
                         <tr>
-                            <th colSpan="8">Passenger info</th>
+                            <th colSpan={9}>Passenger info</th>
                         </tr>
                         <tr >
                             <th>Name</th>
