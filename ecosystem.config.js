@@ -1,8 +1,8 @@
 module.exports = {
     apps: [ 
       {
-        name: "passengers-service",
-        script: "./server/passengers-service/passengerServer.js",
+        name: "drivers-service",
+        script: "./server/drivers-service/driverServer.js",
         instances: 1,
         autorestart: true,
         watch: false,
@@ -15,8 +15,8 @@ module.exports = {
         },
       },
       {
-        name: "drivers-service",
-        script: "./server/drivers-service/driverServer.js",
+        name: "passengers-service",
+        script: "./server/passengers-service/passengerServer.js",
         instances: 1,
         autorestart: true,
         watch: false,

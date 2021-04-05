@@ -9,6 +9,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 5555
+EXPOSE 10012
 
 CMD ["node", "mainViewServer.js"]

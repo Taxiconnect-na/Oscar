@@ -9,6 +9,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 5557
+EXPOSE 10010
 
 CMD ["node", "passengerServer.js"]

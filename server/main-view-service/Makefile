@@ -1,2 +1,4 @@
 build:
-	docker build -t mainview-server:1.0 .
+	docker build -t mainview-server:latest .
+build_local:
+	docker build -t mainview-server:local .

@@ -61,6 +61,7 @@ function formObject(
     taxi_picture,
     vehicle_type,
     car_nature,
+    account_type,
     //Resolve: to be used as return for async
     resolve) {
 
@@ -93,6 +94,7 @@ function formObject(
             taxi_picture,
             vehicle_type,
             car_nature,
+            account_type
         })
     }
 
@@ -128,6 +130,7 @@ function MyFormData(
     taxi_picture,
     vehicle_type,
     car_nature,
+    account_type,
     //Resolve: to be used as return for async
     resolve) {
 
@@ -171,6 +174,7 @@ function MyFormData(
     formData.append('taxi_picture', taxi_picture)
     formData.append('vehicle_type', vehicle_type)
     formData.append('car_nature', car_nature)
+    formData.append('account_type', account_type)
 
     resolve(formData)
 
@@ -214,6 +218,7 @@ const DriverRegistration = () => {
         let [account_number, setAccountNmber] = useState('')
         let [branch_number, setBranchNumber] = useState('')
         let [branch_name, setBranchName] = useState('')
+        let [account_type, setAccountType] = useState('')
         
         // Car data : 
         let [car_brand, setCarBrand] = useState('')
@@ -264,6 +269,7 @@ const DriverRegistration = () => {
                     taxi_picture,
                     vehicle_type,
                     car_nature,
+                    account_type,
                     //Resolve: to be used as return for async
                     res)
 
@@ -539,6 +545,14 @@ const DriverRegistration = () => {
                                         className="form-control"
                                         value={ branch_name }
                                         onChange={(e) => { setBranchName(e.target.value) }}
+                                        />
+                                </div>
+                                <div className="form-group">
+                                    <label>Account type: </label>
+                                    <input type="text"
+                                        className="form-control"
+                                        value={ account_type }
+                                        onChange={(e) => { setAccountType(e.target.value) }}
                                         />
                                 </div>
 

@@ -1,2 +1,4 @@
 build:
-	docker build -t passenger-server:1.0 .
+	docker build -t passenger-server:latest .
+build_local:
+	docker build -t passenger-server:local .

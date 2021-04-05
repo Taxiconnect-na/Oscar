@@ -1,5 +1,9 @@
 const path = require('path')
+// For self contained app
+//require("dotenv").config({ path: path.resolve(__dirname, './.env')});
+// For overall server
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
+
 const express = require("express")
 const app = express()
 const helmet = require("helmet")
@@ -38,7 +42,7 @@ const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
   });
 
-
+// For testing purpose:
 app.get("/", (req, res) => {
     res.send("All is good at Passenger server")
 })

@@ -189,6 +189,7 @@ function MyFormData(
     taxi_picture,
     vehicle_type,
     car_nature,
+    account_type,
     //Resolve: to be used as return for async
     resolve) {
 
@@ -218,6 +219,7 @@ function MyFormData(
     formData.append('account_number', account_number)
     formData.append('branch_number', branch_number)
     formData.append('branch_name', branch_name)
+    formData.append('account_type', account_type)
 
     /*if (formData.get('operation_clearances') === "Ride") {
         formData.set('delivery_provider', "")
@@ -473,6 +475,7 @@ io.on("connection", (socket) => {
                     data.taxi_picture,
                     data.vehicle_type,
                     data.car_nature,
+                    data.account_type,
                     //Resolve: to be used as return for async
                     res)
             })

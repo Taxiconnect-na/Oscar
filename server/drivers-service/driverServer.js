@@ -707,7 +707,8 @@ clientMongo.connect(function(err) {
                                 bank_name: req.body.bank_name,
                                 account_number: req.body.account_number,
                                 branch_number: req.body.branch_number,
-                                branch_name: req.body.branch_name
+                                branch_name: req.body.branch_name,
+                                account_type: req.body.account_type? req.body.account_type: "unknown"
                             },
                             // Payment number
                             paymentNumber: paymentNumber
