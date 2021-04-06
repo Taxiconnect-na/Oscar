@@ -49,6 +49,7 @@ function formObject(
     copy_blue_paper,
     blue_paper_expiration,
     driver_licence_expiration,
+    owner_name_bank,
     bank_name,
     account_number,
     branch_number,
@@ -82,6 +83,7 @@ function formObject(
             copy_blue_paper,
             blue_paper_expiration,
             driver_licence_expiration,
+            owner_name_bank,
             bank_name,
             account_number,
             branch_number,
@@ -214,6 +216,7 @@ const DriverRegistration = () => {
         let [driver_licence_expiration, setDriverLicenceExpiration] = useState(new Date())
 
         //  Bank Details :
+        let [owner_name_bank, setOwnerNameBank] = useState('')
         let [bank_name, setBankName] = useState('')
         let [account_number, setAccountNmber] = useState('')
         let [branch_number, setBranchNumber] = useState('')
@@ -257,6 +260,7 @@ const DriverRegistration = () => {
                     copy_blue_paper,
                     blue_paper_expiration,
                     driver_licence_expiration,
+                    owner_name_bank,
                     bank_name,
                     account_number,
                     branch_number,
@@ -511,6 +515,15 @@ const DriverRegistration = () => {
                                 </div>
                                 <br></br>
                                 <div style={{ marginTop: 6 }}> <h3> Bank Details</h3></div>
+                                <div className="form-group">
+                                    <label>Owner name: </label>
+                                    <input type="text"
+                                        required
+                                        className="form-control"
+                                        value={ owner_name_bank }
+                                        onChange={(e) => { setOwnerNameBank(e.target.value) }}
+                                        />
+                                </div>
                                 <div className="form-group">
                                     <label>Bank name: </label>
                                     <input type="text"

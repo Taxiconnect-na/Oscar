@@ -178,6 +178,7 @@ function MyFormData(
     blue_paper_expiration,
     driver_licence_expiration,
     bank_name,
+    owner_name_bank,
     account_number,
     branch_number,
     branch_name,
@@ -220,6 +221,7 @@ function MyFormData(
     formData.append('branch_number', branch_number)
     formData.append('branch_name', branch_name)
     formData.append('account_type', account_type)
+    formData.append('owner_name_bank', owner_name_bank)
 
     /*if (formData.get('operation_clearances') === "Ride") {
         formData.set('delivery_provider', "")
@@ -463,6 +465,7 @@ io.on("connection", (socket) => {
                     data.copy_blue_paper,
                     data.blue_paper_expiration,
                     data.driver_licence_expiration,
+                    data.owner_name_bank,
                     data.bank_name,
                     data.account_number,
                     data.branch_number,

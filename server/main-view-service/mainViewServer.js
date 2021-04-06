@@ -2297,10 +2297,12 @@ clientMongo.connect(function (err) {
    * API that sets a given ride as completed and pickup "confirmed" by passenger
    */
   app.post("/set-ride-confirmed", (req, res) => {
-    console.log("----- RIDE UPDATE API called...... IN PROGRESS.......-----------")
+    console.log("----- Updating Ride State (Setting complete) ..... IN PROGRESS.......-----------")
     // Convert the received id to an ObjectID to be identified @MongoDB _id
     let query = {_id: new ObjectID(req.body.id.toString()) }
-    let newValues = {$set: {"ride_state_vars.isRideCompleted_riderSide" : true, isArrivedToDestination: true }}
+    let newValues = {$set: {"ride_state_vars.isRideCompleted_riderSide" : true, 
+                             isArrivedToDestination: true,
+                             "ride_state_vars.isRideCompleted_driverSide": true}}
 
     new Promise((res) => {
       //Call updating function 

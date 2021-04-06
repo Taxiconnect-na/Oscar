@@ -704,6 +704,7 @@ clientMongo.connect(function(err) {
                             isAccount_verified: true,
                             // Personal Banking details
                             banking_details: {
+                                owner_name_bank: req.body.owner_name_bank,
                                 bank_name: req.body.bank_name,
                                 account_number: req.body.account_number,
                                 branch_number: req.body.branch_number,
