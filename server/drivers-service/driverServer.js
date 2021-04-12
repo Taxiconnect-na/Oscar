@@ -52,10 +52,10 @@ const s3 = new AWS.S3({
 /**
  * * Hard coded keys
  */
-const BUCKET_NAME_DRIVER = "drivers-central"
+const BUCKET_NAME_DRIVER = "drivers-central-aws"
 const s3 = new AWS.S3({
-    accessKeyId: "AKIAJP5PRI4VPXIEFIVA",
-    secretAccessKey: "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"
+    accessKeyId: "AKIAXVMLF7SBTB2WU72Z",
+    secretAccessKey: "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"
 });
 
 /*app.get("/", (req, res) => {
