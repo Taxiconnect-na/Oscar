@@ -2298,7 +2298,7 @@ clientMongo.connect(function (err) {
    */
   app.post("/set-ride-confirmed", (req, res) => {
     console.log("----- Updating Ride State (Setting complete) ..... IN PROGRESS.......-----------")
-    // Convert the received id to an ObjectID to be identified @MongoDB _id
+    // Convert the received id of the ride to an ObjectID to be identified @MongoDB _id
     let query = {_id: new ObjectID(req.body.id.toString()) }
     let newValues = {$set: {"ride_state_vars.isRideCompleted_riderSide" : true, 
                              isArrivedToDestination: true,

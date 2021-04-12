@@ -251,6 +251,15 @@ function driverPaymentForm(taxi_number, paymentNumber, amount, resolve) {
 
     resolve(paymentForm)
 }
+
+function rideIdForm(id, resolve) {
+    // Initialize form
+    const idRideForm = new FormData()
+    //Append data to form:
+    idRideForm.append('id', id)
+    
+    resolve(idRideForm)
+}
 // All Events: 
 
 io.on("connection", (socket) => {
@@ -588,6 +597,39 @@ io.on("connection", (socket) => {
         })
     })
     
+    // Confirm ride
+    socket.on("ConfirmRide", function(data) {
+        console.log(`confirming ride for ID: ${data}`)
+        if ((data !== undefined) && (data !== null)) {
+            new Promise((res) => {
+                rideIdForm(data.id, res)
+            })
+            .then((idForm) => {
+
+                axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/set-ride-confirmed`, idForm, {
+                    headers: idForm.getHeaders()
+                    /* headers: { // headers option 
+                        'Content-Type': 'multipart/form-data'
+                    } */
+                    
+                })
+                .then((feedback) => {
+                    console.log(feedback.data)
+                    // Return the server's response data to client
+                    socket.emit("ConfirmRide-feedback", {success: true})
+
+                })
+                .catch((error) => {
+                    console.log(error)
+                    socket.emit("ConfirmRide-feedback", {success: false})
+                })
+            })
+            .catch((error) => {
+                console.log(error)
+                socket.emit("ConfirmRide-feedback", {success: false})
+            })
+        }
+    })
     
 
 })

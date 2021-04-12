@@ -263,7 +263,7 @@ function GenerateUnique(paymentNumbersList, resolve) {
 
 
 /**
- * @function CreatePaymentNumber : Returnes a random number after checking availability in DB
+ * @function CreatePaymentNumber : Returns a random number after checking availability in DB
  * @param {collection} collectionDrivers_profiles 
  * @param {return} resolve 
  */
