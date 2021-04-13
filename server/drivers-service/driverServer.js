@@ -52,6 +52,7 @@ const s3 = new AWS.S3({
 /**
  * * Hard coded keys
  */
+//const BUCKET_NAME_DRIVER = "drivers-central-beta-aws"
 const BUCKET_NAME_DRIVER = "drivers-central-aws"
 const s3 = new AWS.S3({
     accessKeyId: "AKIAXVMLF7SBTB2WU72Z",

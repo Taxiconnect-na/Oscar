@@ -21,8 +21,8 @@ const helmet = require("helmet")
 const server = https.createServer(sslOptions, app)
 const socketIo = require("socket.io")
 const io = socketIo(server, { cors: {
-    //origin: "https://taxiconnectna.com",
-    origin: "https://localhost",
+    origin: "https://taxiconnectna.com",
+    //origin: "https://localhost",
     methods: ["GET", "POST"],
     credentials: true
     }
@@ -508,23 +508,33 @@ io.on("connection", (socket) => {
                     })
                     .then((feedback) => {
                         console.log(feedback.data)
-                        // Return the server's response data to client
-                        socket.emit("registerDriver-response", feedback.data)
+                        // Return the server's response data to client (Gateway)
+                        let registration_response = new Object(feedback.data)
+                        // feedback.data is either {success: "X"} or {error: "Y"}
+                        if(registration_response.success){
+
+                            socket.emit("registerDriver-response", { success: true, failure: false})
+
+                        } else if(registration_response.error){
+
+                            socket.emit("registerDriver-response", { success: false, failure: true})
+                        }
+                        
     
                     })
                     .catch((error) => {
                         console.log(error)
-                        socket.emit("registerDriver-response", {error: "An error occured while posting data"})
+                        socket.emit("registerDriver-response", { success: false, failure: true})
                     })
     
                 } catch (error) {
                     console.log(error)
-                    socket.emit("registerDriver-response", {error: "An error occured while posting data"})
+                    socket.emit("registerDriver-response", { success: false, failure: true})
                 }
             })
             .catch((error) => {
                 console.log(error)
-                socket.emit("registerDriver-response", {error: "An error occured while trying to post data"})
+                socket.emit("registerDriver-response", { success: false, failure: true})
             })
             
         }
@@ -644,9 +654,10 @@ io.on("connection", (socket) => {
                 let response = new Object(feedback.data)
                 console.log(response)
                 if(response.success) {
-                    
+
                     setTimeout(() => {
-                        socket.emit("socket-test-response", response)
+                        //socket.emit("socket-test-response", response)
+                        socket.emit("socket-test-response", {failure:true, success: false})
                     }, 5000)
                     //socket.emit("socket-test-response", response)
                     //socket.emit("socket-test-response", {failure:true, success: false})
