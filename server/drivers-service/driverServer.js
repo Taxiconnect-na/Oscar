@@ -424,6 +424,16 @@ clientMongo.connect(function(err) {
     })
 
     /**
+     * Socket test API
+     */
+
+    app.get("/socket-test", (req, res) => {
+        console.log("Socket test API called at driver service ")
+
+        res.json({success: true, failure: false})
+    })
+
+    /**
      * API responsible to return drivers list
      */
     app.get("/driver-data", (req, res) => {

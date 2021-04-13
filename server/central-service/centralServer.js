@@ -21,7 +21,8 @@ const helmet = require("helmet")
 const server = https.createServer(sslOptions, app)
 const socketIo = require("socket.io")
 const io = socketIo(server, { cors: {
-    origin: "https://taxiconnectna.com",
+    //origin: "https://taxiconnectna.com",
+    origin: "https://localhost",
     methods: ["GET", "POST"],
     credentials: true
     }
@@ -627,6 +628,35 @@ io.on("connection", (socket) => {
             .catch((error) => {
                 console.log(error)
                 socket.emit("ConfirmRide-feedback", {success: false})
+            })
+        }
+    })
+
+    // Socket test event
+    socket.on("socket-test", (data) => {
+
+        if((data !== undefined) && (data !== null)) {
+
+            console.log("socket test in progress")
+
+            axios.get(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/socket-test`)
+            .then((feedback) => {
+                let response = new Object(feedback.data)
+                console.log(response)
+                if(response.success) {
+                    
+                    setTimeout(() => {
+                        socket.emit("socket-test-response", response)
+                    }, 5000)
+                    //socket.emit("socket-test-response", response)
+                    //socket.emit("socket-test-response", {failure:true, success: false})
+                } else {
+                    socket.emit("socket-test-response", {failure: true, success: false})
+                }
+
+            }).catch((error) => {
+                console.log(error)
+                socket.emit("socket-test-response", {failure: true, success: false})
             })
         }
     })

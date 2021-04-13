@@ -626,13 +626,18 @@ const DriverRegistration = () => {
                                         style={{ width: 400 }}
                                         value={ vehicle_type }
                                         onChange={(e) => { setVehicleType(e.target.value) }}>
-                                            <option></option>
+                                            <option></option>    
                                     <option key="normalTaxiEconomy" value="normalTaxiEconomy">Economy (normal)</option>
                                     <option key="electricEconomy" value="electricEconomy">Economy (electric)</option>
                                     <option key="comfortNormalRide" value="comfortNormalRide">Comfort (normal)</option>
                                     <option key="comfortElectricRide" value="comfortElectricRide">Comfort (electric)</option>
                                     <option key="luxuryNormalRide" value="luxuryNormalRide">Luxury (normal)</option>
                                     <option key="luxuryElectricRide" value="luxuryElectricRide">Luxury (electric)</option>
+                                    <option key="electricBikes" value="electricBikes">electricBikes</option>
+                                    <option key="bikes" value="bikes">bikes</option>
+                                    <option key="carDelivery" value="carDelivery">carDelivery</option>
+                                    <option key="vanDelivery" value="vanDelivery">vanDelivery</option>
+                                    
 
                                     </select>
                                 </div>

@@ -11,6 +11,9 @@ import DriverList from "./components/driversList/driverList"
 import PassengerList from "./components/passengersList/passengerList"
 import CashPaymentDriver from './components/cashPaymentDriver/cashPaymentDriver'
 import socket from "./components/socket"
+import Loader from "./components/Loader/Loader"
+import ErrorPage from "./components/errorPage/ErrorPage"
+import SuccessPage from "./components/successPage/SuccessPage"
 //import LoginButton from "./components/LoginButton"
 //import LogoutButton from "./components/LogoutButton"
 //import Profile from "./components/Profile"
@@ -283,6 +286,9 @@ function App() {
                 <Route path="/drivers" component={DriverList} />
                 <Route path="/passengers" component={PassengerList} />
                 <Route path="/driver-payment" component={CashPaymentDriver} />
+                <Route path="/loadertest" component={Loader} />
+                <Route path="/action/success" component={SuccessPage} />
+                <Route path="/action/error" component={ErrorPage} /> 
                 
               </Switch>
             </Router>
