@@ -143,6 +143,9 @@ const RideRow = (props) => {
     let statedropword
     let [details, setDetails] = useState(false)
     let detailButton = details? "less":"more"
+    let [confirmRideState, setConfirmRideState] = useState(false)
+    let [confirmRideError, setConfirmRideError] = useState(false)
+    let [showConfirmState, setShowConfirmState] = useState(false)
     
     if (props.ride.isDroppedDriver===true) {
         statedrop = {backgroundColor:"green"}
@@ -173,14 +176,37 @@ const RideRow = (props) => {
         width: "40%",
 
     }
+    const confirm_progress_style ={
+        color: "orange"
+    }
+    const confirm_success_style ={
+        color: "green"
+    }
+    const confirm_fail_style = {
+        color:"red"
+    }
 
     const confirmRide = () => {
+        // show progress of confirmation request
+        setShowConfirmState(true)
+        console.log(props.ride.request_fp)
+
         socket.on("ConfirmRide-feedback", (data) => {
             console.log(data)
+            if(data.success){
+                // Show successful confirmation
+                setConfirmRideState(true)
+            } else if(data.success === false) {
+                //Do not show progress and display error message
+                setShowConfirmState(false)
+                setConfirmRideError(true)
+
+            }
         })
-        socket.emit("ConfirmRide", { id: props.ride.ride_id})
+        socket.emit("ConfirmRide", { request_fp: props.ride.request_fp})
         //console.log(props.ride.ride_id)
     }
+    
 
 
     
@@ -199,6 +225,15 @@ const RideRow = (props) => {
                         <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div className="modal-body">
+                        <div  style = {{ display: showConfirmState? "":"none" }} >
+                        { confirmRideState? 
+                            <h5 style={confirm_success_style}>confirmed</h5>
+                            :
+                            <h5 style={confirm_progress_style}> confirmation in progress...</h5> }
+                        </div>
+                        <div style = {{ display: confirmRideError? "":"none" }}>
+                            <h5 style={confirm_fail_style}> confirmation failed</h5>
+                        </div>
                         <button className="btn btn-success btn-lg" style={{margin: "5%"}}
                                 onClick={() => {confirmRide()}}>confirm</button>
                         <button className="btn btn-warning btn-lg">cancel</button>

@@ -21,8 +21,9 @@ const helmet = require("helmet")
 const server = https.createServer(sslOptions, app)
 const socketIo = require("socket.io")
 const io = socketIo(server, { cors: {
-    //origin: "https://taxiconnectna.com",
-    origin: "https://localhost",
+    origin: "https://taxiconnectna.com",
+    //origin: "https://localhost",
+    //origin: "http://192.168.8.151",
     methods: ["GET", "POST"],
     credentials: true
     }
@@ -610,41 +611,29 @@ io.on("connection", (socket) => {
     
     // Confirm ride
     socket.on("ConfirmRide", function(data) {
-        console.log(`confirming ride for ID: ${data.id}`)
+        console.log(`***********************confirming ride with fingerprint: ${data.request_fp} ***********************`)
+        console.log("********************************************************************************************")
+        console.log(data)
         if ((data !== undefined) && (data !== null)) {
-            new Promise((res) => {
-                rideIdForm(data.id, res)
-            })
-            .then((idForm) => {
-                console.log("********************Received from client UI*******************************************")
-                console.log(data)
-                console.log("****************************Received from client UI***********************************")
-                console.log(data.id)
-                console.log("****************Received from idForm ***********************************************")
-                console.log(idForm)
-                /*axios.post(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/set-ride-confirmed`, idForm, {
-                    headers: idForm.getHeaders()
-                    /* headers: { // headers option 
-                        'Content-Type': 'multipart/form-data'
-                    } *
-                    
-                }) */
-                axios.post(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/set-ride-confirmed`, data)
+
+            axios.post(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/set-ride-confirmed`, data)
                 .then((feedback) => {
                     console.log(feedback.data)
                     // Return the server's response data to client
-                    socket.emit("ConfirmRide-feedback", {success: true})
+                    if(feedback.data.success) {
+                        console.log("successful ride update")
+                        socket.emit("ConfirmRide-feedback", {success: true})
+                    } else if(feedback.data.error){
+                        console.log("something went wrong --")
+                        socket.emit("ConfirmRide-feedback", {success: false})  
+                    }
+                    
 
                 })
                 .catch((error) => {
                     console.log(error)
                     socket.emit("ConfirmRide-feedback", {success: false})
                 })
-            })
-            .catch((error) => {
-                console.log(error)
-                socket.emit("ConfirmRide-feedback", {success: false})
-            })
         }
     })
 

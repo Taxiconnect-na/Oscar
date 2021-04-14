@@ -704,7 +704,7 @@ function getRideOverview(collectionRidesDeliveryData,
                 return new Promise((res0) => {
                    
                 // Get the following for each trip
-                  const ride_id = trip._id.toString()
+                  const request_fp = trip.request_fp
                   const passengers_number = trip.passengers_number
                   const request_type = trip.request_type
                   const date_time = trip.date_requested
@@ -749,7 +749,7 @@ function getRideOverview(collectionRidesDeliveryData,
                           const cellphone = user[0]["phone_number"]
                         
                           //create the Object containing collected data
-                          tripDetails.ride_id = ride_id
+                          tripDetails.request_fp = request_fp
                           tripDetails.passengers_number = passengers_number
                           tripDetails.request_type = request_type
                           tripDetails.date_time = date_time
@@ -780,7 +780,7 @@ function getRideOverview(collectionRidesDeliveryData,
                           const gender = "not found"
                           const cellphone = "not found"
 
-                          tripDetails.ride_id = ride_id
+                          tripDetails.request_fp = request_fp
                           tripDetails.passengers_number = passengers_number
                           tripDetails.request_type = request_type
                           tripDetails.date_time = date_time
@@ -846,7 +846,7 @@ function getRideOverview(collectionRidesDeliveryData,
                       return new Promise((res0) => {
                         
                       // Get the following for each trip
-                        const ride_id = trip._id.toString()
+                        const request_fp = trip.request_fp
                         const passengers_number = trip.passengers_number
                         const request_type = trip.request_type
                         const date_time = trip.date_requested
@@ -891,7 +891,7 @@ function getRideOverview(collectionRidesDeliveryData,
                                 const cellphone = user[0]["phone_number"]
                               
                                 //create the Object containing collected data
-                                tripDetails.ride_id = ride_id
+                                tripDetails.request_fp = request_fp
                                 tripDetails.passengers_number = passengers_number
                                 tripDetails.request_type = request_type
                                 tripDetails.date_time = date_time
@@ -922,7 +922,7 @@ function getRideOverview(collectionRidesDeliveryData,
                                 const gender = "not found"
                                 const cellphone = "not found"
 
-                                tripDetails.ride_id = ride_id
+                                tripDetails.request_fp = request_fp
                                 tripDetails.passengers_number = passengers_number
                                 tripDetails.request_type = request_type
                                 tripDetails.date_time = date_time
@@ -992,7 +992,7 @@ function getRideOverview(collectionRidesDeliveryData,
                   return new Promise((res0) => {
                     
                   // Get the following for each trip
-                    const ride_id = trip._id.toString()
+                    const request_fp = trip.request_fp
                     const passengers_number = trip.passengers_number
                     const request_type = trip.request_type
                     const date_time = trip.date_requested
@@ -1037,7 +1037,7 @@ function getRideOverview(collectionRidesDeliveryData,
                             const cellphone = user[0]["phone_number"]
                           
                             //create the Object containing collected data
-                            tripDetails.ride_id = ride_id
+                            tripDetails.request_fp = request_fp
                             tripDetails.passengers_number = passengers_number
                             tripDetails.request_type = request_type
                             tripDetails.date_time = date_time
@@ -1068,7 +1068,7 @@ function getRideOverview(collectionRidesDeliveryData,
                             const gender = "not found"
                             const cellphone = "not found"
 
-                            tripDetails.ride_id = ride_id
+                            tripDetails.request_fp = request_fp
                             tripDetails.passengers_number = passengers_number
                             tripDetails.request_type = request_type
                             tripDetails.date_time = date_time
@@ -1129,7 +1129,7 @@ function getRideOverview(collectionRidesDeliveryData,
                 return new Promise((res0) => {
                    
                 // Get the following for each trip
-                  const ride_id = trip._id.toString()
+                  const request_fp = trip.request_fp
                   const passengers_number = trip.passengers_number
                   const request_type = trip.request_type
                   const date_time = trip.date_requested
@@ -1174,7 +1174,7 @@ function getRideOverview(collectionRidesDeliveryData,
                           const cellphone = user[0]["phone_number"]
                         
                           //create the Object containing collected data
-                          tripDetails.ride_id = ride_id
+                          tripDetails.request_fp = request_fp
                           tripDetails.passengers_number = passengers_number
                           tripDetails.request_type = request_type
                           tripDetails.date_time = date_time
@@ -1205,7 +1205,7 @@ function getRideOverview(collectionRidesDeliveryData,
                           const gender = "not found"
                           const cellphone = "not found"
                           
-                          tripDetails.ride_id = ride_id
+                          tripDetails.request_fp = request_fp
                           tripDetails.passengers_number = passengers_number
                           tripDetails.request_type = request_type
                           tripDetails.date_time = date_time
@@ -1282,7 +1282,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                 return new Promise((res0) => {
                   
                 // Get the following for each trip
-                  const delivery_id = trip._id.toString()
+                  const delivery_id = trip.request_fp
                   const delivery_receiver = trip.delivery_infos.receiverName_delivery
                   const delivery_phone = trip.delivery_infos.receiverPhone_delivery
                   
@@ -1432,7 +1432,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                     return new Promise((res0) => {
                        
                     // Get the following for each trip
-                      const delivery_id = trip._id.toString()
+                      const delivery_id = trip.request_fp
                       const delivery_receiver = trip.delivery_infos.receiverName_delivery
                       const delivery_phone = trip.delivery_infos.receiverPhone_delivery
                       
@@ -1584,7 +1584,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                   return new Promise((res0) => {
                     
                   // Get the following for each trip
-                    const delivery_id = trip._id.toString()
+                    const delivery_id = trip.request_fp
                     const delivery_receiver = trip.delivery_infos.receiverName_delivery
                     const delivery_phone = trip.delivery_infos.receiverPhone_delivery
                     
@@ -1728,7 +1728,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                 return new Promise((res0) => {
                   
                 // Get the following for each trip
-                  const delivery_id = trip._id.toString()
+                  const delivery_id = trip.request_fp
                   const delivery_receiver = trip.delivery_infos.receiverName_delivery
                   const delivery_phone = trip.delivery_infos.receiverPhone_delivery
                   
@@ -2191,7 +2191,7 @@ function userAdminExists(username, email, password, adminUsersList, resolve) {
 /**
  * @function updateEntry: Updates a document's entries of a given collection
  * @param {collection} collection: The collection to be affected
- * @param {object} query : Used to identifiy the document to be updated
+ * @param {object} query : Used to identify the document to be updated
  * @param {object} newValues: New values to be updated
  * @param {*} resolve 
  */
@@ -2200,8 +2200,14 @@ function updateEntry(collection, query, newValues, resolve) {
   collection
   .updateOne(query, newValues)
   .then((result) => {
-      console.log(result.result)
-      resolve({success: "one document updated"})
+      console.log(result.result.nModified)
+      if(result.result.nModified != 0) {
+        resolve({success: "one document updated"})
+      } else {
+        resolve({error: "The document was not updated"})
+        console.log(result)
+      }
+      
   })
   .catch(error => {
       console.log(error)
@@ -2295,30 +2301,42 @@ clientMongo.connect(function (err) {
   })
   /**
    * API that sets a given ride as completed and pickup "confirmed" by passenger
-   * Input is the id of the ride ride_id (commes as "id" )
+   * Input is the id of the ride request_fp (commes as "id" )
    */
   app.post("/set-ride-confirmed", (req, res) => {
+
     console.log(" SET RIDE CONFIRMED API CALLED")
     console.log("----- Updating Ride State (Setting complete) ..... IN PROGRESS.......-----------")
     // Convert the received id of the ride to an ObjectID to be identified @MongoDB _id
     //let query = {_id: new ObjectID(req.body.id.toString()) }
-    let query = req.body.request_fp
-    let newValues = {$set: {"ride_state_vars.isRideCompleted_riderSide" : true, 
+    /*let query = { request_fp: req.body.request_fp }
+    let newValues = {$set: {"ride_state_vars.isRideCompleted_riderSide" :true, 
                              isArrivedToDestination: true,
-                             "ride_state_vars.isRideCompleted_driverSide": true}}
+                             "ride_state_vars.isRideCompleted_driverSide": true}} */
 
     new Promise((res) => {
       //Call updating function 
-      updateEntry(collectionRidesDeliveryData, query, newValues, res)
+      updateEntry(
+        collectionRidesDeliveryData,
+        { request_fp: req.body.request_fp }, 
+        {$set: {"ride_state_vars.isRideCompleted_riderSide" :true, 
+                  isArrivedToDestination: true,
+                 "ride_state_vars.isRideCompleted_driverSide": true}},
+        res)
     })
     .then((result) => {
 
       console.log(result)
-      res.status(200).send({success: "Successful update"})
+      if(result.success) {
+        res.status(200).send({success: "Successful update"})
+      } else if(result.error) {
+        res.send({error: " Something went wrong while updating the entry, ride already confirmed"})
+      }
+      
     })
     .catch((error) => {
       console.log(error)
-      res.status(500).send({error: " Something went wrong while updating the entry"})
+      res.send({error: " Something went wrong while updating the entry"})
     })
   })
 
@@ -2439,6 +2457,49 @@ clientMongo.connect(function (err) {
     })
   })
 });
+
+
+
+
+
+
+
+
+
+/*
+  * Determine cpu usage
+
+var startTime  = process.hrtime()
+var startUsage = process.cpuUsage()
+
+// spin the CPU for 500 milliseconds
+var now = Date.now()
+while (Date.now() - now < 50000)
+
+var elapTime = process.hrtime(startTime)
+var elapUsage = process.cpuUsage(startUsage)
+
+var elapTimeMS = secNSec2ms(elapTime)
+var elapUserMS = secNSec2ms(elapUsage.user)
+var elapSystMS = secNSec2ms(elapUsage.system)
+var cpuPercent = Math.round(100 * (elapUserMS + elapSystMS) / elapTimeMS)
+
+console.log('elapsed time ms:  ', elapTimeMS)
+console.log('elapsed user ms:  ', elapUserMS)
+console.log('elapsed system ms:', elapSystMS)
+console.log('cpu percent:      ', cpuPercent)
+
+function secNSec2ms (secNSec) {
+  if (Array.isArray(secNSec)) { 
+    return secNSec[0] * 1000 + secNSec[1] / 1000000; 
+  }
+  return secNSec / 1000; 
+}
+ */
+
+
+
+
 
 
 server.listen(PORT, () => {

@@ -1,2 +1,2 @@
 build:
-	docker build -t central-server:1.0 .
+	docker build -t central-server:1.1 .
