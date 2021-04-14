@@ -250,7 +250,7 @@ function DeliveryOverview() {
     useEffect(() => {
         
         const interval = setInterval(() => {
-            console.log("kaputo@taxiconnect-delivery")
+            console.log("@taxiconnect-delivery")
             // Get all the deliveries
             socket.on("getDeliveryOverview-response", (data) => {
                 if ((data !== undefined) && (data != null)) {

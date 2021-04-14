@@ -1584,7 +1584,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                   return new Promise((res0) => {
                     
                   // Get the following for each trip
-                    const delivery_id = delivery_id
+                    const delivery_id = trip._id.toString()
                     const delivery_receiver = trip.delivery_infos.receiverName_delivery
                     const delivery_phone = trip.delivery_infos.receiverPhone_delivery
                     
@@ -1728,7 +1728,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                 return new Promise((res0) => {
                   
                 // Get the following for each trip
-                  const delivery_id = delivery_id
+                  const delivery_id = trip._id.toString()
                   const delivery_receiver = trip.delivery_infos.receiverName_delivery
                   const delivery_phone = trip.delivery_infos.receiverPhone_delivery
                   
@@ -2295,11 +2295,14 @@ clientMongo.connect(function (err) {
   })
   /**
    * API that sets a given ride as completed and pickup "confirmed" by passenger
+   * Input is the id of the ride ride_id (commes as "id" )
    */
   app.post("/set-ride-confirmed", (req, res) => {
+    console.log(" SET RIDE CONFIRMED API CALLED")
     console.log("----- Updating Ride State (Setting complete) ..... IN PROGRESS.......-----------")
     // Convert the received id of the ride to an ObjectID to be identified @MongoDB _id
-    let query = {_id: new ObjectID(req.body.id.toString()) }
+    //let query = {_id: new ObjectID(req.body.id.toString()) }
+    let query = req.body.request_fp
     let newValues = {$set: {"ride_state_vars.isRideCompleted_riderSide" : true, 
                              isArrivedToDestination: true,
                              "ride_state_vars.isRideCompleted_driverSide": true}}

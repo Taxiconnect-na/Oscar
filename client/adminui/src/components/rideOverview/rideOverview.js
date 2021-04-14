@@ -3,6 +3,8 @@ import React, {useState, useEffect} from "react"
 import socket from '../socket'
 import "./rideOverview.css"
 import Sidebar from "../sidebar/sidebar"
+import { GrStatusWarningSmall } from "react-icons/gr"
+
 require("dotenv").config({ path : "../../../.env"})
 
 
@@ -45,12 +47,38 @@ const RideRow = (props) => {
             return <ul><li style={listStyle}>{d.location_name}</li></ul>
         })
     }
+    const iconStyle = {
+        width: "40%",
+
+    }
+
+
     
     return(
         <>
         <tr style ={{ backgroundColor: "#ebd113"}}>
-            
-            <td>{ props.ride.taxi_number }</td>
+            <td>
+                <GrStatusWarningSmall style={iconStyle} data-bs-toggle="modal" data-bs-target="#myModal"/>
+
+
+                <div className="modal fade" id="myModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title" id="myModalLabel">Modal title</h5>
+                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div className="modal-body">
+                        <button className="btn btn-primary btn-sm">confirm</button>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                    </div>
+                </div>
+                </div>
+                { props.ride.taxi_number }
+            </td>
             <td>{ props.ride.passengers_number}</td>
             <td>{ props.ride.request_type}</td>
             <td>{ props.ride.date_time.toString().slice(0,10) }</td>
@@ -101,6 +129,262 @@ const RideRow = (props) => {
        </>
     )
 }
+
+
+/**
+ * 
+ * @function RideRowProgress : Returns single ride details for rides in progress
+ */
+
+ const RideRowProgress = (props) => {
+    let statepick
+    let statepickword
+    let statedrop
+    let statedropword
+    let [details, setDetails] = useState(false)
+    let detailButton = details? "less":"more"
+    
+    if (props.ride.isDroppedDriver===true) {
+        statedrop = {backgroundColor:"green"}
+        statedropword = "YES"
+    } else {
+        statedrop = {backgroundColor:"red"}
+        statedropword = "NO"
+    }
+
+    if (props.ride.isPickedUp === true) {
+        statepick = {backgroundColor:"green"}
+        statepickword = "YES"
+    } else {
+        statepick = {backgroundColor:"red"}
+        statepickword = "NO"
+    }
+    const listStyle = {
+        border: "1px solid",
+        listStyle: "none"
+    }
+    // Create a list of available destinations
+    const dest = () =>{
+        return props.ride.destinations.map((d) => {
+            return <ul><li style={listStyle}>{d.location_name}</li></ul>
+        })
+    }
+    const iconStyle = {
+        width: "40%",
+
+    }
+
+    const confirmRide = () => {
+        socket.on("ConfirmRide-feedback", (data) => {
+            console.log(data)
+        })
+        socket.emit("ConfirmRide", { id: props.ride.ride_id})
+        //console.log(props.ride.ride_id)
+    }
+
+
+    
+    return(
+        <>
+        <tr style ={{ backgroundColor: "#ebd113"}}>
+            <td>
+                <GrStatusWarningSmall style={iconStyle} data-bs-toggle="modal" data-bs-target="#exampleModal"/>
+
+
+                <div className="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title" id="exampleModalLabel" style={{ textAlign:"center"}}>Actions</h5>
+                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div className="modal-body">
+                        <button className="btn btn-success btn-lg" style={{margin: "5%"}}
+                                onClick={() => {confirmRide()}}>confirm</button>
+                        <button className="btn btn-warning btn-lg">cancel</button>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                    </div>
+                </div>
+                </div>
+                { props.ride.taxi_number }
+            </td>
+            <td>{ props.ride.passengers_number}</td>
+            <td>{ props.ride.request_type}</td>
+            <td>{ props.ride.date_time.toString().slice(0,10) }</td>
+            <td>{ props.ride.date_time.toString().slice(11,19) }</td>
+            <td style={ statepick }>{ statepickword }</td>
+            <td style={ statedrop }>{ statedropword }</td>
+            <td>{ props.ride.connect_type }</td>
+            <td><button className="btn btn-info btn-sm" onClick={ () => {
+                    setDetails(!details)  
+            }}>{ detailButton }</button></td>    
+        </tr>
+        <tr style = {{ display: details? "":"none" }} >
+            <td className="data-table"  colSpan={9}>
+                <table className="table" style={{ textAlign: "center", width:"100%", margin:"auto"}} id="iner-table">
+                    <thead className="thead-light">
+                        <tr>
+                            <th colSpan={9}>Passenger info</th>
+                        </tr>
+                        <tr >
+                            <th>Name</th>
+                            <th>Surname</th>
+                            <th>Cellphone</th>
+                            <th>Gender</th>
+                            <th>Payment</th>
+                            <th>Amount</th>
+                            <th>Origin</th>
+                            <th>Destination(s)</th>
+                            <th>Wished pick up time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="td-second">{ props.ride.name }</td>
+                            <td className="td-second">{props.ride.surname }</td>
+                            <td className="td-second">{ props.ride.cellphone }</td>
+                            <td className="td-second">{ props.ride.gender }</td>
+                            <td className="td-second">{ props.ride.payment_method }</td>
+                            <td className="td-second">N$ { props.ride.amount }</td>
+                            <td className="td-second">{ props.ride.origin}</td>
+                            <td className="td-second">{dest()}</td>
+                            <td className="td-second">{props.ride.wished_pickup_time.toString().slice(0,10)} @({props.ride.wished_pickup_time.toString().slice(11,19)})
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+       </>
+    )
+}
+
+
+
+/**
+ * 
+ * @function RideRowScheduled : Returns single ride details for scheduled rides
+ */
+
+ const RideRowScheduled = (props) => {
+    let statepick
+    let statepickword
+    let statedrop
+    let statedropword
+    let [details, setDetails] = useState(false)
+    let detailButton = details? "less":"more"
+    
+    if (props.ride.isDroppedDriver===true) {
+        statedrop = {backgroundColor:"green"}
+        statedropword = "YES"
+    } else {
+        statedrop = {backgroundColor:"red"}
+        statedropword = "NO"
+    }
+
+    if (props.ride.isPickedUp === true) {
+        statepick = {backgroundColor:"green"}
+        statepickword = "YES"
+    } else {
+        statepick = {backgroundColor:"red"}
+        statepickword = "NO"
+    }
+    const listStyle = {
+        border: "1px solid",
+        listStyle: "none"
+    }
+    // Create a list of available destinations
+    const dest = () =>{
+        return props.ride.destinations.map((d) => {
+            return <ul><li style={listStyle}>{d.location_name}</li></ul>
+        })
+    }
+    const iconStyle = {
+        width: "40%",
+
+    }
+
+
+    
+    return(
+        <>
+        <tr style ={{ backgroundColor: "#ebd113"}}>
+            <td>
+                <GrStatusWarningSmall style={iconStyle} data-bs-toggle="modal" data-bs-target="#scheduledModal"/>
+
+
+                <div className="modal fade" id="scheduledModal" tabindex="-1" aria-labelledby="scheduledModalLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title" id="scheduledModalLabel">Modal title</h5>
+                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div className="modal-body">
+                        <button className="btn btn-primary btn-sm">confirm</button>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                    </div>
+                </div>
+                </div>
+                { props.ride.taxi_number }
+            </td>
+            <td>{ props.ride.passengers_number}</td>
+            <td>{ props.ride.request_type}</td>
+            <td>{ props.ride.date_time.toString().slice(0,10) }</td>
+            <td>{ props.ride.date_time.toString().slice(11,19) }</td>
+            <td style={ statepick }>{ statepickword }</td>
+            <td style={ statedrop }>{ statedropword }</td>
+            <td>{ props.ride.connect_type }</td>
+            <td><button className="btn btn-info btn-sm" onClick={ () => {
+                    setDetails(!details)  
+            }}>{ detailButton }</button></td>    
+        </tr>
+        <tr style = {{ display: details? "":"none" }} >
+            <td className="data-table"  colSpan={9}>
+                <table className="table" style={{ textAlign: "center", width:"100%", margin:"auto"}} id="iner-table">
+                    <thead className="thead-light">
+                        <tr>
+                            <th colSpan={9}>Passenger info</th>
+                        </tr>
+                        <tr >
+                            <th>Name</th>
+                            <th>Surname</th>
+                            <th>Cellphone</th>
+                            <th>Gender</th>
+                            <th>Payment</th>
+                            <th>Amount</th>
+                            <th>Origin</th>
+                            <th>Destination(s)</th>
+                            <th>Wished pick up time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="td-second">{ props.ride.name }</td>
+                            <td className="td-second">{props.ride.surname }</td>
+                            <td className="td-second">{ props.ride.cellphone }</td>
+                            <td className="td-second">{ props.ride.gender }</td>
+                            <td className="td-second">{ props.ride.payment_method }</td>
+                            <td className="td-second">N$ { props.ride.amount }</td>
+                            <td className="td-second">{ props.ride.origin}</td>
+                            <td className="td-second">{dest()}</td>
+                            <td className="td-second">{props.ride.wished_pickup_time.toString().slice(0,10)} @({props.ride.wished_pickup_time.toString().slice(11,19)})
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+       </>
+    )
+}
+
 
 /**
  * @function RideOverview : Main function rendering the rides overview page
@@ -190,7 +474,7 @@ function RideOverview() {
         return rides.map( currentRide => {
          
             if ( !currentRide.isArrivedToDestination) {
-                return <RideRow ride={currentRide}  />
+                return <RideRowProgress ride={currentRide}  />
             } else { 
                 //! Do nothing (Do not add the ride to the list if not in progress)
              }
@@ -201,7 +485,7 @@ function RideOverview() {
         return rides.map( currentRide => {
             if ( currentRide.request_type === "scheduled" && currentRide.isArrivedToDestination===false) {
                 
-                return <RideRow ride={currentRide}  />
+                return <RideRowScheduled ride={currentRide}  />
             } else { 
                 //! Do nothing (Do not add the ride to the list if not scheduled)
              }
@@ -354,6 +638,7 @@ function RideOverview() {
                             { today() }
 
                             <h3 style={ subtitle_style }>RIDES IN PROGRESS </h3>
+
                             <table className="table" style={{ textAlign: "center"}}>
                                 <thead className="thead-light">
                                     <tr>

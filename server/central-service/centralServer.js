@@ -21,8 +21,8 @@ const helmet = require("helmet")
 const server = https.createServer(sslOptions, app)
 const socketIo = require("socket.io")
 const io = socketIo(server, { cors: {
-    origin: "https://taxiconnectna.com",
-    //origin: "https://localhost",
+    //origin: "https://taxiconnectna.com",
+    origin: "https://localhost",
     methods: ["GET", "POST"],
     credentials: true
     }
@@ -106,11 +106,11 @@ function progressScheduledCompleted(arrayData, resolve) {
     let completed_today = arrayData.filter( current => {
         let startOfToday = (new Date())
         let convertToday = ((new Date(startOfToday.setHours(0, 0, 0, 0))).addHours(2).toISOString())
-        console.log(current.date_time)
+        /*console.log(current.date_time)
         console.log(startOfToday)
         
         console.log(`today start: ${convertToday}`)
-        console.log(`received date: ${current.date_time}`)
+        console.log(`received date: ${current.date_time}`) */
         let today = (new Date(current.date_time)) > (new Date(convertToday))
         console.log(`Date comparison result: ${today}`)
         return (today && current.isArrivedToDestination)
@@ -289,7 +289,7 @@ io.on("connection", (socket) => {
                 totalWallet: feedback.data.totalWallet
             }
 
-            console.log(statistics)
+            //console.log(statistics)
 
             //response.json(statistics)
             socket.emit("statistics-response", statistics)
@@ -309,7 +309,7 @@ io.on("connection", (socket) => {
                 let rideOverview = feedback.data
 
                 console.log("===================RIDES=============================")
-                console.log(feedback.data)
+                //console.log(feedback.data)
 
                 socket.emit("getRideOverview-response", rideOverview)
 
@@ -338,7 +338,7 @@ io.on("connection", (socket) => {
             axios.get(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/delivery-overview`)
             .then((feedback) => {
                 let deliveryOverview = feedback.data
-                console.log(feedback.data)
+                //console.log(feedback.data)
 
                 socket.emit("getDeliveryOverview-response", deliveryOverview)
                 
@@ -371,7 +371,7 @@ io.on("connection", (socket) => {
                 axios.get(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/delivery-provider-data/${data.provider}`)
                 .then((feedback) => {
 
-                    console.log(feedback.data)
+                    //console.log(feedback.data)
 
                     let partnerData = {
                         drivers: feedback.data.drivers_list,
@@ -399,14 +399,14 @@ io.on("connection", (socket) => {
 
         if ((data !== undefined) && (data !== null)) {
             console.log("Authenticating...")
-            console.log(data)
+            //console.log(data)
 
             try {
 
                 axios.post(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/authenticate-owner`, data)
                 .then((feedback) => {
 
-                    console.log(feedback.data)
+                    //console.log(feedback.data)
 
                     socket.emit("authenticate-response", feedback.data)
 
@@ -425,7 +425,7 @@ io.on("connection", (socket) => {
 
         if ((data !== undefined) && (data !== null)) {
             console.log("Authenticating admin user...")
-            console.log(data)
+            //console.log(data)
 
             try {
 
@@ -610,20 +610,26 @@ io.on("connection", (socket) => {
     
     // Confirm ride
     socket.on("ConfirmRide", function(data) {
-        console.log(`confirming ride for ID: ${data}`)
+        console.log(`confirming ride for ID: ${data.id}`)
         if ((data !== undefined) && (data !== null)) {
             new Promise((res) => {
                 rideIdForm(data.id, res)
             })
             .then((idForm) => {
-
-                axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/set-ride-confirmed`, idForm, {
+                console.log("********************Received from client UI*******************************************")
+                console.log(data)
+                console.log("****************************Received from client UI***********************************")
+                console.log(data.id)
+                console.log("****************Received from idForm ***********************************************")
+                console.log(idForm)
+                /*axios.post(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/set-ride-confirmed`, idForm, {
                     headers: idForm.getHeaders()
                     /* headers: { // headers option 
                         'Content-Type': 'multipart/form-data'
-                    } */
+                    } *
                     
-                })
+                }) */
+                axios.post(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/set-ride-confirmed`, data)
                 .then((feedback) => {
                     console.log(feedback.data)
                     // Return the server's response data to client
