@@ -217,24 +217,25 @@ const DriverRegistration = () => {
 
                 socket.on("registerDriver-response", (data) => {
                     if ((data !== undefined) && (data != null)) {
-
+                        console.log("=======================================")
                         console.log(data)
-        
+                        console.log("=======================================")
+
                         if(data.success) {
-        
-                            setUploading(false)
-                            setSuccess(true) 
+                            
+                            setSuccess(true)
+                            setUploading(false) 
         
                         } else if(data.failure) {
-        
-                            setUploading(false)
+                            
                             setFailure(true)
+                            setUploading(false)
                         }
         
                     } else {
         
-                        setUploading(false)
                         setFailure(true)
+                        setUploading(false)
                         
                     }
                         
