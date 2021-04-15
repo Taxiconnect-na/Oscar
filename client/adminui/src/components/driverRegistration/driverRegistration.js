@@ -578,7 +578,7 @@ const DriverRegistration = () => {
                                             style={{ width: 400 }}
                                             value={ vehicle_type }
                                             onChange={(e) => { setVehicleType(e.target.value) }}>
-                                                <option></option>    
+                             
                                         <option key="normalTaxiEconomy" value="normalTaxiEconomy">Economy (normal)</option>
                                         <option key="electricEconomy" value="electricEconomy">Economy (electric)</option>
                                         <option key="comfortNormalRide" value="comfortNormalRide">Comfort (normal)</option>
