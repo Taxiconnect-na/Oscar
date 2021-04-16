@@ -61,6 +61,8 @@ clientMongo.connect(function(err) {
         let InsertedCount = 0
 
         console.log("Connected to MongoDB")
+        let ID_success = []
+        let ID_fail = []
 
         con.connect(function(err) {
             console.log("Connected to MYSQL")
@@ -77,6 +79,7 @@ clientMongo.connect(function(err) {
                         console.log("**************************************")
                         //console.log(result[0]["banking_details"].split("|"))
                         /*console.log(result[0]["taxi_number"]); */ 
+                        //console.log(result)
         
                         result.forEach( passenger => {
                             new Promise((res) => {
@@ -89,31 +92,60 @@ clientMongo.connect(function(err) {
                             .then((passengerQuery) => {
                                 
                                 // Inserting passenger in MongoDB
+                                console.log(`******   The ID: ${passenger["ID"]}****************************`)
+
+                                console.log(passengerQuery)
                                 
+
                                 collectionPassengers
                                 .updateOne(passengerQuery, {$set: passengerQuery}, {upsert: true})
-                                .then((result) => {
-                                    console.log(result.result)
+                                .then((result2) => {
+                                    console.log(result2.result)
                                     // Increase counter by 1 if document inserted
-                                    InsertedCount = result.result.upserted? InsertedCount+1 : InsertedCount
+                                    InsertedCount = result2.result.upserted? InsertedCount+1 : InsertedCount
                                     
                                     console.log(`Number of passengers inserted: ${InsertedCount}`)
+                                    console.log(`Success rate: ${(InsertedCount/(result.length))*100}%`)
+
+                                    // Delete record if saved in MongoDB
+                                    if(result2.result.upserted) {
+                                        ID_success.push(passenger["ID"])
+                                        // Delete from MySQL
+                                        let sql = `DELETE FROM central_passengers_profiles WHERE ID=${passenger["ID"]}`
+                                        con.query(sql, function (err, result) {
+                                            if (err) throw err;
+                                            console.log("Number of records deleted: " + result.affectedRows);
+                                          })
+                                    } else {
+                                        ID_fail.push(passenger["ID"])
+                                        console.log("Missed IDs: ")
+                                        console.log(ID_fail)
+                                    }
+
+                                    
+
+
 
                                 })
                                 .catch((error) => {
                                     console.log(error)
                                 }) 
+                                console.log("=========================================")
+                                //console.log(passengerQuery) */
+                                
  
                             })
                             .catch((error) => {
                                 console.log(error)
                             })
                         
-                        }) 
+                        })
+
                     }
                     
+                    
                 }) 
-        
+                
             }
            
         })
