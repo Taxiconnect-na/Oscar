@@ -5,6 +5,9 @@ import { FaUserAlt } from "react-icons/fa";
 import "./partnersAdmin.css";
 import logo from "./Assets/Images/logo.png"
 import queryString from "query-string";
+import { VscLoading } from "react-icons/vsc"
+import "./Loader.css"
+import logotaxiconnect from "../../logotaxiconnect.png"
 
 /**
  * @function useLocalStorage: Works like useState except add persistence of data upon reload
@@ -97,12 +100,16 @@ export default function PartnersAdmin() {
   let [totalMoney, setTotalMoney] = useState(0);
   let [totalMoneyToday, setTotalMoneyToday] = useState(0);
   let [allData, setAllData] = useState({});
+  
+  // Loading state variable
+  let [loading, setLoading] = useState(false)
 
   const [details, setDetails] = useLocalStorage("details", {
     name: "",
     email: "",
     password: "",
   });
+  // Authentication error message control variable
   const [error, setError] = useState("");
 
   useEffect(
@@ -168,6 +175,8 @@ export default function PartnersAdmin() {
 
   const submitHandler = (e) => {
     e.preventDefault();
+    // Set loading variable true
+    setLoading(true)
     //Authenticate user:
     socket.emit("authenticate", {
       name: details.name,
@@ -177,11 +186,12 @@ export default function PartnersAdmin() {
 
     socket.on("authenticate-response", (data) => {
       if (data.authenticated) {
-        //  Upon successful authentication:
+        //  Upon successful authentication
         setAuthentication(true);
         setName(details.name);
         setEmail(details.email);
         setPassword(details.password);
+        setLoading(false)
 
         if (interval === null) {
           interval = setInterval(() => {
@@ -202,7 +212,9 @@ export default function PartnersAdmin() {
             });
           }, 1500);
         }
-      } else {
+      } else if(!data.authenticated) {
+
+        setLoading(false)
         setError("No match found");
       }
     });
@@ -252,6 +264,20 @@ export default function PartnersAdmin() {
 
   // Returned content:
   if (!authenticated) {
+
+    if(loading) {
+
+      return(
+
+        <div className="uploading">
+                    
+        <VscLoading style={{width: 120, height: 120, marginTop:"5%", backgroundColor:"#16a0db"}} className="rotate"/>
+        <img src={logotaxiconnect} alt="Loading..." style={{ width: "15%"}} />
+        
+      </div>
+      )
+    }
+
     return (
       <div style={{ width: "100%"}}>
         <div className="my-form">

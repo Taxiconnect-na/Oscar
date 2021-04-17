@@ -163,7 +163,7 @@ const DriverRegistration = () => {
         let [taxi_picture, setTaxiPicture] = useState('')
         let [taxi_picture_name, setTaxiPictureName] = useState('Taxi picture')
 
-        // Registration State
+        // Registration State/loader 
         let [uploading, setUploading] = useState(false)
         let [success, setSuccess] = useState(false)
         let [failure, setFailure] = useState(false)

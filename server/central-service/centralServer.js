@@ -412,10 +412,12 @@ io.on("connection", (socket) => {
                     socket.emit("authenticate-response", feedback.data)
 
                 }).catch((error) => {
-                    console.log(error)               
+                    console.log(error)
+                    socket.emit("authenticate-response", feedback.data)               
                 })
             } catch (error) {
                 console.log(error)
+                socket.emit("authenticate-response", feedback.data)
             }
         }
         
