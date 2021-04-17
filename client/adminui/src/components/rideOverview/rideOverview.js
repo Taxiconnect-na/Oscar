@@ -65,11 +65,11 @@ const RideRow = (props) => {
                 <div className="modal-dialog">
                     <div className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title" id="myModalLabel">Modal title</h5>
+                        <h5 className="modal-title" id="myModalLabel">Actions</h5>
                         <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div className="modal-body">
-                        <button className="btn btn-primary btn-sm">confirm</button>
+                        <h3><i>No action available</i></h3>
                     </div>
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -206,6 +206,27 @@ const RideRow = (props) => {
         socket.emit("ConfirmRide", { request_fp: props.ride.request_fp})
         //console.log(props.ride.ride_id)
     }
+
+    const cancellRide = () => {
+        // show progress of confirmation request
+        setShowConfirmState(true)
+        console.log(props.ride.request_fp)
+
+        socket.on("CancellTrip-feedback", (data) => {
+            console.log(data)
+            if(data.success){
+                // Show successful confirmation
+                setConfirmRideState(true)
+            } else if(data.success === false) {
+                //Do not show progress and display error message
+                setShowConfirmState(false)
+                setConfirmRideError(true)
+
+            }
+        })
+        socket.emit("CancellTrip", { request_fp: props.ride.request_fp})
+        //console.log(props.ride.ride_id)
+    }
     
 
 
@@ -227,17 +248,24 @@ const RideRow = (props) => {
                     <div className="modal-body">
                         <div  style = {{ display: showConfirmState? "":"none" }} >
                         { confirmRideState? 
-                            <h5 style={confirm_success_style}>confirmed</h5>
+                            <h5 style={confirm_success_style}>Done!</h5>
                             :
-                            <h5 style={confirm_progress_style}> confirmation in progress...</h5> }
+                            <h5 style={confirm_progress_style}> In progress...</h5> }
                         </div>
                         <div style = {{ display: confirmRideError? "":"none" }}>
                             <h5 style={confirm_fail_style}> confirmation failed</h5>
                         </div>
+
                         <button className="btn btn-success btn-lg" style={{margin: "5%"}}
-                                onClick={() => {confirmRide()}}>confirm</button>
-                        <button className="btn btn-warning btn-lg">cancel</button>
+                                onClick={() => {confirmRide()}}>
+                                    confirm
+                        </button>
+                        <button className="btn btn-warning btn-lg"
+                                onClick={() => {cancellRide()}}>
+                            cancel
+                        </button>
                     </div>
+
                     <div className="modal-footer">
                         <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>

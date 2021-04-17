@@ -168,7 +168,7 @@ const DeliveryRow = (props) => {
             <td>{ props.delivery.date_time.toString().slice(11,19) }</td>
             <td style={ statepick }>{ statepickword }</td>
             <td style={ statedrop }>{ statedropword }</td>
-            <td>{ props.delivery.delivery_receiver } {props.delivery.delivery_phone}</td>
+            <td>{ props.delivery.delivery_receiver } | {props.delivery.delivery_phone}</td>
             <td><button className="btn btn-outline-info btn-sm" onClick={ () => {
                     setDetails(!details)  
             }}>{ detailButton }</button></td>    
@@ -200,7 +200,7 @@ const DeliveryRow = (props) => {
                             <td className="td-second">{ props.delivery.gender }</td>
                             <td className="td-second">{ props.delivery.payment_method }</td>
                             <td className="td-second">N$ { props.delivery.amount }</td>
-                            <td className="td-second">{ props.delivery.amount}</td>
+                            <td className="td-second">{ props.delivery.origin}</td>
                             <td className="td-second">{dest()}</td>
                             <td className="td-second">{props.delivery.wished_pickup_time }</td>
                         </tr>

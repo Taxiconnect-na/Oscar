@@ -2185,8 +2185,9 @@ function userAdminExists(username, email, password, adminUsersList, resolve) {
 }
 //! End of Functions dealing with internal admin-users
 
-
-//! Start of Functions dealing with ride states update
+//!-------------------------------------------------------------
+//! Start of Functions dealing with ride state
+//!-------------------------------------------------------------
 
 /**
  * @function updateEntry: Updates a document's entries of a given collection
@@ -2214,6 +2215,74 @@ function updateEntry(collection, query, newValues, resolve) {
       resolve({error: "The document was not updated"})
   })
 }
+
+
+/**
+ * 
+ * @param {collection} collectionDestination: The name of the collection the document will be moved to
+ * @param {collection} collectionOrigin: The name of the collection from which the document has to be deleted
+ * @param {object} query
+ * @param {return} resolve: return
+ */
+
+ function CancellTrip(collectionDestination, collectionOrigin, query, resolve) {
+
+  //Find the document to be deleted
+  collectionOrigin
+  .findOne(query)
+  .then((data) => {
+    console.log(data.request_fp)
+
+    // Move it to cancelled rides/deliveries
+    collectionDestination
+    .insertOne(data)
+    .then((result) => {
+      // If successfully inserted, proceed to delete the document from the origin
+      if(result.result.n === 1){
+        console.log("New cancelled trip inserted")
+        // Deleting the object
+        collectionOrigin
+        .deleteOne(query)
+        .then((outcome) => {
+            console.log(outcome.result)
+
+            if(outcome.result.n === 1){
+              // If successful deletion of document
+              console.log("successful deletion of trip")
+              resolve({success: true, error: false})
+
+            } else if(outcome.result.n === 0){
+              // If no document was deleted
+              console.log("the ride could not be deleted, maybe no longer exist")
+              resolve({success: false, error: false})
+            }
+          
+        })
+        .catch((error) => {
+            console.log(error)
+            resolve({success: false, error: true})
+        })
+
+      } else {
+        console.log("Failed to insert the object")
+        resolve({success: false, error: true})
+      }
+
+    })
+    .catch((error) => {
+      console.log("An error occured, could not insert the object into cancelled rides, maybe duplicate found")
+      console.log(error)
+      resolve({success: false, error: true})
+    })
+  })
+  .catch((error) => {
+    console.log("An error occured, could not find the object")
+    console.log(error)
+    resolve({success: false, error: true})
+  })
+
+}
+
 
 
 // All APIs : 
@@ -2337,6 +2406,39 @@ clientMongo.connect(function (err) {
     .catch((error) => {
       console.log(error)
       res.send({error: " Something went wrong while updating the entry"})
+    })
+  })
+
+  /**
+   * API responsible of cancelling trips
+   */
+
+  app.post("/cancell-trip", (req, res) => {
+    console.log("TRIP CANCELLATION API CALLED...")
+
+    new Promise((res) => {
+
+      CancellTrip(collectionRidesDeliveryDataCancelled, collectionRidesDeliveryData,
+                  { request_fp: req.body.request_fp }, res
+      )
+
+    })
+    .then((outcome) => {
+        console.log(outcome)
+        if(outcome.success){
+          console.log("SUCCESSFUL CANCELLATION")
+          // Send back successful response object
+          res.send({ success: true, error: false})
+
+        } else if(outcome.error){
+          console.log("FAILED TO CANCELL RIDE")
+          // send back error response object
+          res.send({ success: false, error: true})
+        }
+    })
+    .catch((error) => {
+      console.log(error)
+      res.send({ success: false, error: true})
     })
   })
 

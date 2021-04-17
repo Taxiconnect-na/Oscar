@@ -617,23 +617,51 @@ io.on("connection", (socket) => {
         if ((data !== undefined) && (data !== null)) {
 
             axios.post(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/set-ride-confirmed`, data)
-                .then((feedback) => {
-                    console.log(feedback.data)
-                    // Return the server's response data to client
-                    if(feedback.data.success) {
-                        console.log("successful ride update")
-                        socket.emit("ConfirmRide-feedback", {success: true})
-                    } else if(feedback.data.error){
-                        console.log("something went wrong --")
-                        socket.emit("ConfirmRide-feedback", {success: false})  
-                    }
-                    
+            .then((feedback) => {
+                console.log(feedback.data)
+                // Return the server's response data to client
+                if(feedback.data.success) {
+                    console.log("successful ride update")
+                    socket.emit("ConfirmRide-feedback", {success: true})
+                } else if(feedback.data.error){
+                    console.log("something went wrong during update of ride --")
+                    socket.emit("ConfirmRide-feedback", {success: false})  
+                }
+                
 
-                })
-                .catch((error) => {
-                    console.log(error)
-                    socket.emit("ConfirmRide-feedback", {success: false})
-                })
+            })
+            .catch((error) => {
+                console.log(error)
+                socket.emit("ConfirmRide-feedback", {success: false})
+            })
+        }
+    })
+
+    // Cancell trip (ride/delivery)
+    socket.on("CancellTrip", (data) => {
+
+        if((data !== undefined) && (data !== null)) {
+
+            axios.post(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/cancell-trip`, data)
+            .then((feedback) => {
+                console.log(feedback.data)
+                // Return the server's response data to client
+                if(feedback.data.success) {
+                    console.log("successful trip cancellation")
+                    socket.emit("CancellTrip-feedback", {success: true})
+                } else if(feedback.data.error){
+                    console.log("something went wrong while cancelling trip--")
+                    socket.emit("CancellTrip-feedback", {success: false})  
+                }
+            })
+            .catch((error) => {
+                console.log(error)
+                socket.emit("CancellTrip-feedback", {success: false})
+            })
+
+        } else if((data !== undefined) && (data !== null)) {
+            socket.emit("CancellTrip-feedback", {success: false})
+
         }
     })
 
@@ -664,6 +692,8 @@ io.on("connection", (socket) => {
                 console.log(error)
                 socket.emit("socket-test-response", {failure: true, success: false})
             })
+        } else if((data === undefined) || (data === null)) {
+            socket.emit("socket-test-response", {failure: true, success: false})
         }
     })
     
