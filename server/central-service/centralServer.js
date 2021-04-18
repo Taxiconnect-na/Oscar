@@ -11,9 +11,15 @@ const fs = require("fs")
 //Options to be passed to https server
 
 const sslOptions = {
+    key: fs.readFileSync(path.resolve(__dirname, "/etc/letsencrypt/live/taxiconnectnanetwork.com/privkey.pem")),
+    cert: fs.readFileSync(path.resolve(__dirname, "/etc/letsencrypt/live/taxiconnectnanetwork.com/cert.pem"))
+}
+/*
+const sslOptions = {
     key: fs.readFileSync(path.resolve(__dirname, "../Encryptions/key.pem")),
     cert: fs.readFileSync(path.resolve(__dirname, "../Encryptions/cert.pem"))
 }
+*/
 // Import helmet for http headers protection
 const helmet = require("helmet")
 
