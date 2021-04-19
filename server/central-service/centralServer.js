@@ -23,11 +23,11 @@ const sslOptions = {
 // Import helmet for http headers protection
 const helmet = require("helmet")
 
-//const server = http.createServer(app)
-const server = https.createServer(sslOptions, app)
+const server = http.createServer(app)
+//const server = https.createServer(sslOptions, app)
 const socketIo = require("socket.io")
 const io = socketIo(server, { cors: {
-    origin: "https://taxiconnectna.com",
+    origin: "https://taxiconnectnanetwork.com",
     //origin: "https://localhost",
     //origin: "http://192.168.8.151",
     methods: ["GET", "POST"],
