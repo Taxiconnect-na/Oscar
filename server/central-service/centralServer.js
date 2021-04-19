@@ -8,13 +8,13 @@ const cors = require("cors")
 const http = require("http")
 //const https = require("https")
 const fs = require("fs")
-//Options to be passed to https server
+/*Options to be passed to https server
 
 const sslOptions = {
     key: fs.readFileSync(path.resolve(__dirname, "/etc/letsencrypt/live/taxiconnectnanetwork.com/privkey.pem")),
     cert: fs.readFileSync(path.resolve(__dirname, "/etc/letsencrypt/live/taxiconnectnanetwork.com/cert.pem"))
 }
-/*
+
 const sslOptions = {
     key: fs.readFileSync(path.resolve(__dirname, "../Encryptions/key.pem")),
     cert: fs.readFileSync(path.resolve(__dirname, "../Encryptions/cert.pem"))
@@ -28,7 +28,7 @@ const server = http.createServer(app)
 const socketIo = require("socket.io")
 const io = socketIo(server, { cors: {
     origin: "https://taxiconnectnanetwork.com",
-    //origin: "https://localhost",
+    //origin: "http://197.233.85.57",
     //origin: "http://192.168.8.151",
     methods: ["GET", "POST"],
     credentials: true

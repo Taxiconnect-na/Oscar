@@ -18,6 +18,10 @@ import SuccessPage from "./components/successPage/SuccessPage"
 //import LogoutButton from "./components/LogoutButton"
 //import Profile from "./components/Profile"
 import "./App.css"
+import logotaxiconnect from "./logotaxiconnect.png"
+import { VscLoading } from "react-icons/vsc"
+
+
 
 function useLocalStorage(key, initialValue) {
   // State to store our value
@@ -70,6 +74,8 @@ function App() {
     "authenticated",
     false
   )
+  // Loading state variable
+  let [loading, setLoading] = useState(false)
 
   const [details, setDetails] = useLocalStorage("details", {
     name: "",
@@ -81,6 +87,8 @@ function App() {
 
   const submitHandler = (e) => {
     e.preventDefault();
+    // Set loading variable true
+    setLoading(true)
     //Authenticate user:
     socket.emit("authenticate-internal-admin", {
       name: details.name,
@@ -95,9 +103,13 @@ function App() {
         setName(details.name);
         setEmail(details.email);
         setPassword(details.password);
+        // Set loading variable true
+        setLoading(false)
 
       } else {
         setError("No match found");
+        // Set loading variable true
+        setLoading(false)
       }
     });
   };
@@ -167,6 +179,20 @@ function App() {
   ) : <div> Hallo  hallo</div> */
   // Returned content:
   if (!authenticated) {
+    // render the loader if waiting for authentication response
+    if(loading) {
+
+      return(
+
+        <div className="uploading">
+                    
+        <VscLoading style={{width: 120, height: 120, marginTop:"5%", backgroundColor:"#16a0db"}} className="rotate"/>
+        <img src={logotaxiconnect} alt="Loading..." style={{ width: "15%"}} />
+        
+        </div>
+      )
+    }
+
     return (
       <div style={{ width: "100%"}}>
         <div className="my-form">

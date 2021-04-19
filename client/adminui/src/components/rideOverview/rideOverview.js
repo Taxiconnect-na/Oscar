@@ -262,7 +262,7 @@ const RideRow = (props) => {
                         </button>
                         <button className="btn btn-warning btn-lg"
                                 onClick={() => {cancellRide()}}>
-                            cancel
+                                    delete
                         </button>
                     </div>
 
