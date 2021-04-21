@@ -28,7 +28,7 @@ const server = http.createServer(app)
 const socketIo = require("socket.io")
 const io = socketIo(server, { cors: {
     origin: "https://taxiconnectnanetwork.com",
-    //origin: "http://197.233.85.57",
+    //origin: "http://localhost",
     //origin: "http://192.168.8.151",
     methods: ["GET", "POST"],
     credentials: true
