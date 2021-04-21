@@ -58,11 +58,12 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
 
     //getAsync("passengers-cache").then( (reply) => {
     client.get("passengers-cash", (err, reply) => {    
-        console.log("looking for data...", reply)
+        console.log("looking for data...")
         if (err) {
             // Connect to db and fetch:
             IndividualsCollection
             .find({})
+            .limit(10)
             .toArray()
             .then((individualsList) => {
                 let passengers = individualsList.map((individual) => {
@@ -129,6 +130,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                     // Connect to db, do the operation and save result in redis:
                     IndividualsCollection
                     .find({})
+                    .limit(10)
                     .toArray()
                     .then((individualsList) => {
                         let passengers = individualsList.map((individual) => {
@@ -175,7 +177,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                             (result) => {
                                 //resolve(result)
                                 // save in cache
-                                client.set("passengers-cash", JSON.stringify(result), redis.print)
+                                client.setex("passengers-cash", 200000, JSON.stringify(result), redis.print)
                                 console.log("UPDATING cash in progress....")
                             },
                             (error) => {
@@ -200,6 +202,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                 // Connect to db and fetch data
                 IndividualsCollection
                 .find({})
+                .limit(10)
                 .toArray()
                 .then((individualsList) => {
                     let passengers = individualsList.map((individual) => {
@@ -244,7 +247,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                     })
                     Promise.all(passengers).then(
                         (result) => {
-                            client.set("passengers-cash", JSON.stringify(result))
+                            client.setex("passengers-cash", 200000, JSON.stringify(result))
                             resolve(result)
                             // save in cache
                         },
@@ -263,6 +266,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
             console.log("No cache...getting passengers data from db")
             IndividualsCollection
                 .find({})
+                .limit(10)
                 .toArray()
                 .then((individualsList) => {
                     let passengers = individualsList.map((individual) => {
@@ -307,7 +311,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                     })
                     Promise.all(passengers).then(
                         (result) => {
-                            client.set("passengers-cash", JSON.stringify(result))
+                            client.setex("passengers-cash", 200000, JSON.stringify(result))
                             resolve(result)
                             // save in cache
                           
@@ -356,7 +360,7 @@ clientMongo.connect(function(err) {
             }).then((result) => {
                 let passengerList = result
                 console.log("Passenger's Data API called")
-                console.log(result)
+                console.log(`Number of passengers returned: ${result.length}`)
                 response.json(passengerList)
             }).catch((error) => {
                 console.log(error)

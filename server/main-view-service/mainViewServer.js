@@ -146,6 +146,7 @@ function activelyGet_allThe_stats(
     // Get Data from db and save it in cache if there's an error
     if (err) {
       console.log("Error occured")
+      console.log(err)
 
       let finalObject = new Object();
       new Promise((res) => {
@@ -156,12 +157,12 @@ function activelyGet_allThe_stats(
         );
       })
       .then((result) => {
-        console.log(result);
+        //console.log(result);
         new Promise((res) => {
           GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
         })
           .then((result2) => {
-            console.log(result2);
+            //console.log(result2);
             Fullcollect = { result, result2 };
             console.log(`Final: ${Fullcollect}`);
             //let finalObject = new Object()
@@ -274,7 +275,7 @@ function activelyGet_allThe_stats(
     } else if(reply) {
       // Resolve reply first and then update cache if result is not null
       if (reply !== null) {
-        console.log("Statistics cache found: ", reply)
+        //console.log("Statistics cache found: ", reply)
 
         resolve(JSON.parse(reply))
 
@@ -366,7 +367,7 @@ function activelyGet_allThe_stats(
                             //console.log(finalObject);
     
                             //? Cache final object:
-                            client.set("statistics-cache", JSON.stringify(finalObject), redis.print)
+                            client.setex("statistics-cache", 600000, JSON.stringify(finalObject), redis.print)
     
                             //! Do not resolve the main object with the successfull request
                             
@@ -430,7 +431,7 @@ function activelyGet_allThe_stats(
             GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
           })
             .then((result2) => {
-              console.log(result2);
+              //console.log(result2);
               Fullcollect = { result, result2 };
               //console.log(`Final: ${Fullcollect}`);
               //let finalObject = new Object()
@@ -450,9 +451,9 @@ function activelyGet_allThe_stats(
                 );
               })
                 .then((result3) => {
-                  console.log(result3);
+                  //console.log(result3);
       
-                  console.log(finalObject);
+                  //console.log(finalObject);
                   new Promise((res) => {
                     GetTotal(
                       collectionRidesDeliveryDataCancelled,
@@ -466,7 +467,7 @@ function activelyGet_allThe_stats(
                     );
                   })
                     .then((result4) => {
-                      console.log(result4);
+                      //console.log(result4);
       
                       Promise.all([
                         new Promise((res) => {
@@ -499,10 +500,10 @@ function activelyGet_allThe_stats(
                           finalObject.totalWallet = dataCashWallet.totalWallet;
       
                           //Done
-                          console.log(finalObject);
+                          //console.log(finalObject);
 
                           //? Cache final object:
-                          client.set("statistics-cache", JSON.stringify(finalObject), redis.print)
+                          client.setex("statistics-cache", 600000, JSON.stringify(finalObject), redis.print)
 
                           //? resolve the main object with the successfull request
                           resolve(finalObject);
@@ -559,7 +560,7 @@ function activelyGet_allThe_stats(
           GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
         })
           .then((result2) => {
-            console.log(result2);
+            //console.log(result2);
             Fullcollect = { result, result2 };
             console.log(`Final: ${Fullcollect}`);
             //let finalObject = new Object()
@@ -579,7 +580,7 @@ function activelyGet_allThe_stats(
               );
             })
               .then((result3) => {
-                console.log(result3);
+                //console.log(result3);
     
                 console.log(finalObject);
                 new Promise((res) => {
@@ -595,7 +596,7 @@ function activelyGet_allThe_stats(
                   );
                 })
                   .then((result4) => {
-                    console.log(result4);
+                    //console.log(result4);
     
                     Promise.all([
                       new Promise((res) => {
@@ -631,7 +632,7 @@ function activelyGet_allThe_stats(
                         console.log(finalObject);
 
                         //? Cache final object:
-                        client.set("statistics-cache", JSON.stringify(finalObject), redis.print)
+                        client.setex("statistics-cache", 600000, JSON.stringify(finalObject), redis.print)
 
                         //? resolve the main object with the successfull request
                         resolve(finalObject);
@@ -688,14 +689,15 @@ function getRideOverview(collectionRidesDeliveryData,
 
     // Attempt to get data from cache first, if fail, get from mongodb
     client.get("rideOverview-cache", (err, reply) => {
-      console.log("looking for data in redis...")
-      console.log("Found ride cache: ", reply)
+      //console.log("looking for data in redis...")
+      //console.log("Found ride cache: ", reply)
 
       if (err) {
         // Get directly from mongodb
         collectionRidesDeliveryData
         .find({ride_mode:"RIDE"})
         .sort({ date_requested: -1})
+        .limit(100)
         .toArray()
         .then((result) => {
             // Initialize the list of all trips
@@ -838,6 +840,7 @@ function getRideOverview(collectionRidesDeliveryData,
               collectionRidesDeliveryData
               .find({ride_mode:"RIDE"})
               .sort({ date_requested: -1})
+              .limit(100)
               .toArray()
               .then((result) => {
                   // Initialize the list of all trips
@@ -960,7 +963,7 @@ function getRideOverview(collectionRidesDeliveryData,
                       (result) => {
                           console.log(`${result.length} rides found`)
                           // Cash 
-                          client.set("rideOverview-cache", JSON.stringify(result), redis.print)
+                          client.setex("rideOverview-cache", 600000, JSON.stringify(result), redis.print)
                           //!! No return : !resolve(result)
                           console.log("update of ride-overview completed")
                       },
@@ -984,6 +987,7 @@ function getRideOverview(collectionRidesDeliveryData,
           collectionRidesDeliveryData
           .find({ride_mode:"RIDE"})
           .sort({ date_requested: -1})
+          .limit(100)
           .toArray()
           .then((result) => {
               // Initialize the list of all trips
@@ -1105,7 +1109,7 @@ function getRideOverview(collectionRidesDeliveryData,
               Promise.all(alltrips).then(
                   (result) => {
                       console.log(`${result.length} rides found`)
-                      client.set("rideOverview-cache", JSON.stringify(result), redis.print)
+                      client.setex("rideOverview-cache", 600000, JSON.stringify(result), redis.print)
                       resolve(result)
                   },
                   (error) => {
@@ -1121,6 +1125,7 @@ function getRideOverview(collectionRidesDeliveryData,
         collectionRidesDeliveryData
         .find({ride_mode:"RIDE"})
         .sort({ date_requested: -1})
+        .limit(100)
         .toArray()
         .then((result) => {
             // Initialize the list of all trips
@@ -1243,7 +1248,7 @@ function getRideOverview(collectionRidesDeliveryData,
                 (result) => {
                     console.log("No cache found...")
                     console.log(`${result.length} rides found`)
-                    client.set("rideOverview-cache", JSON.stringify(result), redis.print)
+                    client.setex("rideOverview-cache", 600000, JSON.stringify(result), redis.print)
                     resolve(result)
                 },
                 (error) => {
@@ -2358,7 +2363,7 @@ clientMongo.connect(function (err) {
         res )
     }).then( 
       (result) => {
-        console.log(result)
+        //console.log(result)
         res.send(result)
       },
       (error) => {

@@ -53,7 +53,7 @@ function Overview() {
             });
             //...
             socket.emit("statistics", {data:'specs'});
-        }, 2000)
+        }, 15000)
 
         return( () => {
             clearInterval(interval)
