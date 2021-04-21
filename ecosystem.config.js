@@ -68,19 +68,6 @@ module.exports = {
         env_production: {
           NODE_ENV: "production",
         },
-      }, 
-      {
-        name: "partner-app-dashboard",
-        script: "cd ./client/partnerui && npm -- start",
-        autorestart: true,
-        watch: false,
-        max_memory_restart: "1G",
-        env: {
-          NODE_ENV: "development",
-        },
-        env_production: {
-          NODE_ENV: "production",
-        },
       }
     ],
   };
