@@ -513,7 +513,7 @@ function RideOverview() {
                 }
             })
             socket.emit("getRideOverview", {data: "Get ride-overview Data!"})
-        },4000)
+        },2000)
 
         return( () => {
             clearInterval(interval)
