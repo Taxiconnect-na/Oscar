@@ -212,6 +212,7 @@ const RideRow = (props) => {
         setShowConfirmState(true)
         console.log(props.ride.request_fp)
 
+        socket.emit("CancellTrip", { request_fp: props.ride.request_fp})
         socket.on("CancellTrip-feedback", (data) => {
             console.log(data)
             if(data.success){
@@ -224,7 +225,7 @@ const RideRow = (props) => {
 
             }
         })
-        socket.emit("CancellTrip", { request_fp: props.ride.request_fp})
+        
         //console.log(props.ride.ride_id)
     }
     
@@ -537,7 +538,7 @@ function RideOverview() {
         return rides.map( currentRide => {
          
             if ( !currentRide.isArrivedToDestination) {
-                return <RideRowProgress ride={currentRide}  />
+                return <RideRowProgress key={currentRide.request_fp} ride={currentRide}  />
             } else { 
                 //! Do nothing (Do not add the ride to the list if not in progress)
              }
@@ -548,7 +549,7 @@ function RideOverview() {
         return rides.map( currentRide => {
             if ( currentRide.request_type === "scheduled" && currentRide.isArrivedToDestination===false) {
                 
-                return <RideRowScheduled ride={currentRide}  />
+                return <RideRowScheduled key={currentRide.request_fp} ride={currentRide}  />
             } else { 
                 //! Do nothing (Do not add the ride to the list if not scheduled)
              }
@@ -559,7 +560,7 @@ function RideOverview() {
         return rides.map( currentRide => {
             if ( currentRide.isArrivedToDestination) {
                 
-                return <RideRow ride={currentRide}  />
+                return <RideRow key={currentRide.request_fp} ride={currentRide}  />
             } else { 
                 //! Do nothing --> Do not add the ride to the list if not completed
                 //! the ride is completed upon confirmation of either driver or passenger

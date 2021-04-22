@@ -740,7 +740,7 @@ function getRideOverview(collectionRidesDeliveryData,
                       collectionDrivers_profiles
                       .findOne(queryDriver)
                       .then((driver) => {
-                        const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+                        const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "Pending..."
   
                         // initialize the trip details object
                         const tripDetails = {}
@@ -2211,8 +2211,9 @@ function updateEntry(collection, query, newValues, resolve) {
       if(result.result.nModified != 0) {
         resolve({success: "one document updated"})
       } else {
-        resolve({error: "The document was not updated"})
         console.log(result)
+        resolve({error: "The document was not updated"})
+        
       }
       
   })
@@ -2295,6 +2296,7 @@ function updateEntry(collection, query, newValues, resolve) {
 
 clientMongo.connect(function (err) {
   if (err) throw err;
+  console.log("Connected to MongoDB")
 
   const dbMongo = clientMongo.db(dbName);
   const collectionPassengers_profiles = dbMongo.collection(
@@ -2388,7 +2390,7 @@ clientMongo.connect(function (err) {
     let newValues = {$set: {"ride_state_vars.isRideCompleted_riderSide" :true, 
                              isArrivedToDestination: true,
                              "ride_state_vars.isRideCompleted_driverSide": true}} */
-
+    console.log(`request fingerprint: ${req.body.request_fp}`)
     new Promise((res) => {
       //Call updating function 
       updateEntry(
