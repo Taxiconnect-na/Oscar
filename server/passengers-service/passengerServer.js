@@ -1,3 +1,4 @@
+console.log = function () {};
 const path = require('path')
 // For self contained app
 //require("dotenv").config({ path: path.resolve(__dirname, './.env')});

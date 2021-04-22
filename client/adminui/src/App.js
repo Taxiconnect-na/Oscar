@@ -69,11 +69,17 @@ function App() {
    let [name, setName] = useState(null)
    let [email, setEmail] = useState(null)
    let [password, setPassword] = useState(null)
+  //! Authentication variable
    // Use LocalStorage to preserve authentication state
-  let [authenticated, setAuthentication] = useLocalStorage(
+  /*let [authenticated, setAuthentication] = useLocalStorage(
     "authenticated",
     false
-  )
+  )*/
+  let [authenticated, setAuthentication] = useState(true)
+
+
+
+
   // Loading state variable
   let [loading, setLoading] = useState(false)
 

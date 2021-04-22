@@ -1,3 +1,4 @@
+console.log = function () {};
 const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
@@ -52,8 +53,9 @@ const s3 = new AWS.S3({
 /**
  * * Hard coded keys
  */
-//const BUCKET_NAME_DRIVER = "drivers-central-beta-aws"
-const BUCKET_NAME_DRIVER = "drivers-central-aws"
+//! Criver Buckets to be changed (dev/production)B
+//const BUCKET_NAME_DRIVER = "drivers-central-beta-aws"  //For development
+const BUCKET_NAME_DRIVER = "drivers-central-aws"     //For production
 const s3 = new AWS.S3({
     accessKeyId: "AKIAXVMLF7SBTB2WU72Z",
     secretAccessKey: "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"
@@ -207,20 +209,24 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
 
                             }).catch((error) => {
                                 console.log(error)
+                                resolve({ response: "error", flag: "Invalid_params_maybe" })
                             })
 
                         }).catch((error) => {
                             console.log(error)
+                            resolve({ response: "error", flag: "Invalid_params_maybe" })
                         })                        
 
                     }).catch((error) => {
                         console.log(error)
+                        resolve({ response: "error", flag: "Invalid_params_maybe" })
                         
                     })
 
                     
                 }).catch((error) => {
                     console.log(error)
+                    resolve({ response: "error", flag: "Invalid_params_maybe" })
                 })
             })
         })
@@ -415,14 +421,14 @@ clientMongo.connect(function(err) {
     const collectionWallet_transaction_logs = dbMongo.collection(
         "wallet_transactions_logs"
     )
-
+    /*
     collectionDrivers_profiles.find({}).toArray()
     .then((result) => {
         driverDataList = result
         console.log(driverDataList)
     }).catch((error) => {
         console.log(error)
-    })
+    }) */
 
     /**
      * Socket test API
@@ -445,7 +451,7 @@ clientMongo.connect(function(err) {
         }).then((result) => {
             let driverDataList = result
             
-            console.log(result)
+            //console.log(result)
             response.json(driverDataList)
         }).catch((error) => {
             console.log(error)

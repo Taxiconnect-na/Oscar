@@ -1,3 +1,4 @@
+console.log = function () {};
 const path = require('path')
 // For self contained app
 //require("dotenv").config({ path: path.resolve(__dirname, './.env')});
@@ -769,7 +770,7 @@ function getRideOverview(collectionRidesDeliveryData,
                           tripDetails.surname = surname
                           tripDetails.gender = gender
                           tripDetails.cellphone = cellphone
-                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                          tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
                           tripDetails.origin = origin
                           // Add trip detail to final response 
                           res0(tripDetails)
@@ -800,7 +801,7 @@ function getRideOverview(collectionRidesDeliveryData,
                           tripDetails.surname = surname
                           tripDetails.gender = gender
                           tripDetails.cellphone = cellphone 
-                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                          tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
                           tripDetails.origin = origin
                           // Add trip detail to final response 
                           res0(tripDetails)
@@ -882,7 +883,7 @@ function getRideOverview(collectionRidesDeliveryData,
                             collectionDrivers_profiles
                             .findOne(queryDriver)
                             .then((driver) => {
-                              const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+                              const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "Pending..."
 
                               // initialize the trip details object
                               const tripDetails = {}
@@ -912,7 +913,7 @@ function getRideOverview(collectionRidesDeliveryData,
                                 tripDetails.surname = surname
                                 tripDetails.gender = gender
                                 tripDetails.cellphone = cellphone
-                                tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                                tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
                                 tripDetails.origin = origin
                                 // Add trip detail to final response 
                                 res0(tripDetails)
@@ -943,7 +944,7 @@ function getRideOverview(collectionRidesDeliveryData,
                                 tripDetails.surname = surname
                                 tripDetails.gender = gender
                                 tripDetails.cellphone = cellphone 
-                                tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                                tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
                                 tripDetails.origin = origin
                                 // Add trip detail to final response 
                                 res0(tripDetails)
@@ -1029,7 +1030,7 @@ function getRideOverview(collectionRidesDeliveryData,
                         collectionDrivers_profiles
                         .findOne(queryDriver)
                         .then((driver) => {
-                          const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+                          const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "Pending..."
 
                           // initialize the trip details object
                           const tripDetails = {}
@@ -1059,7 +1060,7 @@ function getRideOverview(collectionRidesDeliveryData,
                             tripDetails.surname = surname
                             tripDetails.gender = gender
                             tripDetails.cellphone = cellphone
-                            tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                            tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
                             tripDetails.origin = origin
                             // Add trip detail to final response 
                             res0(tripDetails)
@@ -1090,7 +1091,7 @@ function getRideOverview(collectionRidesDeliveryData,
                             tripDetails.surname = surname
                             tripDetails.gender = gender
                             tripDetails.cellphone = cellphone 
-                            tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                            tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
                             tripDetails.origin = origin
                             // Add trip detail to final response 
                             res0(tripDetails)
@@ -1167,7 +1168,7 @@ function getRideOverview(collectionRidesDeliveryData,
                       collectionDrivers_profiles
                       .findOne(queryDriver)
                       .then((driver) => {
-                        const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "unknown"
+                        const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "Pending..."
   
                         // initialize the trip details object
                         const tripDetails = {}
@@ -1197,7 +1198,7 @@ function getRideOverview(collectionRidesDeliveryData,
                           tripDetails.surname = surname
                           tripDetails.gender = gender
                           tripDetails.cellphone = cellphone
-                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                          tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
                           tripDetails.origin = origin
                           // Add trip detail to final response 
                           res0(tripDetails)
@@ -1228,7 +1229,7 @@ function getRideOverview(collectionRidesDeliveryData,
                           tripDetails.surname = surname
                           tripDetails.gender = gender
                           tripDetails.cellphone = cellphone 
-                          tripDetails.taxi_number = taxi_number? taxi_number:"unknown" 
+                          tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
                           tripDetails.origin = origin
                           // Add trip detail to final response 
                           res0(tripDetails)
