@@ -279,7 +279,7 @@ function DeliveryOverview() {
             }) 
 
             socket.emit("getDeliveryOverview", {data: "Get delivery-overview Data!"})
-        },1000)
+        },6000)
 
         return( () => {
             clearInterval(interval)

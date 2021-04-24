@@ -312,12 +312,12 @@ function App() {
             <Router>
               <Switch>
                 <Route path="/" exact component={Overview} />
-                <Route path="/driver-registration"  component={DriverRegistration} />
+                {/*<Route path="/driver-registration"  component={DriverRegistration} />*/}
                 <Route path= "/trip-overview/rides" component={RideOverview} />
                 <Route path ="/trip-overview/deliveries" component={DeliveryOverview} />
                 <Route path="/drivers" component={DriverList} />
-                <Route path="/passengers" component={PassengerList} />
-                <Route path="/driver-payment" component={CashPaymentDriver} />
+                {/*<Route path="/passengers" component={PassengerList} /> */}
+                {/*<Route path="/driver-payment" component={CashPaymentDriver} />*/}
                 <Route path="/loadertest" component={Loader} />
                 <Route path="/action/success" component={SuccessPage} />
                 <Route path="/action/error" component={ErrorPage} /> 

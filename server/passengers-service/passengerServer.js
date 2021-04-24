@@ -131,7 +131,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                     // Connect to db, do the operation and save result in redis:
                     IndividualsCollection
                     .find({})
-                    .limit(10)
+                    .limit(50)
                     .toArray()
                     .then((individualsList) => {
                         let passengers = individualsList.map((individual) => {
@@ -203,7 +203,8 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                 // Connect to db and fetch data
                 IndividualsCollection
                 .find({})
-                .limit(10)
+                .sort({"date_registered.date": -1})
+                .limit(50)
                 .toArray()
                 .then((individualsList) => {
                     let passengers = individualsList.map((individual) => {
