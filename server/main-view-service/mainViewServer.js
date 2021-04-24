@@ -698,7 +698,7 @@ function getRideOverview(collectionRidesDeliveryData,
         collectionRidesDeliveryData
         .find({ride_mode:"RIDE"})
         .sort({ date_requested: -1})
-        .limit(100)
+        .limit(130)
         .toArray()
         .then((result) => {
             // Initialize the list of all trips
@@ -841,7 +841,7 @@ function getRideOverview(collectionRidesDeliveryData,
               collectionRidesDeliveryData
               .find({ride_mode:"RIDE"})
               .sort({ date_requested: -1})
-              .limit(100)
+              .limit(130)
               .toArray()
               .then((result) => {
                   // Initialize the list of all trips
@@ -988,7 +988,7 @@ function getRideOverview(collectionRidesDeliveryData,
           collectionRidesDeliveryData
           .find({ride_mode:"RIDE"})
           .sort({ date_requested: -1})
-          .limit(100)
+          .limit(130)
           .toArray()
           .then((result) => {
               // Initialize the list of all trips
@@ -1126,7 +1126,7 @@ function getRideOverview(collectionRidesDeliveryData,
         collectionRidesDeliveryData
         .find({ride_mode:"RIDE"})
         .sort({ date_requested: -1})
-        .limit(100)
+        .limit(130)
         .toArray()
         .then((result) => {
             // Initialize the list of all trips
