@@ -690,7 +690,7 @@ function getRideOverview(collectionRidesDeliveryData,
 
     // Attempt to get data from cache first, if fail, get from mongodb
     client.get("rideOverview-cache", (err, reply) => {
-      //console.log("looking for data in redis...")
+      console.log("looking for data in redis...")
       //console.log("Found ride cache: ", reply)
 
       if (err) {
@@ -2171,7 +2171,7 @@ function getAdminUsers(adminUsersCollection, resolve) {
         },
         (error) => {
             console.log(error)
-            resolve({ response: "error", flag: "Wrong parameters maybe"})
+            resolve({ error: "error", flag: "Wrong parameters maybe"})
         }
     )
   })
@@ -2366,7 +2366,7 @@ clientMongo.connect(function (err) {
         res )
     }).then( 
       (result) => {
-        //console.log(result)
+        console.log(result)
         res.send(result)
       },
       (error) => {
@@ -2546,6 +2546,7 @@ clientMongo.connect(function (err) {
       getAdminUsers(collectionAdminUsers, res)
     })
     .then((adminUsersList) => {
+      // ! Should check if outcome is not { error: ""}
       new Promise((res) => {
 
         userAdminExists(req.body.name, req.body.email, req.body.password, adminUsersList, res)
@@ -2558,7 +2559,8 @@ clientMongo.connect(function (err) {
 
       },  (error) => {
         console.log(error)
-        response.status(500).send({message: "error", flag: "Maybe Invalid parameters"})
+        //response.status(500).send({message: "error", flag: "Maybe Invalid parameters"})
+        response.send({authenticated: authentication_response})
       })
 
     }).catch((error) => {

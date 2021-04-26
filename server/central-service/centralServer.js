@@ -1,4 +1,4 @@
-console.log = function () {};
+//console.log = function () {};
 const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
@@ -447,10 +447,13 @@ io.on("connection", (socket) => {
                     socket.emit("authenticate-internal-admin-response", feedback.data)
 
                 }).catch((error) => {
-                    console.log(error)               
+                    socket.emit("authenticate-internal-admin-response", { error: true})
+                    console.log(error)
+                                   
                 })
             } catch (error) {
                 console.log(error)
+                socket.emit("authenticate-internal-admin-response", { error: true})
             }
         }
         
