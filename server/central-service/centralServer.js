@@ -178,12 +178,12 @@ function MyFormData(
     email,
     operation_clearances,
     delivery_provider,
-    profile_picture,
+    /*profile_picture,
     driver_licence_doc,
     copy_id_paper,
     copy_white_paper,
     copy_public_permit,
-    copy_blue_paper,
+    copy_blue_paper,*/
     blue_paper_expiration,
     driver_licence_expiration,
     bank_name,
@@ -196,7 +196,7 @@ function MyFormData(
     taxi_number,
     plate_number,
     max_passengers,
-    taxi_picture,
+    //taxi_picture,
     vehicle_type,
     car_nature,
     account_type,
@@ -216,13 +216,13 @@ function MyFormData(
     //formData.append('password', password)
     formData.append('operation_clearances', operation_clearances)
     formData.append('delivery_provider', delivery_provider)
-
+    /*
     formData.append('profile_picture', profile_picture)
     formData.append('driver_licence_doc', driver_licence_doc)
     formData.append('copy_id_paper', copy_id_paper)
     formData.append('copy_white_paper', copy_white_paper)
     formData.append('copy_public_permit', copy_public_permit)
-    formData.append('copy_blue_paper', copy_blue_paper)
+    formData.append('copy_blue_paper', copy_blue_paper)*/
     formData.append('blue_paper_expiration', blue_paper_expiration)
     formData.append('driver_licence_expiration', driver_licence_expiration)
     formData.append('bank_name', bank_name)
@@ -242,7 +242,7 @@ function MyFormData(
     formData.append('taxi_number', taxi_number)
     formData.append('plate_number', plate_number)
     formData.append('max_passengers', max_passengers)
-    formData.append('taxi_picture', taxi_picture)
+    //formData.append('taxi_picture', taxi_picture)
     formData.append('vehicle_type', vehicle_type)
     formData.append('car_nature', car_nature)
 
@@ -459,7 +459,39 @@ io.on("connection", (socket) => {
         
     })
     
+    socket.on("registerDriver", function(data) {
+        if ((data !== undefined) && (data !== null)) {
 
+            console.log(data)
+            console.log("======================================================================")
+
+            axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, data)
+            .then((feedback) => {
+                console.log(feedback.data)
+
+                // Return the server's response data to client (Gateway)
+                let registration_response = new Object(feedback.data)
+                // feedback.data is either {success: "X"} or {error: "Y"}
+                if(registration_response.success){
+
+                    socket.emit("registerDriver-response", { success: true, failure: false})
+
+                } else if(registration_response.error){
+
+                    socket.emit("registerDriver-response", { success: false, failure: true})
+                }
+                
+
+            })
+            .catch((error) => {
+                console.log(error)
+                socket.emit("registerDriver-response", { success: false, failure: true})
+            })
+                
+
+        }
+    })
+    /*
     // Register Driver:
     socket.on("registerDriver", function(data) {
 
@@ -480,7 +512,7 @@ io.on("connection", (socket) => {
                     data.email,
                     data.operation_clearances,
                     data.delivery_provider,
-                    data.profile_picture,
+                    /*data.profile_picture,
                     data.driver_licence_doc,
                     data.copy_id_paper,
                     data.copy_white_paper,
@@ -498,7 +530,7 @@ io.on("connection", (socket) => {
                     data.taxi_number,
                     data.plate_number,
                     data.max_passengers,
-                    data.taxi_picture,
+                    //data.taxi_picture,
                     data.vehicle_type,
                     data.car_nature,
                     data.account_type,
@@ -516,7 +548,7 @@ io.on("connection", (socket) => {
                         headers: outputForm.getHeaders()
                         /* headers: { // headers option 
                             'Content-Type': 'multipart/form-data'
-                        } */
+                        } 
                         
                     })
                     .then((feedback) => {
@@ -552,7 +584,7 @@ io.on("connection", (socket) => {
             
         }
         //! Handled undefined and null data below with else
-    })
+    }) */
 
     //Make Driver payment
     socket.on("makeDriverPayment", (data) => {

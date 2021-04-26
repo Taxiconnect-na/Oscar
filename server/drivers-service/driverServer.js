@@ -73,6 +73,8 @@ Date.prototype.addHours = function(h) {
     this.setTime(this.getTime() + (h*60*60*1000));
     return this;
 }
+ // Windhoek Date and Time
+var windhoekDateTime = new Date(new Date().toUTCString()).addHours(2)
  
 
 /** 
@@ -525,22 +527,22 @@ clientMongo.connect(function(err) {
 
     // Upload Endpoint for driver registration
     app.post('/upload', (req, res) => {
-        if (req.files === null || req.files === undefined) {
+        /*if (req.files === null || req.files === undefined) {
             return res.status(400).json({ msg: 'No file uploaded'})
-        }
+        }*/
         
-        console.log(req.files)
+        //console.log(req.files)
         console.log("------------------------------------------------------------")
         console.log("------------------------------------------------------------")
         console.log(req.body)
-        
-        const profile_picture = req.files.profile_picture
+        //! Files: (Temporarily removed)
+        /*const profile_picture = req.files.profile_picture
         const driver_licence_doc = req.files.driver_licence_doc
         const copy_id_paper = req.files.copy_id_paper
         const copy_white_paper = req.files.copy_white_paper
         const copy_public_permit = req.files.copy_public_permit
         const copy_blue_paper = req.files.copy_blue_paper
-        const taxi_picture = req.files.taxi_picture
+        const taxi_picture = req.files.taxi_picture */
         
     
         if (req.body.delivery_provider.length === 0) {
@@ -648,12 +650,12 @@ clientMongo.connect(function(err) {
         ]) 
         .then( (result) => {
 
-            [driverFingerprint, car_fingerprint, paymentNumber, l1, l2, l3, l4, l5, l6, l7, l8] = result
+            [driverFingerprint, car_fingerprint, paymentNumber] = result
 
-            Promise.all([
+            /*Promise.all([
                     /**   
                  ** Upload files to s3 bucket (Production setup)
-                */
+                
                 new Promise((load1) => {
                     uploadFile(profile_picture, "Profiles_pictures", driverFingerprint, "profile_picture", load1)
                 }),
@@ -691,104 +693,109 @@ clientMongo.connect(function(err) {
                 } else { // proceed with registration
 
                     // Signal successful file upload
-                    console.log("*********** SUCCESSFUL FILE UPLOAD **********")
-                    // Driver's object to be stored in db
-                    let driver = {
-                        name: req.body.name,
-                        surname: req.body.surname,
-                        phone_number: req.body.phone_number,
-                        email: req.body.email,
-                        password: "12345678",
-                        operation_clearances: [req.body.operation_clearances],
-                        // If delivery, set delivery provider:
-                        delivery_provider: req.body.delivery_provider.length>0 ? req.body.delivery_provider : false,
-                        identification_data: {
-                            // Required files:
-                            profile_picture: driverFingerprint + "-profile_picture" + "."+ req.files.profile_picture.name.split('.') [req.files.profile_picture.name.split('.').length - 1],
-                            driver_licence_doc: driverFingerprint + "-driver_licence" + "."+ req.files.driver_licence_doc.name.split('.') [req.files.driver_licence_doc.name.split('.').length - 1],
-                            copy_id_paper: driverFingerprint + "-id_paper" + "."+ req.files.copy_id_paper.name.split('.') [req.files.copy_id_paper.name.split('.').length - 1],
-                            copy_white_paper: driverFingerprint + "-white_paper" + "."+ req.files.copy_white_paper.name.split('.') [req.files.copy_white_paper.name.split('.').length - 1],
-                            copy_public_permit: driverFingerprint + "-public_permit" + "."+ req.files.copy_public_permit.name.split('.') [req.files.copy_public_permit.name.split('.').length - 1],
-                            copy_blue_paper: driverFingerprint + "-blue_paper" + "."+ req.files.copy_blue_paper.name.split('.') [req.files.copy_blue_paper.name.split('.').length - 1],
-                            
-                            blue_paper_expiration: new Date(req.body.blue_paper_expiration),
-                            driver_licence_expiration: new Date(req.body.driver_licence_expiration),
-                            // Other identification info
-                            personal_id_number: req.body.personal_id_number,
-                            title: req.body.title,
-                            date_updated: (new Date()).addHours(2),
-                            // Default upon creation
-                            isAccount_verified: true,
-                            // Personal Banking details
-                            banking_details: {
-                                owner_name_bank: req.body.owner_name_bank,
-                                bank_name: req.body.bank_name,
-                                account_number: req.body.account_number,
-                                branch_number: req.body.branch_number,
-                                branch_name: req.body.branch_name,
-                                account_type: req.body.account_type? req.body.account_type: "unknown"
-                            },
-                            // Payment number
-                            paymentNumber: paymentNumber
-                        },
-                        date_registered: (new Date()).addHours(2),
-                        date_updated: (new Date()).addHours(2),  // to be changed upon update
-                        driver_fingerprint: driverFingerprint,
-                        
-                        // When false, the driver shall not have access permission to the Driver's App
-                        isDriverSuspended: false,    
-                        // Add car's data:
-                        cars_data: [
-                            {
-                                car_brand: req.body.car_brand,
-                                car_nature: req.body.car_nature,
-                                permit_number: req.body.permit_number,
-                                taxi_number: req.body.taxi_number,
-                                plate_number: req.body.plate_number,
-                                max_passengers: parseInt(req.body.max_passengers),
-                                car_fingerprint: car_fingerprint, // =====
-                                vehicle_type: req.body.vehicle_type,
-                                category: req.body.category,
-                                date_registered: (new Date()).addHours(2),
-                                date_updated: (new Date()).addHours(2),
-                                taxi_picture: driverFingerprint + "-taxi_picture" + "."+ req.files.taxi_picture.name.split('.') [req.files.taxi_picture.name.split('.').length - 1]
-                            },
-                        ],
-                        operational_state : {
-                            status: "offline",
-                            last_location: null,
-                            accepted_requests_infos: null,
-                            default_selected_car: {
-                                max_passengers: parseInt(req.body.max_passengers),
-                                car_fingerprint: car_fingerprint,
-                                vehicle_type: req.body.vehicle_type,
-                                date_Selected: (new Date()).addHours(2)
-                            },
-                            push_notification_token: null
-                        },
-
-
-                    }
-                    // Insert object into the database
-                    collectionDrivers_profiles.insertOne(driver, function(err, response) {
-                        if (err) throw err
-                        console.log("*************   New Driver Registered   ********************")
-                        res.status(200).json({success: "successful registration"})
-
-                    })
+                    console.log("*********** SUCCESSFUL FILE UPLOAD **********") */
+                    
         
-                }
+                
 
-            }).catch((error) => {
+            /*}).catch((error) => {
                 console.log(error)
                 res.status(500).send({error: "Something went wrong during registration , params maybe"})
 
+            }) */
+
+            // Driver's object to be stored in db
+            let driver = {
+                name: req.body.name,
+                surname: req.body.surname,
+                phone_number: req.body.phone_number,
+                email: req.body.email,
+                password: "12345678",
+                operation_clearances: [req.body.operation_clearances],
+                // If delivery, set delivery provider:
+                delivery_provider: req.body.delivery_provider.length>0 ? req.body.delivery_provider : false,
+                identification_data: {
+                    // Required files:
+                    profile_picture: "" ,//driverFingerprint + "-profile_picture" + "."+ req.files.profile_picture.name.split('.') [req.files.profile_picture.name.split('.').length - 1],
+                    driver_licence_doc: "" ,//driverFingerprint + "-driver_licence" + "."+ req.files.driver_licence_doc.name.split('.') [req.files.driver_licence_doc.name.split('.').length - 1],
+                    copy_id_paper: "" ,//driverFingerprint + "-id_paper" + "."+ req.files.copy_id_paper.name.split('.') [req.files.copy_id_paper.name.split('.').length - 1],
+                    copy_white_paper: "" ,//driverFingerprint + "-white_paper" + "."+ req.files.copy_white_paper.name.split('.') [req.files.copy_white_paper.name.split('.').length - 1],
+                    copy_public_permit: "" ,//driverFingerprint + "-public_permit" + "."+ req.files.copy_public_permit.name.split('.') [req.files.copy_public_permit.name.split('.').length - 1],
+                    copy_blue_paper: "" ,//driverFingerprint + "-blue_paper" + "."+ req.files.copy_blue_paper.name.split('.') [req.files.copy_blue_paper.name.split('.').length - 1],
+                    
+                    blue_paper_expiration: new Date(req.body.blue_paper_expiration),
+                    driver_licence_expiration: new Date(req.body.driver_licence_expiration),
+                    // Other identification info
+                    personal_id_number: req.body.personal_id_number,
+                    title: req.body.title,
+                    date_updated: windhoekDateTime, //(new Date()).addHours(2),
+                    // Default upon creation
+                    isAccount_verified: true,
+                    // Personal Banking details
+                    banking_details: {
+                        owner_name_bank: req.body.owner_name_bank,
+                        bank_name: req.body.bank_name,
+                        account_number: req.body.account_number,
+                        branch_number: req.body.branch_number,
+                        branch_name: req.body.branch_name,
+                        account_type: req.body.account_type? req.body.account_type: "unknown"
+                    },
+                    // Payment number
+                    paymentNumber: paymentNumber
+                },
+                date_registered: windhoekDateTime, //(new Date()).addHours(2),
+                date_updated: windhoekDateTime, //(new Date()).addHours(2),  // to be changed upon update
+                driver_fingerprint: driverFingerprint,
+                
+                // When false, the driver shall not have access permission to the Driver's App
+                isDriverSuspended: false,    
+                // Add car's data:
+                cars_data: [
+                    {
+                        car_brand: req.body.car_brand,
+                        car_nature: req.body.car_nature,
+                        permit_number: req.body.permit_number,
+                        taxi_number: req.body.taxi_number,
+                        plate_number: req.body.plate_number,
+                        max_passengers: parseInt(req.body.max_passengers),
+                        car_fingerprint: car_fingerprint, // =====
+                        vehicle_type: req.body.vehicle_type,
+                        category: req.body.category,
+                        date_registered: windhoekDateTime, //(new Date()).addHours(2),
+                        date_updated: windhoekDateTime, //(new Date()).addHours(2),
+                        taxi_picture: "" //driverFingerprint + "-taxi_picture" + "."+ req.files.taxi_picture.name.split('.') [req.files.taxi_picture.name.split('.').length - 1]
+                    },
+                ],
+                operational_state : {
+                    status: "offline",
+                    last_location: null,
+                    accepted_requests_infos: null,
+                    default_selected_car: {
+                        max_passengers: parseInt(req.body.max_passengers),
+                        car_fingerprint: car_fingerprint,
+                        vehicle_type: req.body.vehicle_type,
+                        date_Selected: windhoekDateTime // (new Date()).addHours(2)
+                    },
+                    push_notification_token: null
+                },
+
+
+            }
+            // Insert object into the database
+            collectionDrivers_profiles.insertOne(driver, function(err, response) {
+                if (err) { 
+                    console.log(err)
+                    res.send({error: "Something went wrong, wrong params maybe"})
+                }
+
+                console.log("*************   New Driver Registered   ********************")
+                res.send({success: "successful registration"})
+
             })
-            
-            
+
         }).catch((error) => {
             console.log(error)
-            res.status(500).send({error: "Something went wrong, wrong params maybe"})
+            res.send({error: "Something went wrong, wrong params maybe"})
         })
 
     })

@@ -53,3 +53,8 @@ table {
     font-size: 15px;
     background-color: rgb(12, 75, 15);
 }
+
+.action-buttons button{
+    display: inline-flex;
+    text-align: center;
+}

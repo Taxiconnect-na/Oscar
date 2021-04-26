@@ -146,6 +146,7 @@ const RideRow = (props) => {
     let [confirmRideState, setConfirmRideState] = useState(false)
     let [confirmRideError, setConfirmRideError] = useState(false)
     let [showConfirmState, setShowConfirmState] = useState(false)
+    let [changeRideState, setChangeRideState] = useState(false)
     
     if (props.ride.isDroppedDriver===true) {
         statedrop = {backgroundColor:"green"}
@@ -188,18 +189,20 @@ const RideRow = (props) => {
 
     const confirmRide = () => {
         // show progress of confirmation request
-        setShowConfirmState(true)
+        //setShowConfirmState(true)
         console.log(props.ride.request_fp)
-
+        setChangeRideState(true)
         socket.on("ConfirmRide-feedback", (data) => {
             console.log(data)
             if(data.success){
                 // Show successful confirmation
-                setConfirmRideState(true)
-            } else if(data.success === false) {
+                //setChangeRideState(true)
+                console.log("inoinoinoinnoinnioninoiiiiiiiiiiiiiiiiiiiiiiiiiiooioiiooiiooinnioionnoinoiubbhjb")
+            } else if(!data.success) {
                 //Do not show progress and display error message
-                setShowConfirmState(false)
-                setConfirmRideError(true)
+                //setShowConfirmState(false)
+                //setConfirmRideError(true)
+                console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
             }
         })
@@ -209,7 +212,7 @@ const RideRow = (props) => {
 
     const cancellRide = () => {
         // show progress of confirmation request
-        setShowConfirmState(true)
+        //setShowConfirmState(true)
         console.log(props.ride.request_fp)
 
         socket.emit("CancellTrip", { request_fp: props.ride.request_fp})
@@ -217,62 +220,24 @@ const RideRow = (props) => {
             console.log(data)
             if(data.success){
                 // Show successful confirmation
-                setConfirmRideState(true)
+                //setConfirmRideState(true)
+                console.log("inoinoinoinnoinnioninoiiiiiiiiiiiiiiiiiiiiiiiiiiooioiiooiiooinnioionnoinoiubbhjb")
             } else if(data.success === false) {
                 //Do not show progress and display error message
-                setShowConfirmState(false)
-                setConfirmRideError(true)
+                //setShowConfirmState(false)
+                //setConfirmRideError(true)
+                console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
             }
         })
         
         //console.log(props.ride.ride_id)
     }
-    
 
-
-    
     return(
         <>
         <tr style ={{ backgroundColor: "#ebd113"}}>
             <td>
-                <GrStatusWarningSmall style={iconStyle} data-bs-toggle="modal" data-bs-target="#exampleModal"/>
-
-
-                <div className="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                    <div className="modal-header">
-                        <h5 className="modal-title" id="exampleModalLabel" style={{ textAlign:"center"}}>Actions</h5>
-                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div className="modal-body">
-                        <div  style = {{ display: showConfirmState? "":"none" }} >
-                        { confirmRideState? 
-                            <h5 style={confirm_success_style}>Done!</h5>
-                            :
-                            <h5 style={confirm_progress_style}> In progress...</h5> }
-                        </div>
-                        <div style = {{ display: confirmRideError? "":"none" }}>
-                            <h5 style={confirm_fail_style}> confirmation failed</h5>
-                        </div>
-
-                        <button className="btn btn-success btn-lg" style={{margin: "5%"}}
-                                onClick={() => {confirmRide()}}>
-                                    confirm
-                        </button>
-                        <button className="btn btn-warning btn-lg"
-                                onClick={() => {cancellRide()}}>
-                                    delete
-                        </button>
-                    </div>
-
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                    </div>
-                </div>
-                </div>
                 { props.ride.taxi_number }
             </td>
             <td>{ props.ride.passengers_number}</td>
@@ -282,16 +247,18 @@ const RideRow = (props) => {
             <td style={ statepick }>{ statepickword }</td>
             <td style={ statedrop }>{ statedropword }</td>
             <td>{ props.ride.connect_type }</td>
-            <td><button className="btn btn-info btn-sm" onClick={ () => {
+            <td colSpan={2}><button className="btn btn-info btn-sm" onClick={ () => {
                     setDetails(!details)  
-            }}>{ detailButton }</button></td>    
+            }}>{ detailButton }</button></td>
+            
+               
         </tr>
         <tr style = {{ display: details? "":"none" }} >
-            <td className="data-table"  colSpan={9}>
+            <td className="data-table"  colSpan={10}>
                 <table className="table" style={{ textAlign: "center", width:"100%", margin:"auto"}} id="iner-table">
                     <thead className="thead-light">
                         <tr>
-                            <th colSpan={9}>Passenger info</th>
+                            <th colSpan={10}>Passenger info</th>
                         </tr>
                         <tr >
                             <th>Name</th>
@@ -303,6 +270,7 @@ const RideRow = (props) => {
                             <th>Origin</th>
                             <th>Destination(s)</th>
                             <th>Wished pick up time</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -317,6 +285,17 @@ const RideRow = (props) => {
                             <td className="td-second">{dest()}</td>
                             <td className="td-second">{props.ride.wished_pickup_time.toString().slice(0,10)} @({props.ride.wished_pickup_time.toString().slice(11,19)})
                             </td>
+                            <td >
+                            <div className="action-buttons">
+                            { !changeRideState?
+                            <div> 
+                                <button className="btn btn-success btn-sm" onClick={() => { confirmRide() }} style={{ marginBottom:"9%"}}>confirm</button>
+                                <button className="btn btn-primary btn-sm" onClick={() => { cancellRide() }}>delete</button>
+                            </div> : 
+                            <div><bold style={{color:"red"}}>In progress ...</bold></div>}
+                            
+                            </div>
+                            </td> 
                         </tr>
                     </tbody>
                 </table>
@@ -410,11 +389,11 @@ const RideRow = (props) => {
             }}>{ detailButton }</button></td>    
         </tr>
         <tr style = {{ display: details? "":"none" }} >
-            <td className="data-table"  colSpan={9}>
+            <td className="data-table"  colSpan={10}>
                 <table className="table" style={{ textAlign: "center", width:"100%", margin:"auto"}} id="iner-table">
                     <thead className="thead-light">
                         <tr>
-                            <th colSpan={9}>Passenger info</th>
+                            <th colSpan={10}>Passenger info</th>
                         </tr>
                         <tr >
                             <th>Name</th>
@@ -514,7 +493,7 @@ function RideOverview() {
                 }
             })
             socket.emit("getRideOverview", {data: "Get ride-overview Data!"})
-        },6000)
+        },2000)
 
         return( () => {
             clearInterval(interval)
@@ -538,7 +517,7 @@ function RideOverview() {
         return rides.map( currentRide => {
          
             if ( !currentRide.isArrivedToDestination) {
-                return <RideRowProgress key={currentRide.request_fp} ride={currentRide}  />
+                return <RideRowProgress  ride={currentRide}  />
             } else { 
                 //! Do nothing (Do not add the ride to the list if not in progress)
              }
@@ -549,7 +528,7 @@ function RideOverview() {
         return rides.map( currentRide => {
             if ( currentRide.request_type === "scheduled" && currentRide.isArrivedToDestination===false) {
                 
-                return <RideRowScheduled key={currentRide.request_fp} ride={currentRide}  />
+                return <RideRowScheduled  ride={currentRide}  />
             } else { 
                 //! Do nothing (Do not add the ride to the list if not scheduled)
              }
@@ -560,7 +539,7 @@ function RideOverview() {
         return rides.map( currentRide => {
             if ( currentRide.isArrivedToDestination) {
                 
-                return <RideRow key={currentRide.request_fp} ride={currentRide}  />
+                return <RideRow  ride={currentRide}  />
             } else { 
                 //! Do nothing --> Do not add the ride to the list if not completed
                 //! the ride is completed upon confirmation of either driver or passenger
@@ -716,6 +695,8 @@ function RideOverview() {
                                         <th>Driver drop-off confirmation</th>
                                         <th>Connect type</th>
                                         <th>...</th>
+                                        <th></th>
+                                       
                                     </tr>
                                 </thead>
                                 <tbody>

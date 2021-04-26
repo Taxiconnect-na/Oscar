@@ -49,12 +49,12 @@ function formObject(
     email,
     operation_clearances,
     delivery_provider,
-    profile_picture,
+    /*profile_picture,
     driver_licence_doc,
     copy_id_paper,
     copy_white_paper,
     copy_public_permit,
-    copy_blue_paper,
+    copy_blue_paper,*/
     blue_paper_expiration,
     driver_licence_expiration,
     owner_name_bank,
@@ -67,7 +67,7 @@ function formObject(
     taxi_number,
     plate_number,
     max_passengers,
-    taxi_picture,
+    //taxi_picture,
     vehicle_type,
     car_nature,
     account_type,
@@ -83,12 +83,12 @@ function formObject(
             email,
             operation_clearances,
             delivery_provider,
-            profile_picture,
+            /*profile_picture,
             driver_licence_doc,
             copy_id_paper,
             copy_white_paper,
             copy_public_permit,
-            copy_blue_paper,
+            copy_blue_paper,*/
             blue_paper_expiration,
             driver_licence_expiration,
             owner_name_bank,
@@ -101,7 +101,7 @@ function formObject(
             taxi_number,
             plate_number,
             max_passengers,
-            taxi_picture,
+            //taxi_picture,
             vehicle_type,
             car_nature,
             account_type
@@ -187,12 +187,12 @@ const DriverRegistration = () => {
                     email,
                     operation_clearances,
                     delivery_provider,
-                    profile_picture,
+                    /*profile_picture,
                     driver_licence_doc,
                     copy_id_paper,
                     copy_white_paper,
                     copy_public_permit,
-                    copy_blue_paper,
+                    copy_blue_paper,*/
                     blue_paper_expiration,
                     driver_licence_expiration,
                     owner_name_bank,
@@ -205,7 +205,7 @@ const DriverRegistration = () => {
                     taxi_number,
                     plate_number,
                     max_passengers,
-                    taxi_picture,
+                    //taxi_picture,
                     vehicle_type,
                     car_nature,
                     account_type,
@@ -384,10 +384,28 @@ const DriverRegistration = () => {
                                             onChange={(e) => { setEmail(e.target.value) }}
                                             />
                                 </div>
+                                <div className="form-group mt-3">
+                                        <label>Blue paper expiration date: </label>
+                                        <div>
+                                            <DatePicker
+                                                selected={blue_paper_expiration}
+                                                onChange={(date) => {setBluePaperExpiration(date)}} 
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="form-group mt-3">
+                                        <label>Driver's licence expiration date: </label>
+                                        <div>
+                                            <DatePicker
+                                                selected={driver_licence_expiration}
+                                                onChange={(date) => {setDriverLicenceExpiration(date)}} 
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <div className="files-info-bank" style={right_form_style}>
-                                    <div> <h3>Upload files</h3></div>
+                                    {/*<div> <h3>Upload files</h3></div>
                                     <div className="custom-file" >
                                         <input type="file" className="custom-file-input" id="customFile" 
                                             onChange={(e) => { 
@@ -447,27 +465,14 @@ const DriverRegistration = () => {
                                         <label className="custom-file-label" htmlFor="customFile">
                                             {copy_blue_paper_name}
                                         </label> 
+                                        </div> 
+                                            
+                                            */}
+                                    
+                                    {/*<br></br>  */}
+                                    <div style={{ marginTop: 6 }}>
+                                         <h3 style={{ marginTop: 6 }}> Bank Details</h3>
                                     </div>
-                                    <div className="form-group mt-3">
-                                        <label>Blue paper expiration date: </label>
-                                        <div>
-                                            <DatePicker
-                                                selected={blue_paper_expiration}
-                                                onChange={(date) => {setBluePaperExpiration(date)}} 
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="form-group mt-3">
-                                        <label>Driver's licence expiration date: </label>
-                                        <div>
-                                            <DatePicker
-                                                selected={driver_licence_expiration}
-                                                onChange={(date) => {setDriverLicenceExpiration(date)}} 
-                                            />
-                                        </div>
-                                    </div>
-                                    <br></br>
-                                    <div style={{ marginTop: 6 }}> <h3> Bank Details</h3></div>
                                     <div className="form-group">
                                         <label>Owner name: </label>
                                         <input type="text"
@@ -572,14 +577,14 @@ const DriverRegistration = () => {
                                             />
                                     </div>
                                     <div className="form-group">
-                                        <label>Car category (select): </label>
+                                        <label>Vehicle Type (select): </label>
                                         <select
                                             required
                                             className="form-control"
                                             style={{ width: 400 }}
                                             value={ vehicle_type }
                                             onChange={(e) => { setVehicleType(e.target.value) }}>
-                             
+                                        <option></option>
                                         <option key="normalTaxiEconomy" value="normalTaxiEconomy">Economy (normal)</option>
                                         <option key="electricEconomy" value="electricEconomy">Economy (electric)</option>
                                         <option key="comfortNormalRide" value="comfortNormalRide">Comfort (normal)</option>
@@ -590,8 +595,6 @@ const DriverRegistration = () => {
                                         <option key="bikes" value="bikes">bikes</option>
                                         <option key="carDelivery" value="carDelivery">carDelivery</option>
                                         <option key="vanDelivery" value="vanDelivery">vanDelivery</option>
-                                        
-
                                         </select>
                                     </div>
                                     <div className="form-group">
@@ -608,6 +611,7 @@ const DriverRegistration = () => {
                                             <option key="car" value="car">car</option>
                                         </select>
                                     </div>
+                                    {/* 
                                     <div className="custom-file mt-4">
                                         <input type="file" className="custom-file-input" id="customFile"
                                             onChange={(e) => { 
@@ -617,7 +621,7 @@ const DriverRegistration = () => {
                                         <label className="custom-file-label" htmlFor="customFile">
                                             {taxi_picture_name}
                                         </label> 
-                                    </div>
+                                    </div> */}
 
                                 </div>
 

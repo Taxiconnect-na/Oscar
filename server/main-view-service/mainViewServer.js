@@ -2239,8 +2239,11 @@ function updateEntry(collection, query, newValues, resolve) {
   .findOne(query)
   .then((data) => {
     console.log(data.request_fp)
-
-    // Move it to cancelled rides/deliveries
+    //create global event
+    let eventObject = {
+      
+    }
+    // Move it to global events
     collectionDestination
     .insertOne(data)
     .then((result) => {
