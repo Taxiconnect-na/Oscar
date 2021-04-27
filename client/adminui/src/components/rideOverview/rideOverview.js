@@ -459,7 +459,7 @@ function RideOverview() {
                                     //upgrade: true,
                                     reconnectionAttempts: Infinity})  */
         const interval = setInterval(() => {
-            console.log("kaputo@taxiconnect")
+            console.log("kap@taxiconnect")
             socket.on("getRideOverview-response", (data) => {
                 if ((data !== undefined) && (data != null)) {
                     /* Do something

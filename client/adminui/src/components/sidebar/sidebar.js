@@ -5,6 +5,7 @@ import './sidebar.scss'
 import logotaxiconnect from '../../logotaxiconnect.png'
 import { FaChartBar, FaThList, FaRegRegistered, FaCarSide } from 'react-icons/fa'
 import { MdBusiness } from 'react-icons/md'
+import { BsFillTrashFill } from "react-icons/bs"
 
 function Sidebar() {
      const iconStyle = {
@@ -29,6 +30,7 @@ function Sidebar() {
                             <MenuItem>Not Available</MenuItem>
                         </SubMenu>
                     </SubMenu>
+                    <MenuItem><Link to="/cancelled-rides"><BsFillTrashFill style={iconStyle} />Misfired</Link></MenuItem>
                     <MenuItem><Link to="/drivers"><FaThList style={iconStyle} />Drivers</Link></MenuItem>
                     <MenuItem><Link to="/passengers"><FaThList style={iconStyle} />Users </Link></MenuItem>
                     <MenuItem><Link to="/driver-payment"><MdBusiness style={iconStyle} />Make payment </Link></MenuItem>

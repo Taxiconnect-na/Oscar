@@ -27,7 +27,8 @@ const fs = require("fs")
 }
 const server = https.createServer(sslOptions, app) */
 const server = http.createServer(app)
-const ObjectID = require('bson').ObjectID
+const ObjectID = require('bson').ObjectID;
+const { response } = require('express');
 
 
 app.use(helmet())
@@ -698,7 +699,7 @@ function getRideOverview(collectionRidesDeliveryData,
         collectionRidesDeliveryData
         .find({ride_mode:"RIDE"})
         .sort({ date_requested: -1})
-        .limit(130)
+        .limit(200)
         .toArray()
         .then((result) => {
             // Initialize the list of all trips
@@ -841,7 +842,7 @@ function getRideOverview(collectionRidesDeliveryData,
               collectionRidesDeliveryData
               .find({ride_mode:"RIDE"})
               .sort({ date_requested: -1})
-              .limit(130)
+              .limit(200)
               .toArray()
               .then((result) => {
                   // Initialize the list of all trips
@@ -988,7 +989,7 @@ function getRideOverview(collectionRidesDeliveryData,
           collectionRidesDeliveryData
           .find({ride_mode:"RIDE"})
           .sort({ date_requested: -1})
-          .limit(130)
+          .limit(200)
           .toArray()
           .then((result) => {
               // Initialize the list of all trips
@@ -1126,7 +1127,7 @@ function getRideOverview(collectionRidesDeliveryData,
         collectionRidesDeliveryData
         .find({ride_mode:"RIDE"})
         .sort({ date_requested: -1})
-        .limit(130)
+        .limit(200)
         .toArray()
         .then((result) => {
             // Initialize the list of all trips

@@ -652,6 +652,27 @@ io.on("connection", (socket) => {
         console.log(error)
         })
     })
+
+    // Get cancelled rides by passenger
+    socket.on("getCancelledRides-passenger", function(data) {
+        console.log("Requesting cancelled rides by passenger ")
+        axios.get(`${process.env.ROOT_URL}:${process.env.PASSENGER_ROOT}/cancelled-ride-passenger`)
+        .then((result) => {
+            // Check for an error
+            if(result.data.error) {
+                socket.emit("getCancelledRides-passenger-feedback", {error: true})
+            } else {
+                let cancelledRidesPassenger = new Object(result.data)
+
+                socket.emit("getCancelledRides-passenger-feedback", cancelledRidesPassenger)
+            }
+            
+        })
+        .catch((error) => {
+            console.log(error)
+            socket.emit("getCancelledRides-passenger-feedback", {error: true})
+        })
+    })
     
     // Confirm ride
     socket.on("ConfirmRide", function(data) {

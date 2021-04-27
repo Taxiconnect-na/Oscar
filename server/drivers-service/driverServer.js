@@ -1,4 +1,4 @@
-//console.log = function () {};
+console.log = function () {};
 const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
@@ -54,8 +54,8 @@ const s3 = new AWS.S3({
  * * Hard coded keys
  */
 //! Criver Buckets to be changed (dev/production)B
-const BUCKET_NAME_DRIVER = "drivers-central-beta-aws"  //For development
-//const BUCKET_NAME_DRIVER = "drivers-central-aws"     //For production
+//const BUCKET_NAME_DRIVER = "drivers-central-beta-aws"  //For development
+const BUCKET_NAME_DRIVER = "drivers-central-aws"     //For production
 const s3 = new AWS.S3({
     accessKeyId: "AKIAXVMLF7SBTB2WU72Z",
     secretAccessKey: "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"
@@ -73,7 +73,7 @@ Date.prototype.addHours = function(h) {
     this.setTime(this.getTime() + (h*60*60*1000));
     return this;
 }
- // Windhoek Date and Time
+ //* Windhoek Date and Time
 var windhoekDateTime = new Date(new Date().toUTCString()).addHours(2)
  
 
