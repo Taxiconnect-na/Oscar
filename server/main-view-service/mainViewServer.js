@@ -1,4 +1,4 @@
-console.log = function () {};
+//console.log = function () {};
 const path = require('path')
 // For self contained app
 //require("dotenv").config({ path: path.resolve(__dirname, './.env')});
@@ -47,7 +47,8 @@ Date.prototype.addHours = function(h) {
   this.setTime(this.getTime() + (h*60*60*1000));
   return this;
 }
-
+//* Windhoek Date and Time
+var windhoekDateTime = new Date(new Date().toUTCString()).addHours(2)
 /**
  * 
  * @param {collection} collectionName 
@@ -2295,6 +2296,43 @@ function updateEntry(collection, query, newValues, resolve) {
 }
 
 
+function todayRideDeliveryInProgress(collectionRidesDeliveryData, resolve) {
+
+  collectionRidesDeliveryData
+  .find({
+     ride_mode: "RIDE",  
+     isArrivedToDestination: false,
+     date_requested: { $gte: windhoekDateTime.setHours(0, 0, 0, 0)} 
+  })
+  .toArray()
+  .then((ridesProgress) => {
+
+    collectionRidesDeliveryData
+    .find({
+      ride_mode: "DELIVERY",  
+      isArrivedToDestination: false,
+      date_requested: { $gte: windhoekDateTime.setHours(0, 0, 0, 0)} 
+    })
+    .toArray()
+    .then((deliveryProgress) => {
+       resolve(
+         {
+          ride_in_progress_count_today: ridesProgress.length,
+          delivery_in_progress_count_today: deliveryProgress.length
+         }
+       )
+    })
+    .catch((error) => {
+      console.log(error)
+      resolve({ error: "Failed to get deliveries in progress"})
+    })
+
+  })
+  .catch((error) => {
+    console.log(error)
+    resolve({ error: "Failed to get rides in progress"})
+  })
+}
 
 // All APIs : 
 
@@ -2379,6 +2417,28 @@ clientMongo.connect(function (err) {
       }
     )
 
+  })
+
+  app.get("/inprogress-ride-delivery", (req, res) => {
+
+    new Promise((res) => {
+      todayRideDeliveryInProgress(collectionRidesDeliveryData, res)
+    })
+    .then((data) => {
+      
+      if(data.error) {
+        console.log(data)
+        res.send({error: "Failed to get rides and deliveries in progress"})
+      }
+      console.log(data)
+      res.send(data)
+
+    })
+    .catch((error) => {
+      console.log(error)
+      res.send({error: "Failed to get rides and deliveries in progress @API level"})
+
+    })
   })
   /**
    * API that sets a given ride as completed and pickup "confirmed" by passenger

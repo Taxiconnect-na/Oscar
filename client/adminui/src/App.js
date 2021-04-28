@@ -15,6 +15,7 @@ import Loader from "./components/Loader/Loader"
 import ErrorPage from "./components/errorPage/ErrorPage"
 import SuccessPage from "./components/successPage/SuccessPage"
 import CancelledRides from "./components/cancelledRides/CancelledRides"
+import Graph from "./components/Graphs/Graph"
 //import LoginButton from "./components/LoginButton"
 //import LogoutButton from "./components/LogoutButton"
 //import Profile from "./components/Profile"
@@ -322,7 +323,8 @@ function App() {
                 <Route path="/loadertest" component={Loader} />
                 <Route path="/action/success" component={SuccessPage} />
                 <Route path="/action/error" component={ErrorPage} />
-                <Route path="/cancelled-rides" component={CancelledRides} /> 
+                <Route path="/cancelled-rides" component={CancelledRides} />
+                <Route path="/graph" component={Graph} />
                 
               </Switch>
             </Router>
