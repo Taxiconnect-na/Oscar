@@ -2302,7 +2302,7 @@ function todayRideDeliveryInProgress(collectionRidesDeliveryData, resolve) {
   .find({
      ride_mode: "RIDE",  
      isArrivedToDestination: false,
-     date_requested: { $gte: windhoekDateTime.setHours(0, 0, 0, 0)} 
+     date_requested: { $gte: new Date(windhoekDateTime.setHours(0, 0, 0, 0)).addHours(2)} 
   })
   .toArray()
   .then((ridesProgress) => {
@@ -2311,14 +2311,14 @@ function todayRideDeliveryInProgress(collectionRidesDeliveryData, resolve) {
     .find({
       ride_mode: "DELIVERY",  
       isArrivedToDestination: false,
-      date_requested: { $gte: windhoekDateTime.setHours(0, 0, 0, 0)} 
+      date_requested: { $gte: new Date(windhoekDateTime.setHours(0, 0, 0, 0)).addHours(2)} 
     })
     .toArray()
     .then((deliveryProgress) => {
        resolve(
          {
           ride_in_progress_count_today: ridesProgress.length,
-          delivery_in_progress_count_today: deliveryProgress.length
+          delivery_in_progress_count_today: deliveryProgress.length,
          }
        )
     })
@@ -2419,7 +2419,7 @@ clientMongo.connect(function (err) {
 
   })
 
-  app.get("/inprogress-ride-delivery", (req, res) => {
+  app.get("/inprogress-ride-delivery-count-today", (req, res) => {
 
     new Promise((res) => {
       todayRideDeliveryInProgress(collectionRidesDeliveryData, res)

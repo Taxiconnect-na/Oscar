@@ -338,6 +338,26 @@ io.on("connection", (socket) => {
         }
         
     })
+
+    // Get rides and deliveries count for today
+    socket.on("get-trips-in-progress-count", (data) => {
+        if ((data !== undefined) && (data != null)) {
+            console.log("====== Getting trips in progress count======")
+            axios.get(`${process.env.ROOT_URL}:${process.env.STATS_ROOT}/inprogress-ride-delivery-count-today`)
+            .then((feedback) => {
+                console.log(feedback.data)
+                socket.emit("get-trips-in-progress-count-feedback", {
+                    todayRidesProgressCount: feedback.data.ride_in_progress_count_today,
+                    todayDeliveryProgressCount: feedback.data.delivery_in_progress_count_today
+                })
+            })
+            .catch((error) => {
+                console.log(error)
+                socket.emit("get-trips-in-progress-count-feedback", {error: true})
+            })
+
+        }
+    } )
     
     // Get Deliveries (in progress and completed)
     socket.on("getDeliveryOverview", function(data) {

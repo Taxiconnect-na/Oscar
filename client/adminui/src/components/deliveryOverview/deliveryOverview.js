@@ -220,6 +220,7 @@ function DeliveryOverview() {
 
     let [deliveries, setDeliveries] = useState([])   // Main ride list of objects
     let [inProgress, setInProgress] = useState(true)
+    let [DeliveryInProgressCountToday, setDeliveryInProgressCountToday] = useState(0)
     let [scheduled, setScheduled] = useState(false)
     let [completed, setCompleted] = useState(false)
     let [InprogressCount, setInProgressCount] = useState(0)
@@ -279,7 +280,16 @@ function DeliveryOverview() {
             }) 
 
             socket.emit("getDeliveryOverview", {data: "Get delivery-overview Data!"})
-        },6000)
+
+            socket.on("get-trips-in-progress-count-feedback", (data) => {
+                if((data != undefined) && (data != null)) {
+
+                    setDeliveryInProgressCountToday(data.todayDeliveryProgressCount)
+                }
+            })
+            socket.emit("get-trips-in-progress-count", {data: "Get deliveries in progress count today"})
+
+        },5000)
 
         return( () => {
             clearInterval(interval)
@@ -457,7 +467,7 @@ function DeliveryOverview() {
                             
                         { today() }
 
-                            <h3 style={ subtitle_style }>Deliveries in progress </h3>
+                            <h3 style={ subtitle_style }>Deliveries in progress [ { DeliveryInProgressCountToday } ] </h3>
                         <table className="table" style={{ textAlign: "center"}}>
                             <thead className="thead-light">
                                 <tr>
