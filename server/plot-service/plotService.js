@@ -41,7 +41,7 @@ app.use(helmet())
 const PORT = process.env.PLOT_ROOT
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
-  });
+});
 
 // For testing purpose:
 app.get("/", (req, res) => {
