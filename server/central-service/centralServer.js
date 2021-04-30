@@ -28,8 +28,8 @@ const server = http.createServer(app)
 //const server = https.createServer(sslOptions, app)
 const socketIo = require("socket.io")
 const io = socketIo(server, { cors: {
-    origin: "https://taxiconnectnanetwork.com",
-    //origin: "http://localhost",
+    //origin: "https://taxiconnectnanetwork.com",
+    origin: "http://localhost",
     //origin: "http://192.168.8.151",
     methods: ["GET", "POST"],
     credentials: true
@@ -750,6 +750,42 @@ io.on("connection", (socket) => {
         }
     })
 
+    /*
+    *===================================================================================================
+    //*                 Data Visualization related events
+    *===================================================================================================
+    */
+
+    // Socket getting rides visualisation data (monthly-counts)
+    socket.on("get-rides-count-vis", (data) => {
+        if((data !== undefined) && (data !== null)) {
+            console.log("Attempting to get rides counts visualization data")
+
+            axios.get(`${process.env.ROOT_URL}:${process.env.PLOT_ROOT}/rides-plot-data/per-monthly-data/${data.year}`)
+            .then((feedback) => {
+                let response = new Object(feedback.data)
+                console.log(response)
+                if(response.error){
+                    socket.emit("get-rides-count-vis-feedback", {error: true, empty: false})
+                } else {
+                   
+                    socket.emit("get-rides-count-vis-feedback", response)
+                   
+                }
+            })
+            .catch((error) => {
+                console.log(error)
+                socket.emit("get-rides-count-vis-feedback", {error: true, empty: false})
+            })
+        }
+    })
+
+
+
+
+    /**
+     * * Test-socket 
+     */
     // Socket test event
     socket.on("socket-test", (data) => {
 

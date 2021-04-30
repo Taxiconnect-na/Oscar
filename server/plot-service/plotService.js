@@ -10,12 +10,12 @@ const app = express()
 const helmet = require("helmet")
 const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
-
+/*
 const redis = require("redis")
 const client = redis.createClient({
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT
-})
+}) */
 
 const http = require("http")
 /*const https = require("https")
@@ -100,7 +100,7 @@ function GeneralPlottingData(collectionRidesDeliveryData, filteringQuery, fire )
     collectionRidesDeliveryData
     .find(filteringQuery)
     //.limit(6)
-    .sort({date_requested: -1 })
+    .sort({date_requested: 1 })
     .toArray()
     .then((rides) => {
         // Object containing promise of all final data
@@ -162,7 +162,7 @@ function MonthlyDataCount(data, filteringYear, resolve) {
         //return a promise for each object to be added to the list
         return new Promise((output) => {
             
-            output({date: category.field, count: category.groupList.length})
+            output({date: category.field, successful: category.groupList.length})
         })
         .catch((error) => {
             console.log(error)
@@ -212,6 +212,7 @@ clientMongo.connect(function(err) {
 
         app.get("/rides-plot-data/per-monthly-data/:year", (req, res) => {
 
+            console.log("VISUALIZER API Called")
                 // Filtering query
             const query = {
                 ride_mode: "RIDE",
