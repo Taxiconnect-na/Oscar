@@ -357,7 +357,7 @@ io.on("connection", (socket) => {
             })
 
         }
-    } )
+    })
     
     // Get Deliveries (in progress and completed)
     socket.on("getDeliveryOverview", function(data) {

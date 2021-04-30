@@ -51,7 +51,7 @@ const monthTickFormatter = (tick) => {
     const date = new Date(tick);
   
     return date.getMonth() + 1;
-  };
+};
   
 
 
