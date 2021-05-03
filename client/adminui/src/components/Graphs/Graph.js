@@ -75,7 +75,6 @@ export default function Graph() {
             <Bar dataKey="uv" fill="#82ca9d" />
         </BarChart>
         </div>
-
     </div>
   )
 }

@@ -66,6 +66,14 @@ Array.prototype.groupBy = function(field){
     
     return groupedArr;
 }
+
+//* Check whether object is date or not
+var is_date = function(input) {
+    if ( Object.prototype.toString.call(input) === "[object Date]" ) 
+      return true;
+    return false;   
+};
+
   
 
 function getDayName(number) {
@@ -95,11 +103,12 @@ function getDayName(number) {
     }
 }
 
-function GeneralPlottingData(collectionRidesDeliveryData, filteringQuery, fire ) {
+
+function GeneralPlottingData(collectionRidesDeliveryData, collectionRidesDeliveryDataCancelled ,filteringQuery, fire ) {
 
     collectionRidesDeliveryData
     .find(filteringQuery)
-    //.limit(6)
+    //.limit(15000)
     .sort({date_requested: 1 })
     .toArray()
     .then((rides) => {
@@ -119,7 +128,8 @@ function GeneralPlottingData(collectionRidesDeliveryData, filteringQuery, fire )
                     fare: Number(data.fare),
                     payment_method: data.payment_method,
                     connect_type: data.connect_type,
-                    origin_location_suburb: data.pickup_location_infos.suburb
+                    origin_location_suburb: data.pickup_location_infos.suburb,
+                    ride_state: "successful"
                 })
             })
             .catch((error) => {
@@ -129,9 +139,81 @@ function GeneralPlottingData(collectionRidesDeliveryData, filteringQuery, fire )
         })
         //Collect all promises and return final array of objects
         Promise.all(allObjects)
-        .then((result) => {
-            console.log(`General plotting data count: ${result.length}`)
-            fire(result)
+        .then((result1) => {
+            console.log(`General plotting data count: ${result1.length}`)
+            //console.log(result1)
+            //fire(result)
+            collectionRidesDeliveryDataCancelled
+            .find({})
+            //.limit(10000)
+            //.sort({date_requested: -1 })
+            .toArray()
+            .then((rides0) => {
+                // Object containing promise of all final data
+                allObjectsCancelled = rides0.map((data) => {
+                    return new Promise((resolve) => {
+                        // Store following object to allObjectsCancelled Array
+                        // Make sure the date returned is an object of type date
+                        if(is_date(data.date_requested)){ 
+                            resolve({
+                                year: data.date_requested.getFullYear().toString(),
+                                month: (data.date_requested.getMonth() + 1).toString(),
+                                dayNumber: data.date_requested.getDate().toString(),
+                                dayName: getDayName(data.date_requested.getDay()),
+                                timeHour: data.date_requested.getHours().toString(),
+                                monthDay: (data.date_requested.getMonth() + 1).toString() + "-"+ data.date_requested.getDate().toString(),
+                                yearMonth: data.date_requested.getFullYear().toString() + "-" + (data.date_requested.getMonth() + 1).toString(),
+                                yearMonthDay: data.date_requested.getFullYear().toString() + "-" + (data.date_requested.getMonth() + 1).toString() + "-" + data.date_requested.getDate().toString(),
+                                fare: Number(data.fare),
+                                payment_method: data.payment_method,
+                                connect_type: data.connect_type,
+                                origin_location_suburb: data.pickup_location_infos.suburb,
+                                ride_state: "cancelled"
+                            })
+                        } else {
+                            // For Test data that was not in wanted format before live data
+                            resolve({
+                                year: "2021",
+                                month: "1",
+                                dayNumber:"3",
+                                dayName: "Mon",
+                                timeHour: "10",
+                                monthDay: "2-13",
+                                yearMonth: "2021-1",
+                                yearMonthDay: "2021-1-3",
+                                fare: Number(data.fare),
+                                payment_method: data.payment_method,
+                                connect_type: data.connect_type,
+                                origin_location_suburb: data.pickup_location_infos.suburb,
+                                ride_state: "cancelled"
+                            })
+                        }
+                        
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        fire({error: "Failed to get general plotting data"})
+                    })
+                })
+                //Collect all promises and return final array of objects
+                Promise.all(allObjectsCancelled)
+                .then((result2) => {
+                    console.log(`General plotting data count cancelled: ${result2.length}`)
+                   // console.log(result2)
+                    //fire(result2)
+                    //Return the combination of both lists (cancelled and successful) as ONE LIST
+                    fire(result1.concat(result2))
+                })
+                .catch((error) => {
+                    console.log(error)
+                    fire({error: "Failed to get general plotting data"})
+                })
+        
+            })
+            .catch((error) => {
+                console.log(error)
+                fire({error: "Failed to get general plotting data"})
+            })
         })
         .catch((error) => {
             console.log(error)
@@ -147,22 +229,55 @@ function GeneralPlottingData(collectionRidesDeliveryData, filteringQuery, fire )
 }
 
 /**
- * @function MonthlyDataCount: returns monthy counts based on spicified year and grouping criteria
+ * @function MonthlyDataCount: returns monthy counts based on spicified year and grouping criteria ("yearMonth")
  * * //! Empty list is returned whenever the year is not contained in the data
  * @param {array of objects} data: Objects of the array are the ones generated by GeneralPlottingData function 
  * @param {string} filteringYear : The year for which the data should be returned
  *                   
  * @returns 
  */
-function MonthlyDataCount(data, filteringYear, resolve) {
+ function MonthlyDataCount(dataToGroup, filteringYear, resolve) {
     
-    let sorted = data.groupBy("yearMonth")
+    let sorted = dataToGroup.groupBy("yearMonth")
     //console.log(sorted)
     let sortedList = sorted.map((category) => {
         //return a promise for each object to be added to the list
         return new Promise((output) => {
+            // Group internal groupList by ride_state
+            let success_cancelled_group = category.groupList.groupBy("ride_state")
+            let internalData = {}
+            let internalList = success_cancelled_group.map((internalCategory) => {
+                //console.log(internalCategory)
+                return internalCategory
+            })
             
-            output({date: category.field, successful: category.groupList.length})
+            let cancelledObjectInternal = internalList.find((each) => each.field === "cancelled")
+            let successfulObjectInternal = internalList.find((each) => each.field === "successful")
+
+            if(cancelledObjectInternal) {
+
+                console.log(`cancelled: ${cancelledObjectInternal.groupList.length}`)
+                internalData.cancelled = cancelledObjectInternal.groupList.length
+            
+            } else if(!cancelledObjectInternal){
+
+                console.log("no cancelled object here")
+                internalData.cancelled = 0
+            }
+
+            if(successfulObjectInternal){
+                console.log(`successful: ${successfulObjectInternal.groupList.length}`)
+                internalData.successful = successfulObjectInternal.groupList.length
+            } else if(!successfulObjectInternal) {
+                console.log("No successful object here")
+                internalData.successful = 0
+            }
+            
+            output({
+                date: category.field,
+                successful: internalData.successful,
+                cancelled: internalData.cancelled
+            })
         })
         .catch((error) => {
             console.log(error)
@@ -222,12 +337,12 @@ clientMongo.connect(function(err) {
 
             }
             new Promise((fire) => {
-                GeneralPlottingData(collectionRidesDeliveryData, query, fire)
+                GeneralPlottingData(collectionRidesDeliveryData, collectionRidesDeliveryDataCancelled, query, fire)
             })
             .then((result) => {
                 if(result.error) {
                     console.log(" An error occured @GeneralPlottingData")
-                    res.send({error: "Failed to get rides monthly data @function level"})
+                    res.send({error: "Failed to get rides monthly data @General Data format function level"})
                 } else {
                     
                     new Promise((res) => {

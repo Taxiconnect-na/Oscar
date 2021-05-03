@@ -1,11 +1,38 @@
 // Mongodb Connection 
 const MongoClient = require("mongodb").MongoClient
 const uri = "mongodb://localhost:27017"
+//const uri = "mongodb+srv://taxiconnect-test-mongo-user:epzcVtEZ39ZvawlM@cluster0.cumod.mongodb.net/test?authSource=admin&replicaSet=atlas-13sofg-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true"
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
   });
 const dbName = "Taxiconnect"
 
+//* Check whether object is date or not
+var is_date = function(input) {
+    if ( Object.prototype.toString.call(input) === "[object Date]" ) 
+      return true;
+    return false;   
+};
+
+
+Array.prototype.groupBy = function(field){
+    let groupedArr = [];
+    this.forEach(function(e){
+      //look for an existent group
+      let group = groupedArr.find(g => g['field'] === e[field]);
+      if (group == undefined){
+        //add new group if it doesn't exist
+        group = {field: e[field], groupList: []};
+        groupedArr.push(group);
+      }
+      
+      //add the element to the group
+      group.groupList.push(e);
+    });
+    
+    return groupedArr;
+}
+  
 
 function getDayName(number) {
     switch(number) {
@@ -34,11 +61,12 @@ function getDayName(number) {
     }
 }
 
-function GeneralPlottingData(collectionRidesDeliveryData, filteringQuery, fire ) {
+function GeneralPlottingData(collectionRidesDeliveryData, collectionRidesDeliveryDataCancelled ,filteringQuery, fire ) {
 
     collectionRidesDeliveryData
     .find(filteringQuery)
-    //.limit(6)
+    //.limit(15000)
+    .sort({date_requested: -1 })
     .toArray()
     .then((rides) => {
         // Object containing promise of all final data
@@ -51,13 +79,14 @@ function GeneralPlottingData(collectionRidesDeliveryData, filteringQuery, fire )
                     dayNumber: data.date_requested.getDate().toString(),
                     dayName: getDayName(data.date_requested.getDay()),
                     timeHour: data.date_requested.getHours().toString(),
-                    dayMonth: (data.date_requested.getMonth() + 1).toString() + "-"+ data.date_requested.getDate().toString(),
+                    monthDay: (data.date_requested.getMonth() + 1).toString() + "-"+ data.date_requested.getDate().toString(),
                     yearMonth: data.date_requested.getFullYear().toString() + "-" + (data.date_requested.getMonth() + 1).toString(),
                     yearMonthDay: data.date_requested.getFullYear().toString() + "-" + (data.date_requested.getMonth() + 1).toString() + "-" + data.date_requested.getDate().toString(),
                     fare: Number(data.fare),
                     payment_method: data.payment_method,
                     connect_type: data.connect_type,
-                    origin_location_suburb: data.pickup_location_infos.suburb
+                    origin_location_suburb: data.pickup_location_infos.suburb,
+                    ride_state: "successful"
                 })
             })
             .catch((error) => {
@@ -67,9 +96,81 @@ function GeneralPlottingData(collectionRidesDeliveryData, filteringQuery, fire )
         })
         //Collect all promises and return final array of objects
         Promise.all(allObjects)
-        .then((result) => {
-            console.log(`General plotting data count: ${result.length}`)
-            fire(result)
+        .then((result1) => {
+            console.log(`General plotting data count: ${result1.length}`)
+            //console.log(result1)
+            //fire(result)
+            collectionRidesDeliveryDataCancelled
+            .find({})
+            .limit(10000)
+            //.sort({date_requested: -1 })
+            .toArray()
+            .then((rides0) => {
+                // Object containing promise of all final data
+                allObjectsCancelled = rides0.map((data) => {
+                    return new Promise((resolve) => {
+                        // Store following object to allObjectsCancelled Array
+                        // Make sure the date returned is an object of type date
+                        if(is_date(data.date_requested)){ 
+                            resolve({
+                                year: data.date_requested.getFullYear().toString(),
+                                month: (data.date_requested.getMonth() + 1).toString(),
+                                dayNumber: data.date_requested.getDate().toString(),
+                                dayName: getDayName(data.date_requested.getDay()),
+                                timeHour: data.date_requested.getHours().toString(),
+                                monthDay: (data.date_requested.getMonth() + 1).toString() + "-"+ data.date_requested.getDate().toString(),
+                                yearMonth: data.date_requested.getFullYear().toString() + "-" + (data.date_requested.getMonth() + 1).toString(),
+                                yearMonthDay: data.date_requested.getFullYear().toString() + "-" + (data.date_requested.getMonth() + 1).toString() + "-" + data.date_requested.getDate().toString(),
+                                fare: Number(data.fare),
+                                payment_method: data.payment_method,
+                                connect_type: data.connect_type,
+                                origin_location_suburb: data.pickup_location_infos.suburb,
+                                ride_state: "cancelled"
+                            })
+                        } else {
+                            // For Test data that was not in wanted format before live data
+                            resolve({
+                                year: "2021",
+                                month: "1",
+                                dayNumber:"3",
+                                dayName: "Mon",
+                                timeHour: "10",
+                                monthDay: "2-13",
+                                yearMonth: "2021-1",
+                                yearMonthDay: "2021-1-3",
+                                fare: Number(data.fare),
+                                payment_method: data.payment_method,
+                                connect_type: data.connect_type,
+                                origin_location_suburb: data.pickup_location_infos.suburb,
+                                ride_state: "cancelled"
+                            })
+                        }
+                        
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        fire({error: "Failed to get general plotting data"})
+                    })
+                })
+                //Collect all promises and return final array of objects
+                Promise.all(allObjectsCancelled)
+                .then((result2) => {
+                    console.log(`General plotting data count cancelled: ${result2.length}`)
+                   // console.log(result2)
+                    //fire(result2)
+                    //Return the combination of both lists (cancelled and successful) as ONE LIST
+                    fire(result1.concat(result2))
+                })
+                .catch((error) => {
+                    console.log(error)
+                    fire({error: "Failed to get general plotting data"})
+                })
+        
+            })
+            .catch((error) => {
+                console.log(error)
+                fire({error: "Failed to get general plotting data"})
+            })
         })
         .catch((error) => {
             console.log(error)
@@ -83,6 +184,83 @@ function GeneralPlottingData(collectionRidesDeliveryData, filteringQuery, fire )
     })
 
 }
+
+/**
+ * @function MonthlyDataCount: returns monthy counts based on spicified year and grouping criteria
+ * * //! Empty list is returned whenever the year is not contained in the data
+ * @param {array of objects} data: Objects of the array are the ones generated by GeneralPlottingData function 
+ * @param {string} filteringYear : The year for which the data should be returned
+ *                   
+ * @returns 
+ */
+function MonthlyDataCount(dataToGroup, filteringYear, resolve) {
+    
+    let sorted = dataToGroup.groupBy("yearMonth")
+    //console.log(sorted)
+    let sortedList = sorted.map((category) => {
+        //return a promise for each object to be added to the list
+        return new Promise((output) => {
+            // Group internal groupList by ride_state
+            let success_cancelled_group = category.groupList.groupBy("ride_state")
+            let internalData = {}
+            let internalList = success_cancelled_group.map((internalCategory) => {
+                //console.log(internalCategory)
+                return internalCategory
+            })
+            //console.log(internalList.find((each) => each.field === "cancelled"))
+            //console.log(internalList.find((each) => each.field === "successful"))
+            
+            let cancelledObjectInternal = internalList.find((each) => each.field === "cancelled")
+            let successfulObjectInternal = internalList.find((each) => each.field === "successful")
+
+            if(cancelledObjectInternal) {
+
+                console.log(`cancelled: ${cancelledObjectInternal.groupList.length}`)
+                internalData.cancelled = cancelledObjectInternal.groupList.length
+            
+            } else if(!cancelledObjectInternal){
+
+                console.log("no cancelled object here")
+                internalData.cancelled = 0
+            }
+
+            if(successfulObjectInternal){
+                console.log(`successful: ${successfulObjectInternal.groupList.length}`)
+                internalData.successful = successfulObjectInternal.groupList.length
+            } else if(!successfulObjectInternal) {
+                console.log("No successful object here")
+                internalData.successful = 0
+            }
+            
+            output({
+                date: category.field,
+                successful: internalData.successful,
+                cancelled: internalData.cancelled
+            })
+        })
+        .catch((error) => {
+            console.log(error)
+            resolve({error: "Failed to return the monthly list of data"})
+        })
+
+    })
+
+    Promise.all(sortedList)
+    .then((result) => {
+        // return data filtered by wanted year
+        let yearFilteredArray = result.filter((element) => {
+            return element.date.startsWith(filteringYear)
+        })
+
+        resolve(yearFilteredArray)
+    })
+    .catch((error) => {
+        console.log(error)
+        resolve({error: "Failed to return the monthly list of data"})
+    })
+    
+}
+
 
 clientMongo.connect(function() {
 
@@ -111,13 +289,51 @@ clientMongo.connect(function() {
 
     }
     new Promise((fire) => {
-        GeneralPlottingData(collectionRidesDeliveryData, query, fire)
+        GeneralPlottingData(collectionRidesDeliveryData, collectionRidesDeliveryDataCancelled, query, fire)
     })
     .then((result) => {
         if(result.error) {
             console.log(" An error occured @GeneralPlottingData")
         } else {
-            console.log(result)
+            
+            console.log(result.length)
+            console.log("OK")
+            /*
+            let sorted = result.groupBy("yearMonth")
+
+            
+
+            let sortedList = sorted.map((category) => {
+                //console.log({[category.field] : category.groupList})
+                //return({[category.field] : category.groupList})
+                return(
+                    {date: category.field, count: category.groupList.length}
+                )
+            }) */
+            //console.log(sorted)
+            //console.log(sorted.find(({ field }) => field === "2021-3"))
+            /*console.log(sortedList.filter((element) => {
+                return element.date.startsWith("2020")
+            })) */
+            /*
+            sortedList.map((list) => {
+                // Get the key(date) and its values and assign them as values of new object
+
+                let useful = {
+                    date: Object.keys(list)[0],
+                    objectlist: Object.values(list)[0]
+                }
+                //console.log(useful)
+                //console.log({ date: Object.keys(list)[0]})
+            }) */
+            
+            new Promise((res) => {
+                MonthlyDataCount(result, "2021", res)
+            })
+            .then((monthly) => {
+                //console.log(monthly)
+                console.log(monthly)
+            })  
         }
     })
 })

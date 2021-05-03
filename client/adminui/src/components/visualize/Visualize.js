@@ -5,7 +5,7 @@ import socket from '../socket'
 export default function Visualize() {
 
     let [successfulRides, setSuccessfulRides] = useState([])
-    let [year, setYear] = useState("2020")
+    let [year, setYear] = useState("2021")
 
     useEffect(() => {
 
@@ -42,14 +42,14 @@ export default function Visualize() {
     <div>
         <h5> Hello here at visualization</h5>
         <div style={styles.graph}>
-        <BarChart width={500} height={300} data={successfulRides}>
+        <BarChart width={480} height={300} data={successfulRides}>
             <CartesianGrid strokeDasharray="2 2" />
             <XAxis dataKey="date" />
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="successful" fill="#8884d8" />
-            
+            <Bar name="Successful" dataKey="successful" fill="#0e8714" />
+            <Bar name="Cancelled" dataKey="cancelled" fill="#c20615" />    
         </BarChart>
         </div>
     </div>
