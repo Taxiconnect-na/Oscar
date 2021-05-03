@@ -761,7 +761,7 @@ io.on("connection", (socket) => {
         if((data !== undefined) && (data !== null)) {
             console.log("Attempting to get rides counts visualization data")
 
-            axios.get(`${process.env.ROOT_URL}:${process.env.PLOT_ROOT}/rides-plot-data/per-monthly-data/${data.year}`)
+            axios.get(`${process.env.ROOT_URL}:${process.env.PLOT_ROOT}/rides-plot-data/per-month-count/${data.year}`)
             .then((feedback) => {
                 let response = new Object(feedback.data)
                 console.log(response)
@@ -776,6 +776,30 @@ io.on("connection", (socket) => {
             .catch((error) => {
                 console.log(error)
                 socket.emit("get-rides-count-vis-feedback", {error: true, empty: false})
+            })
+        }
+    })
+
+    // Socket getting rides visualisation data (monthly-sales)
+    socket.on("get-rides-grossSales-vis", (data) => {
+        if((data !== undefined) && (data !== null)) {
+            console.log("Attempting to get monthly gross sales visualization data")
+
+            axios.get(`${process.env.ROOT_URL}:${process.env.PLOT_ROOT}/rides-plot-data/per-month-gross-sales/${data.year}`)
+            .then((feedback) => {
+                let response = new Object(feedback.data)
+                console.log(response)
+                if(response.error){
+                    socket.emit("get-rides-grossSales-vis-feedback", {error: true, empty: false})
+                } else {
+                   
+                    socket.emit("get-rides-grossSales-vis-feedback", response)
+                   
+                }
+            })
+            .catch((error) => {
+                console.log(error)
+                socket.emit("get-rides-grossSales-vis-feedback", {error: true, empty: false})
             })
         }
     })

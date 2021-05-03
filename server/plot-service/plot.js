@@ -262,6 +262,87 @@ function MonthlyDataCount(dataToGroup, filteringYear, resolve) {
 }
 
 
+function SumFareField(object) {
+    const Sum = (arr) => arr.reduce((num1, num2) => num1 + num2, 0) // The sum function
+    //Initialize array
+    let finalArray = object.map((each) => {
+        return each.fare
+    })
+
+    return Sum(finalArray)
+
+}
+
+
+
+function MonthlyDataFare(dataToGroup, filteringYear, resolve) {
+    
+    let sorted = dataToGroup.groupBy("yearMonth")
+    //console.log(sorted)
+    let sortedList = sorted.map((category) => {
+        //return a promise for each object to be added to the list
+        return new Promise((output) => {
+            // Group internal groupList by ride_state
+            let success_cancelled_group = category.groupList.groupBy("ride_state")
+            // Initialise internal data Object 
+            let internalData = {}
+            let internalList = success_cancelled_group.map((internalCategory) => {
+                //console.log(internalCategory)
+                return internalCategory
+            })
+            
+            let cancelledObjectInternal = internalList.find((each) => each.field === "cancelled")
+            let successfulObjectInternal = internalList.find((each) => each.field === "successful")
+
+            if(cancelledObjectInternal) {
+
+                console.log(`cancelled: ${cancelledObjectInternal.groupList.length}`)
+                internalData.cancelled = SumFareField(cancelledObjectInternal.groupList)
+            
+            } else if(!cancelledObjectInternal){
+
+                console.log("no cancelled object here")
+                internalData.cancelled = 0
+            }
+
+            if(successfulObjectInternal){
+                console.log(`successful: ${successfulObjectInternal.groupList.length}`)
+                internalData.successful = SumFareField(successfulObjectInternal.groupList)
+            } else if(!successfulObjectInternal) {
+                console.log("No successful object here")
+                internalData.successful = 0
+            }
+            
+            output({
+                date: category.field,
+                successful: internalData.successful,
+                cancelled: internalData.cancelled
+            })
+        })
+        .catch((error) => {
+            console.log(error)
+            resolve({error: "Failed to return the monthly list of data"})
+        })
+
+    })
+
+    Promise.all(sortedList)
+    .then((result) => {
+        // return data filtered by wanted year
+        let yearFilteredArray = result.filter((element) => {
+            return element.date.startsWith(filteringYear)
+        })
+
+        resolve(yearFilteredArray)
+    })
+    .catch((error) => {
+        console.log(error)
+        resolve({error: "Failed to return the monthly list of data"})
+    })
+    
+}
+
+
 clientMongo.connect(function() {
 
     const dbMongo = clientMongo.db(dbName)
@@ -328,7 +409,7 @@ clientMongo.connect(function() {
             }) */
             
             new Promise((res) => {
-                MonthlyDataCount(result, "2021", res)
+                MonthlyDataFare(result, "2020", res)
             })
             .then((monthly) => {
                 //console.log(monthly)
