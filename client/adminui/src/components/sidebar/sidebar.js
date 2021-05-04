@@ -6,12 +6,16 @@ import logotaxiconnect from '../../logotaxiconnect.png'
 import { FaChartBar, FaThList, FaRegRegistered, FaCarSide } from 'react-icons/fa'
 import { MdBusiness } from 'react-icons/md'
 import { BsFillTrashFill } from "react-icons/bs"
+import React, { useState } from 'react'
 
 function Sidebar() {
-     const iconStyle = {
+    let [over, setOver] = useState(false)
+    const iconStyle = {
          width: 35,
          height: 20
-     }
+    }
+
+   
     return(
         <div className="sidebar">
             <ProSidebar>

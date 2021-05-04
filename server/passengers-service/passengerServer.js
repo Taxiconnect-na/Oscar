@@ -109,7 +109,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                 })
                 Promise.all(passengers).then(
                     (result) => {
-                        client.set("passengers-cash", JSON.stringify(result), redis.print)
+                        client.setex("passengers-cash", 200000,JSON.stringify(result), redis.print)
                         resolve(result)
                         
                     },

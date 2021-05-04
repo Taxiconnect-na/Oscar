@@ -1,7 +1,9 @@
 .plots {
     display: flex;
+    flex-wrap: wrap;
     flex-direction: row;
     justify-content: center;
+    background-color: #f5f3f2;
 }
 
 .plot-title {
@@ -10,3 +12,4 @@
     text-align: center;
     padding: 3%;
 }
+
