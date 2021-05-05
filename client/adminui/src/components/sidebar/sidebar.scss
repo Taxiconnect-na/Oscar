@@ -1,9 +1,16 @@
 .sidebar {
-    height: 180vh;
+    height: 220vh;
+    display: block;
+    top: 0;
+    left: 0;
+    overflow-x: hidden;
+
 }
  
 $sidebar-bg-color: linear-gradient(#213a57, #000000, #213a57 ) ;
 $submenu-bg-color: linear-gradient(#1b233a, #201e2e, #1b233a)  ;
-$sidebar-width: 100%;
+$sidebar-width: 105%;
+$sidebar-height: 100%;
+$sidebar-position: fixed;
 
 @import '~react-pro-sidebar/dist/scss/styles.scss';

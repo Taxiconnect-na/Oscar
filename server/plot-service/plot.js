@@ -262,6 +262,75 @@ function MonthlyDataCount(dataToGroup, filteringYear, resolve) {
 }
 
 
+function MonthlyDataCountConnectType(dataToGroup, filteringYear, resolve) {
+    
+    let sorted = dataToGroup.groupBy("yearMonth")
+    //console.log(sorted)
+    let sortedList = sorted.map((category) => {
+        //return a promise for each object to be added to the list
+        return new Promise((output) => {
+            // Group internal groupList by ride_state
+            let connect_type_groups = category.groupList.groupBy("connect_type")
+            let internalData = {}
+            let internalList = connect_type_groups.map((internalCategory) => {
+                //console.log(internalCategory)
+                return internalCategory
+            })
+            //console.log(internalList.find((each) => each.field === "cancelled"))
+            //console.log(internalList.find((each) => each.field === "successful"))
+            
+            let connectMeObjectInternal = internalList.find((each) => each.field === "ConnectMe")
+            let connectUsObjectInternal = internalList.find((each) => each.field === "ConnectUs")
+
+            if(connectMeObjectInternal) {
+
+                console.log(`connectMe: ${connectMeObjectInternal.groupList.length}`)
+                internalData.ConnectMe = connectMeObjectInternal.groupList.length
+            
+            } else if(!connectMeObjectInternal){
+
+                console.log("no connectMe object here")
+                internalData.ConnectMe = 0
+            }
+
+            if(connectUsObjectInternal){
+                console.log(`connectUs: ${connectUsObjectInternal.groupList.length}`)
+                internalData.ConnectUs = connectUsObjectInternal.groupList.length
+            } else if(!connectUsObjectInternal) {
+                console.log("No successful object @ connect Us")
+                internalData.ConnectUs = 0
+            }
+            
+            output({
+                date: category.field,
+                ConnectMe: internalData.ConnectMe,
+                ConnectUs: internalData.ConnectUs
+            })
+        })
+        .catch((error) => {
+            console.log(error)
+            resolve({error: "Failed to return the monthly list of data for connect Type"})
+        })
+
+    })
+
+    Promise.all(sortedList)
+    .then((result) => {
+        // return data filtered by wanted year
+        let yearFilteredArray = result.filter((element) => {
+            return element.date.startsWith(filteringYear)
+        })
+
+        resolve(yearFilteredArray)
+    })
+    .catch((error) => {
+        console.log(error)
+        resolve({error: "Failed to return the monthly list of data for connect Type"})
+    })
+    
+}
+
+
 function SumFareField(object) {
     const Sum = (arr) => arr.reduce((num1, num2) => num1 + num2, 0) // The sum function
     //Initialize array
@@ -343,6 +412,79 @@ function MonthlyDataFare(dataToGroup, filteringYear, resolve) {
 }
 
 
+function MonthlyDataCountPaymentMethod(dataToGroup, filteringYear, resolve) {
+    
+    let sorted = dataToGroup.groupBy("yearMonth")
+    //console.log(sorted)
+    let sortedList = sorted.map((category) => {
+        //return a promise for each object to be added to the list
+        return new Promise((output) => {
+            // Group internal groupList by ride_state
+            let payment_method_groups = category.groupList.groupBy("payment_method")
+            let internalData = {}
+            let internalList = payment_method_groups.map((internalCategory) => {
+                //console.log(internalCategory)
+                return internalCategory
+            })
+            //console.log(internalList.find((each) => each.field === "cancelled"))
+            //console.log(internalList.find((each) => each.field === "successful"))
+            
+            let CASHObjectInternal = internalList.find((each) => each.field === "CASH")
+            let WALLETObjectInternal = internalList.find((each) => each.field === "WALLET")
+
+            if(CASHObjectInternal) {
+
+                console.log(`connectMe: ${CASHObjectInternal.groupList.length}`)
+                internalData.CASH = CASHObjectInternal.groupList.length
+            
+            } else if(!CASHObjectInternal){
+
+                console.log("No successful object @ CASH")
+                internalData.CASH = 0
+            }
+
+            if(WALLETObjectInternal){
+
+                console.log(`Wallet: ${WALLETObjectInternal.groupList.length}`)
+                internalData.WALLET= WALLETObjectInternal.groupList.length
+
+            } else if(!WALLETObjectInternal) {
+
+                console.log("No successful object @ WALLET")
+                internalData.WALLET = 0
+            }
+            
+            output({
+                date: category.field,
+                CASH: internalData.CASH,
+                WALLET: internalData.WALLET
+            })
+        })
+        .catch((error) => {
+            console.log(error)
+            resolve({error: "Failed to return the monthly list of data for payment method"})
+        })
+
+    })
+
+    Promise.all(sortedList)
+    .then((result) => {
+        // return data filtered by wanted year
+        let yearFilteredArray = result.filter((element) => {
+            return element.date.startsWith(filteringYear)
+        })
+
+        resolve(yearFilteredArray)
+    })
+    .catch((error) => {
+        console.log(error)
+        resolve({error: "Failed to return the monthly list of data for PAYMENT METHOD"})
+    })
+    
+}
+
+
+
 clientMongo.connect(function() {
 
     const dbMongo = clientMongo.db(dbName)
@@ -409,7 +551,7 @@ clientMongo.connect(function() {
             }) */
             
             new Promise((res) => {
-                MonthlyDataFare(result, "2020", res)
+                MonthlyDataCountPaymentMethod(result, "2021", res)
             })
             .then((monthly) => {
                 //console.log(monthly)

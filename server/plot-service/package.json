@@ -5,7 +5,7 @@
   "main": "plotService.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon plotService.js"
+    "start": "nodemon plotServer.js"
   },
   "keywords": [],
   "author": "",

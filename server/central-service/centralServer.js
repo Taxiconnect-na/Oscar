@@ -1,4 +1,4 @@
-//console.log = function () {};
+console.log = function () {};
 const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
@@ -804,7 +804,7 @@ io.on("connection", (socket) => {
         }
     })
 
-    // Getting commission total monthly commission fares
+    // Getting commission: total monthly commission fares
     socket.on("get-rides-revenues-vis", (data) => {
         if((data !== undefined) && (data !== null)) {
             console.log("Attempting to get monthly gross sales visualization data")
@@ -824,6 +824,55 @@ io.on("connection", (socket) => {
             .catch((error) => {
                 console.log(error)
                 socket.emit("get-rides-revenues-vis-feedback", {error: true, empty: false})
+            })
+        }
+    })
+
+    // Get monthly connect type counts
+    socket.on("get-monthly-connect-type-vis", (data) => {
+        if((data !== undefined) && (data !== null)) {
+            console.log("Attempting to get monthly gross sales visualization data")
+
+            axios.get(`${process.env.ROOT_URL}:${process.env.PLOT_ROOT}/rides-plot-data/per-month-connect-type/${data.year}`)
+            .then((feedback) => {
+                let response = new Object(feedback.data)
+                console.log(response)
+                if(response.error){
+                    socket.emit("get-monthly-connect-type-vis-feedback", {error: true, empty: false})
+                } else {
+                   
+                    socket.emit("get-monthly-connect-type-vis-feedback", response)
+                   
+                }
+            })
+            .catch((error) => {
+                console.log(error)
+                socket.emit("get-monthly-connect-type-vis-feedback", {error: true, empty: false})
+            })
+        }
+    })
+
+
+    // Get monthly connect type counts
+    socket.on("get-monthly-payment-method-count-vis", (data) => {
+        if((data !== undefined) && (data !== null)) {
+            console.log("Attempting to get monthly gross sales visualization data")
+
+            axios.get(`${process.env.ROOT_URL}:${process.env.PLOT_ROOT}/rides-plot-data/per-month-payment-method/${data.year}`)
+            .then((feedback) => {
+                let response = new Object(feedback.data)
+                console.log(response)
+                if(response.error){
+                    socket.emit("get-monthly-payment-method-count-vis-feedback", {error: true, empty: false})
+                } else {
+                   
+                    socket.emit("get-monthly-payment-method-count-vis-feedback", response)
+                   
+                }
+            })
+            .catch((error) => {
+                console.log(error)
+                socket.emit("get-monthly-payment-method-count-vis-feedback", {error: true, empty: false})
             })
         }
     })

@@ -11,6 +11,8 @@ export default function Visualize() {
     let [successfulRides, setSuccessfulRides] = useState([])
     let [monthlyGrossSales, setMonthlyGrossSales] = useState([])
     let [monthlyRevenues, setMonthlyRevenues] = useState([])
+    let [monthlyConnectType , setMonthlyConnectType] = useState([])
+    let [monthlyPaymentMethod, setMonthlyPaymentMethod] = useState([])
     let [year, setYear] = useState("2021")
 
     useEffect(() => {
@@ -47,6 +49,26 @@ export default function Visualize() {
             })
             socket.emit("get-rides-revenues-vis", { year: year})
 
+            // Monthly Connect types
+            socket.on("get-monthly-connect-type-vis-feedback", (data) => {
+                if((data !== undefined) && (data != null)) {
+                    //Update cancelledRides
+                    console.log(data)
+                    setMonthlyConnectType(data)
+                }
+            })
+            socket.emit("get-monthly-connect-type-vis", { year: year})
+
+            // Monthly Payment Methods
+            socket.on("get-monthly-payment-method-count-vis-feedback", (data) => {
+                if((data !== undefined) && (data != null)) {
+                    //Update cancelledRides
+                    console.log(data)
+                    setMonthlyPaymentMethod(data)
+                }
+            })
+            socket.emit("get-monthly-payment-method-count-vis", { year: year})
+
         //}, 10000)
         /*
         return( () => {
@@ -54,8 +76,65 @@ export default function Visualize() {
         }) */
 
     }, [
-        successfulRides
+        successfulRides,
+        year
     ])
+
+    const changeYearHandler = () => {
+
+        setYear("2020")
+
+        // Ride counts
+        socket.on("get-rides-count-vis-feedback", (data) => {
+            if((data !== undefined) && (data != null)) {
+                //Update cancelledRides
+                console.log(data)
+                setSuccessfulRides(data)
+            }
+        })
+        socket.emit("get-rides-count-vis", { year: year})
+
+        // Gross sales
+        socket.on("get-rides-grossSales-vis-feedback", (data) => {
+            if((data !== undefined) && (data != null)) {
+                //Update cancelledRides
+                console.log(data)
+                setMonthlyGrossSales(data)
+            }
+        })
+        socket.emit("get-rides-grossSales-vis", { year: year})
+
+        // Monthly Revenues
+        socket.on("get-rides-revenues-vis-feedback", (data) => {
+            if((data !== undefined) && (data != null)) {
+                //Update cancelledRides
+                console.log(data)
+                setMonthlyRevenues(data)
+            }
+        })
+        socket.emit("get-rides-revenues-vis", { year: year})
+
+        // Monthly Connect types
+        socket.on("get-monthly-connect-type-vis-feedback", (data) => {
+            if((data !== undefined) && (data != null)) {
+                //Update cancelledRides
+                console.log(data)
+                setMonthlyConnectType(data)
+            }
+        })
+        socket.emit("get-monthly-connect-type-vis", { year: year})
+
+        // Monthly Payment Methods
+        socket.on("get-monthly-payment-method-count-vis-feedback", (data) => {
+            if((data !== undefined) && (data != null)) {
+                //Update cancelledRides
+                console.log(data)
+                setMonthlyPaymentMethod(data)
+            }
+        })
+        socket.emit("get-monthly-payment-method-count-vis", { year: year})
+
+    }
 
     const styles = {
         graph: {
@@ -72,10 +151,13 @@ export default function Visualize() {
 
         <div className="main-content">
             <h1 style={{ display: "grid", placeItems:"center", padding: "2%"}}> DATA VISUALIZATION </h1>
+            <br></br>
+            <button onClick={ () => { changeYearHandler() }} className="btn btn-info">2020</button>
+
             <div style={styles.graph} className="plots">
-                <div className="plot1">
+                <div className="plot">
                     <h3 className="plot-title"> Monthly Ride Counts</h3>
-                    <BarChart width={480} height={350} data={successfulRides} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <BarChart width={440} height={310} data={successfulRides} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="2 2" />
                         <XAxis dataKey="date" />
                         <YAxis />
@@ -86,29 +168,55 @@ export default function Visualize() {
                     </BarChart>
                 </div>
 
-                <div className="plot2">
+                <div className="plot">
                     <h3 className="plot-title"> Monthly Gross Sales (N$)</h3>
-                    <BarChart width={480} height={350} data={monthlyGrossSales} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <BarChart width={440} height={310} data={monthlyGrossSales} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="2 2" />
                         <XAxis dataKey="date" />
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar name="Successful" dataKey="successful" fill="#10659e" />
+                        <Bar name="Processed" dataKey="successful" fill="#10659e" />
                         <Bar name="Lost" dataKey="cancelled" fill="#9e0b50" />    
                     </BarChart>
                 </div>
 
-                <div className="plot3">
+                <div className="plot">
                     <h3 className="plot-title"> Monthly Revenues (N$)</h3>
-                    <BarChart width={480} height={350} data={monthlyRevenues} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <BarChart width={440} height={310} data={monthlyRevenues} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="2 2" />
                         <XAxis dataKey="date" />
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar name="Successful" dataKey="successful" fill="#157a30" />
+                        <Bar name="Processed" dataKey="successful" fill="#157a30" />
                         <Bar name="Lost" dataKey="cancelled" fill="#82051a" />    
+                    </BarChart>
+                </div>
+
+                <div className="plot">
+                    <h3 className="plot-title"> Connect Type Counts </h3>
+                    <BarChart width={440} height={310} data={monthlyConnectType} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="2 2" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar name="ConnectMe" dataKey="ConnectMe" fill="#73106f" />
+                        <Bar name="ConnectUs" dataKey="ConnectUs" fill="#103a6e" />    
+                    </BarChart>
+                </div>
+
+                <div className="plot">
+                    <h3 className="plot-title"> Monthly Payment Method Counts</h3>
+                    <BarChart width={440} height={310} data={monthlyPaymentMethod} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="2 2" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar name="Cash" dataKey="CASH" fill="#a14102" />
+                        <Bar name="Wallet" dataKey="WALLET" fill="#d10628" />    
                     </BarChart>
                 </div>
             </div>

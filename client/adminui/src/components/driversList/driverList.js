@@ -66,7 +66,7 @@ function DriverList() {
             });
             //...
             socket.emit("getDrivers", {data:'getting drivers'});
-        }, 50000)
+        }, 500000)
         
         return( () => {
             clearInterval(interval)
