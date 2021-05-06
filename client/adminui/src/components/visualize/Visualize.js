@@ -157,7 +157,7 @@ export default function Visualize() {
             <div style={styles.graph} className="plots">
                 <div className="plot">
                     <h3 className="plot-title"> Monthly Ride Counts</h3>
-                    <BarChart width={440} height={310} data={successfulRides} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <BarChart width={500} height={400} data={successfulRides} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="2 2" />
                         <XAxis dataKey="date" />
                         <YAxis />
@@ -170,7 +170,7 @@ export default function Visualize() {
 
                 <div className="plot">
                     <h3 className="plot-title"> Monthly Gross Sales (N$)</h3>
-                    <BarChart width={440} height={310} data={monthlyGrossSales} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <BarChart width={500} height={400} data={monthlyGrossSales} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="2 2" />
                         <XAxis dataKey="date" />
                         <YAxis />
@@ -183,7 +183,7 @@ export default function Visualize() {
 
                 <div className="plot">
                     <h3 className="plot-title"> Monthly Revenues (N$)</h3>
-                    <BarChart width={440} height={310} data={monthlyRevenues} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <BarChart width={500} height={400} data={monthlyRevenues} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="2 2" />
                         <XAxis dataKey="date" />
                         <YAxis />
@@ -196,20 +196,20 @@ export default function Visualize() {
 
                 <div className="plot">
                     <h3 className="plot-title"> Connect Type Counts </h3>
-                    <BarChart width={440} height={310} data={monthlyConnectType} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <BarChart width={500} height={400} data={monthlyConnectType} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="2 2" />
                         <XAxis dataKey="date" />
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar name="ConnectMe" dataKey="ConnectMe" fill="#73106f" />
+                        <Bar name="ConnectMe" dataKey="ConnectMe" fill="#74006f" />
                         <Bar name="ConnectUs" dataKey="ConnectUs" fill="#103a6e" />    
                     </BarChart>
                 </div>
 
                 <div className="plot">
                     <h3 className="plot-title"> Monthly Payment Method Counts</h3>
-                    <BarChart width={440} height={310} data={monthlyPaymentMethod} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <BarChart width={500} height={400} data={monthlyPaymentMethod} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="2 2" />
                         <XAxis dataKey="date" />
                         <YAxis />

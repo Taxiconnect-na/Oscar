@@ -4,9 +4,9 @@ import socket from '../socket'
 import "./Visualize.css"
 import Sidebar from "../sidebar/sidebar"
 
-export default function RideCounts() {
+export default function PaymentMethods() {
 
-    let [monthlyRideCounts, setMonthlyRideCounts] = useState([])
+    let [monthlyPaymentMethods, setMonthlyPaymentMethods] = useState([])
     let [defaultyear, setDefaultYear] = useState(true)
     let [year, setYear] = useState("2021")
     
@@ -19,7 +19,7 @@ export default function RideCounts() {
             if((data !== undefined) && (data != null)) {
                 //Update cancelledRides
                 console.log(data)
-                setMonthlyRideCounts(data)
+                setMonthlyPaymentMethods(data)
             }
         })
         socket.emit("get-rides-count-vis", { year: year})
@@ -40,7 +40,7 @@ export default function RideCounts() {
             if((data !== undefined) && (data != null)) {
                 //Update cancelledRides
                 console.log(data)
-                setMonthlyRideCounts(data)
+                setMonthlyPaymentMethods(data)
             }
         })
         socket.emit("get-rides-count-vis", { year: year})
@@ -69,22 +69,22 @@ export default function RideCounts() {
 
         <div className="main-content" id="ride-counts">
             <h1 className="plot-main-title" style={{ display: "grid", placeItems:"center", padding: "2%", backgroundColor: "whitesmoke" }}>
-                RIDE COUNTS 
+                PAYMENT METHODS 
             </h1>
             <br></br>
             
 
             <div style={styles.graph} className="plots">
                 <div className="plot">
-                    <h3 className="plot-title"> Monthly Ride Counts</h3>
-                    <BarChart width={500} height={400} data={monthlyRideCounts} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <h3 className="plot-title"> Monthly Payment Method Counts</h3>
+                    <BarChart width={500} height={400} data={monthlyPaymentMethods} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="2 2" />
                         <XAxis dataKey="date" />
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar name="Successful" dataKey="successful" fill="#3b0ba3" />
-                        <Bar name="Cancelled" dataKey="cancelled" fill="#c20615" />    
+                        <Bar name="Cash" dataKey="CASH" fill="#a14102" />
+                        <Bar name="Wallet" dataKey="WALLET" fill="#d10628" />    
                     </BarChart>
                     <button onClick={ () => { changeYearHandler2020() }} className="btn btn-info">View 2020</button>
                     

@@ -25,6 +25,10 @@ import "./App.css"
 import logotaxiconnect from "./logotaxiconnect.png"
 import { VscLoading } from "react-icons/vsc"
 import CancelledDeliveries from './components/cancelledRides/CancelledDeliveries'
+import GrossSales from './components/visualize/GrossSales'
+import Revenues from './components/visualize/Revenues'
+import ConnectTypes from './components/visualize/ConnectTypes'
+import PaymentMethods from './components/visualize/PaymentMethods'
 
 
 
@@ -330,8 +334,11 @@ function App() {
                 <Route path="/cancelled-deliveries" component={CancelledDeliveries} />
                 <Route path="/graph" component={Graph} />
                 <Route path="/visualize" component={DataVisualizerRoutesList} />
-                <Route path="/visualize/ride-counts" component ={RideCounts} />
-                
+                <Route path="/visualize-ride-counts" component ={RideCounts} />
+                <Route path="/visualize-gross-sales" component ={GrossSales} />
+                <Route path="/visualize-revenues" component ={Revenues} />
+                <Route path="/visualize-connect-types" component ={ConnectTypes} />
+                <Route path="/visualize-payment-methods" component ={PaymentMethods} />
               </Switch>
             </Router>
           </div>

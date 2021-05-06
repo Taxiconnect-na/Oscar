@@ -4,9 +4,9 @@ import socket from '../socket'
 import "./Visualize.css"
 import Sidebar from "../sidebar/sidebar"
 
-export default function RideCounts() {
+export default function Revenues() {
 
-    let [monthlyRideCounts, setMonthlyRideCounts] = useState([])
+    let [monthlyRevenues, setMonthlyRevenues] = useState([])
     let [defaultyear, setDefaultYear] = useState(true)
     let [year, setYear] = useState("2021")
     
@@ -15,14 +15,14 @@ export default function RideCounts() {
 
     
         // Ride counts
-        socket.on("get-rides-count-vis-feedback", (data) => {
+        socket.on("get-rides-revenues-vis-feedback", (data) => {
             if((data !== undefined) && (data != null)) {
                 //Update cancelledRides
                 console.log(data)
-                setMonthlyRideCounts(data)
+                setMonthlyRevenues(data)
             }
         })
-        socket.emit("get-rides-count-vis", { year: year})
+        socket.emit("get-rides-revenues-vis", { year: year})
 
     }, [
         // Empty
@@ -36,14 +36,14 @@ export default function RideCounts() {
         }
 
         // Ride counts
-        socket.on("get-rides-count-vis-feedback", (data) => {
+        socket.on("get-rides-revenues-vis-feedback", (data) => {
             if((data !== undefined) && (data != null)) {
                 //Update cancelledRides
                 console.log(data)
-                setMonthlyRideCounts(data)
+                setMonthlyRevenues(data)
             }
         })
-        socket.emit("get-rides-count-vis", { year: year})
+        socket.emit("get-rides-revenues-vis", { year: year})
 
     }
 
@@ -69,22 +69,22 @@ export default function RideCounts() {
 
         <div className="main-content" id="ride-counts">
             <h1 className="plot-main-title" style={{ display: "grid", placeItems:"center", padding: "2%", backgroundColor: "whitesmoke" }}>
-                RIDE COUNTS 
+                REVENUES
             </h1>
             <br></br>
             
 
             <div style={styles.graph} className="plots">
                 <div className="plot">
-                    <h3 className="plot-title"> Monthly Ride Counts</h3>
-                    <BarChart width={500} height={400} data={monthlyRideCounts} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <h3 className="plot-title"> Monthly Revenues</h3>
+                    <BarChart width={500} height={400} data={monthlyRevenues} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="2 2" />
                         <XAxis dataKey="date" />
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar name="Successful" dataKey="successful" fill="#3b0ba3" />
-                        <Bar name="Cancelled" dataKey="cancelled" fill="#c20615" />    
+                        <Bar name="Gain" dataKey="successful" fill="#157a30" />
+                        <Bar name="Loss" dataKey="cancelled" fill="#82051a" />    
                     </BarChart>
                     <button onClick={ () => { changeYearHandler2020() }} className="btn btn-info">View 2020</button>
                     

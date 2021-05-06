@@ -14,6 +14,10 @@
 }
 
 .plot {
-    padding-top: 2%;
+    padding-top: 1%;
 }
 
+
+#ride-counts {
+    background-color: #cfcccc;
+}

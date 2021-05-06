@@ -69,6 +69,22 @@ module.exports = {
         env_production: {
           NODE_ENV: "production",
         },
+      },
+
+      {
+        name: "visualizer-service",
+        script: "./server/plot-service/plotServer.js",
+        instances: 3,
+        autorestart: true,
+        watch: false,
+        max_memory_restart: "2G",
+        env: {
+          NODE_ENV: "development",
+        },
+        env_production: {
+          NODE_ENV: "production",
+        },
       }
+
     ],
   };
