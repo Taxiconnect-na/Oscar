@@ -34,7 +34,10 @@ function Sidebar() {
                             <MenuItem>Not Available</MenuItem>
                         </SubMenu>
                     </SubMenu>
-                    <MenuItem><Link to="/cancelled-rides"><BsFillTrashFill style={iconStyle} />Misfired</Link></MenuItem>
+                    <SubMenu title="Cancelled Trips" style = {{marginLeft: 10}}>
+                        <MenuItem><Link to="/cancelled-rides">Rides</Link></MenuItem>
+                        <MenuItem><Link to="/cancelled-deliveries">Deliveries</Link></MenuItem>
+                    </SubMenu>
                     <MenuItem><Link to="/drivers"><FaThList style={iconStyle} />Drivers</Link></MenuItem>
                     <MenuItem><Link to="/passengers"><FaThList style={iconStyle} />Users </Link></MenuItem>
                     <MenuItem><Link to="/driver-payment"><MdBusiness style={iconStyle} />Make payment </Link></MenuItem>

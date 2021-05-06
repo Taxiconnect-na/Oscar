@@ -16,13 +16,15 @@ import ErrorPage from "./components/errorPage/ErrorPage"
 import SuccessPage from "./components/successPage/SuccessPage"
 import CancelledRides from "./components/cancelledRides/CancelledRides"
 import Graph from "./components/Graphs/Graph"
-import Visualize from "./components/visualize/Visualize"
+import RideCounts from "./components/visualize/RideCounts"
+import DataVisualizerRoutesList from "./components/DataVisualizerRoutesList/DataVisualizerRoutesList"
 //import LoginButton from "./components/LoginButton"
 //import LogoutButton from "./components/LogoutButton"
 //import Profile from "./components/Profile"
 import "./App.css"
 import logotaxiconnect from "./logotaxiconnect.png"
 import { VscLoading } from "react-icons/vsc"
+import CancelledDeliveries from './components/cancelledRides/CancelledDeliveries'
 
 
 
@@ -325,8 +327,10 @@ function App() {
                 <Route path="/action/success" component={SuccessPage} />
                 <Route path="/action/error" component={ErrorPage} />
                 <Route path="/cancelled-rides" component={CancelledRides} />
+                <Route path="/cancelled-deliveries" component={CancelledDeliveries} />
                 <Route path="/graph" component={Graph} />
-                <Route path="/visualize" component={Visualize} />
+                <Route path="/visualize" component={DataVisualizerRoutesList} />
+                <Route path="/visualize/ride-counts" component ={RideCounts} />
                 
               </Switch>
             </Router>

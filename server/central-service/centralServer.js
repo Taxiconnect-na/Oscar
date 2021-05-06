@@ -28,8 +28,8 @@ const server = http.createServer(app)
 //const server = https.createServer(sslOptions, app)
 const socketIo = require("socket.io")
 const io = socketIo(server, { cors: {
-    //origin: "https://taxiconnectnanetwork.com",
-    origin: "http://localhost",
+    origin: "https://taxiconnectnanetwork.com",
+    //origin: "http://localhost",
     //origin: "http://192.168.8.151",
     methods: ["GET", "POST"],
     credentials: true
@@ -693,6 +693,27 @@ io.on("connection", (socket) => {
             socket.emit("getCancelledRides-passenger-feedback", {error: true})
         })
     })
+
+    // Get cancelled deliveries by passenger
+    socket.on("getCancelledDeliveries-passenger", function(data) {
+        console.log("Requesting cancelled rides by passenger ")
+        axios.get(`${process.env.ROOT_URL}:${process.env.PASSENGER_ROOT}/cancelled-deliveries-passenger`)
+        .then((result) => {
+            // Check for an error
+            if(result.data.error) {
+                socket.emit("getCancelledDeliveries-passenger-feedback", {error: true})
+            } else {
+                let cancelledDeliveriesPassenger = new Object(result.data)
+
+                socket.emit("getCancelledDeliveries-passenger-feedback", cancelledDeliveriesPassenger)
+            }
+            
+        })
+        .catch((error) => {
+            console.log(error)
+            socket.emit("getCancelledDeliveries-passenger-feedback", {error: true})
+        })
+    })
     
     // Confirm ride
     socket.on("ConfirmRide", function(data) {
@@ -722,7 +743,7 @@ io.on("connection", (socket) => {
         }
     })
 
-    // Cancell trip (ride/delivery)
+    // Cancell trip (ride)
     socket.on("CancellTrip", (data) => {
 
         if((data !== undefined) && (data !== null)) {

@@ -17,7 +17,7 @@ export default function Visualize() {
 
     useEffect(() => {
 
-        //const interval = setInterval(() => {
+        const interval = setInterval(() => {
             console.log("counting @visualizations.... ")
             // Ride counts
             socket.on("get-rides-count-vis-feedback", (data) => {
@@ -69,7 +69,7 @@ export default function Visualize() {
             })
             socket.emit("get-monthly-payment-method-count-vis", { year: year})
 
-        //}, 10000)
+        }, 600000)
         /*
         return( () => {
             clearInterval(interval)
