@@ -47,7 +47,7 @@ export default function CancelledDeliveries() {
                     setCancelledRides(data)
                 }
             })
-            socket.emit("getCancelledDeliveries-passenger-feedback", {data: "get cancelled rides"})
+            socket.emit("getCancelledDeliveries-passenger", {data: "get cancelled rides"})
         }, 2000)
 
         return( () => {

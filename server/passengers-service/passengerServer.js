@@ -749,7 +749,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
 
 function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, collectionDrivers, resolve){
     // Attempt to get data from cache first
-    client.get("cancelledRides-cache", (err, reply) => {
+    client.get("cancelledDeliveries-cache", (err, reply) => {
       console.log("looking for data in redis...")
   
       if (err) {
@@ -836,7 +836,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
           Promise.all(allCancelled).then(
             (result) => {
               console.log("No cash was found for cancelled rides")
-              client.setex("cancelledRides-cache", 600000, JSON.stringify(result), redis.print)
+              client.setex("cancelledDeliveries-cache", 600000, JSON.stringify(result), redis.print)
               resolve(result)
             },
             (error) => {
@@ -861,7 +861,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
   
           
             collectionCancelledRides
-            .find({ride_mode: "RIDE"})
+            .find({ride_mode: "DELIVERY"})
             .sort({date_requested: -1})
             .limit(100)
             .toArray()
@@ -941,7 +941,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
             Promise.all(allCancelled).then(
               (result) => {
                 console.log("No cash was found for cancelled rides")
-                client.setex("cancelledRides-cache", 600000, JSON.stringify(result), redis.print)
+                client.setex("cancelledDeliveries-cache", 600000, JSON.stringify(result), redis.print)
                 //! No resolve
               },
               (error) => {
@@ -956,7 +956,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
         } else {
               // Function to get data directly from Mongo
           collectionCancelledRides
-          .find({ride_mode: "RIDE"})
+          .find({ride_mode: "DELIVERY"})
           .sort({date_requested: -1})
           .limit(100)
           .toArray()
@@ -1051,7 +1051,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
       } else {
         // Function to get data directly from Mongo
         collectionCancelledRides
-        .find({ride_mode: "RIDE"})
+        .find({ride_mode: "DELIVERY"})
         .sort({date_requested: -1})
         .limit(100)
         .toArray()
@@ -1131,7 +1131,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
           Promise.all(allCancelled).then(
             (result) => {
               console.log("No cash was found for cancelled rides")
-              client.setex("cancelledRides-cache", 600000, JSON.stringify(result), redis.print)
+              client.setex("cancelledDeliveries-cache", 600000, JSON.stringify(result), redis.print)
               resolve(result)
             },
             (error) => {
