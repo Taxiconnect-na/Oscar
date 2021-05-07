@@ -362,6 +362,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
             return new Promise((response) => {
               // Get the following for each ride
               const date_requested = cancelled.date_requested
+              const carTypeSelected = cancelled.carTypeSelected
               const passengers_number = cancelled.passengers_number
               const connect_type = cancelled.connect_type
               const origin = cancelled.pickup_location_infos.suburb
@@ -396,7 +397,8 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                       passenger_name,
                       passenger_phone_number,
                       taxi_number,
-                      driver_name
+                      driver_name,
+                      carTypeSelected
                     })
                   })
                   .catch((error) => {
@@ -418,7 +420,8 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                       passenger_name,
                       passenger_phone_number,
                       taxi_number,
-                      driver_name
+                      driver_name,
+                      carTypeSelected
                     })
                 }
               })
@@ -467,6 +470,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                 return new Promise((response) => {
                   // Get the following for each ride
                   const date_requested = cancelled.date_requested
+                  const carTypeSelected = cancelled.carTypeSelected
                   const passengers_number = cancelled.passengers_number
                   const connect_type = cancelled.connect_type
                   const origin = cancelled.pickup_location_infos.suburb
@@ -501,7 +505,8 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                           passenger_name,
                           passenger_phone_number,
                           taxi_number,
-                          driver_name
+                          driver_name,
+                          carTypeSelected
                         })
                       })
                       .catch((error) => {
@@ -523,7 +528,8 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                         passenger_name,
                         passenger_phone_number,
                         taxi_number,
-                        driver_name
+                        driver_name,
+                        carTypeSelected
                       })
                   }
                 })
@@ -562,6 +568,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
               return new Promise((response) => {
                 // Get the following for each ride
                 const date_requested = cancelled.date_requested
+                const carTypeSelected = cancelled.carTypeSelected
                 const passengers_number = cancelled.passengers_number
                 const connect_type = cancelled.connect_type
                 const origin = cancelled.pickup_location_infos.suburb
@@ -596,7 +603,8 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                         passenger_name,
                         passenger_phone_number,
                         taxi_number,
-                        driver_name
+                        driver_name,
+                        carTypeSelected
                       })
                     })
                     .catch((error) => {
@@ -618,7 +626,8 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                       passenger_name,
                       passenger_phone_number,
                       taxi_number,
-                      driver_name
+                      driver_name,
+                      carTypeSelected
                     })
                 }
               })
@@ -657,6 +666,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
             return new Promise((response) => {
               // Get the following for each ride
               const date_requested = cancelled.date_requested
+              const carTypeSelected = cancelled.carTypeSelected
               const passengers_number = cancelled.passengers_number
               const connect_type = cancelled.connect_type
               const origin = cancelled.pickup_location_infos.suburb
@@ -691,7 +701,8 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                       passenger_name,
                       passenger_phone_number,
                       taxi_number,
-                      driver_name
+                      driver_name,
+                      carTypeSelected
                     })
                   })
                   .catch((error) => {
@@ -713,7 +724,8 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                       passenger_name,
                       passenger_phone_number,
                       taxi_number,
-                      driver_name
+                      driver_name,
+                      carTypeSelected
                     })
                 }
               })
@@ -766,6 +778,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
             return new Promise((response) => {
               // Get the following for each ride
               const date_requested = cancelled.date_requested
+              const carTypeSelected = cancelled.carTypeSelected
               const passengers_number = cancelled.passengers_number
               const connect_type = cancelled.connect_type
               const origin = cancelled.pickup_location_infos.suburb
@@ -800,7 +813,8 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
                       passenger_name,
                       passenger_phone_number,
                       taxi_number,
-                      driver_name
+                      driver_name,
+                      carTypeSelected
                     })
                   })
                   .catch((error) => {
@@ -822,7 +836,8 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
                       passenger_name,
                       passenger_phone_number,
                       taxi_number,
-                      driver_name
+                      driver_name,
+                      carTypeSelected
                     })
                 }
               })
@@ -871,6 +886,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
                 return new Promise((response) => {
                   // Get the following for each ride
                   const date_requested = cancelled.date_requested
+                  const carTypeSelected = cancelled.carTypeSelected
                   const passengers_number = cancelled.passengers_number
                   const connect_type = cancelled.connect_type
                   const origin = cancelled.pickup_location_infos.suburb
@@ -905,7 +921,8 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
                           passenger_name,
                           passenger_phone_number,
                           taxi_number,
-                          driver_name
+                          driver_name,
+                          carTypeSelected
                         })
                       })
                       .catch((error) => {
@@ -927,7 +944,8 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
                         passenger_name,
                         passenger_phone_number,
                         taxi_number,
-                        driver_name
+                        driver_name,
+                        carTypeSelected
                       })
                   }
                 })
@@ -966,6 +984,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
               return new Promise((response) => {
                 // Get the following for each ride
                 const date_requested = cancelled.date_requested
+                const carTypeSelected = cancelled.carTypeSelected
                 const passengers_number = cancelled.passengers_number
                 const connect_type = cancelled.connect_type
                 const origin = cancelled.pickup_location_infos.suburb
@@ -1000,7 +1019,8 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
                         passenger_name,
                         passenger_phone_number,
                         taxi_number,
-                        driver_name
+                        driver_name,
+                        carTypeSelected
                       })
                     })
                     .catch((error) => {
@@ -1022,7 +1042,8 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
                       passenger_name,
                       passenger_phone_number,
                       taxi_number,
-                      driver_name
+                      driver_name,
+                      carTypeSelected
                     })
                 }
               })
@@ -1061,6 +1082,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
             return new Promise((response) => {
               // Get the following for each ride
               const date_requested = cancelled.date_requested
+              const carTypeSelected = cancelled.carTypeSelected
               const passengers_number = cancelled.passengers_number
               const connect_type = cancelled.connect_type
               const origin = cancelled.pickup_location_infos.suburb
@@ -1095,7 +1117,8 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
                       passenger_name,
                       passenger_phone_number,
                       taxi_number,
-                      driver_name
+                      driver_name,
+                      carTypeSelected
                     })
                   })
                   .catch((error) => {
@@ -1117,7 +1140,8 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
                       passenger_name,
                       passenger_phone_number,
                       taxi_number,
-                      driver_name
+                      driver_name,
+                      carTypeSelected
                     })
                 }
               })

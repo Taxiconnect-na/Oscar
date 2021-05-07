@@ -27,6 +27,7 @@ const CancelledRideRow = (props) => {
                 <td> { props.ride.fare } </td>
                 <td> { props.ride.passenger_phone_number } </td>
                 <td> { props.ride.taxi_number } </td>
+                <td> { props.ride.carTypeSelected } </td>
                 {/*<td> { props.ride.driver_name } </td> */}
             </tr>
         </>
@@ -96,6 +97,7 @@ export default function CancelledRides() {
                         <th>Fare</th>
                         <th>Passenger cellphone</th>
                         <th>Taxi number</th>
+                        <th>Car Type</th>
                         {/*<th>Driver name</th>*/}
                         
                     </tr>

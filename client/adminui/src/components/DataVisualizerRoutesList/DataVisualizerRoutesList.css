@@ -1,0 +1,22 @@
+.main-container-DataVisualizerRoutesList {
+    display: flex;
+    flex-direction: column;
+    padding: 8%;
+    color: white;
+
+
+}
+
+.view-options {
+    display: grid;
+    place-items: center;
+    padding: 1.5%;
+    border-left: 10px solid rgb(129, 79, 18);
+    background-color:rgb(5, 4, 20);
+
+}
+
+.view-options:hover {
+    background-color: #27160d;
+    cursor: pointer;
+}

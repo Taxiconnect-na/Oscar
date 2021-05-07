@@ -15,14 +15,14 @@ export default function PaymentMethods() {
 
     
         // Ride counts
-        socket.on("get-rides-count-vis-feedback", (data) => {
+        socket.on("get-monthly-payment-method-count-vis-feedback", (data) => {
             if((data !== undefined) && (data != null)) {
                 //Update cancelledRides
                 console.log(data)
                 setMonthlyPaymentMethods(data)
             }
         })
-        socket.emit("get-rides-count-vis", { year: year})
+        socket.emit("get-monthly-payment-method-count-vis", { year: year})
 
     }, [
         // Empty
