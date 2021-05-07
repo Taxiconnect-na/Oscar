@@ -7,6 +7,7 @@ import { FaChartBar, FaThList, FaRegRegistered, FaCarSide } from 'react-icons/fa
 import { MdBusiness } from 'react-icons/md'
 import { BsFillTrashFill } from "react-icons/bs"
 import React, { useState } from 'react'
+import { AiFillSignal } from "react-icons/ai"
 
 function Sidebar() {
     let [over, setOver] = useState(false)
@@ -41,6 +42,7 @@ function Sidebar() {
                     <MenuItem><Link to="/drivers"><FaThList style={iconStyle} />Drivers</Link></MenuItem>
                     <MenuItem><Link to="/passengers"><FaThList style={iconStyle} />Users </Link></MenuItem>
                     <MenuItem><Link to="/driver-payment"><MdBusiness style={iconStyle} />Make payment </Link></MenuItem>
+                    <MenuItem><Link to="/visualize"><AiFillSignal style={iconStyle} />Visualize </Link></MenuItem>
                 </Menu>
             </ProSidebar>;
         </div>
