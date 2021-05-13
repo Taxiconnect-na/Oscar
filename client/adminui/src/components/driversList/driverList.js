@@ -16,8 +16,12 @@ function OnlineDrivers(driverArray, resolve) {
 }
 
 const DriverRow = (props) => {
+
+    const redirectDriver = () => {
+        window.location = `/drivers-update?driverID=${ props.driver.driver_fingerprint }&taxi=${ props.driver.taxi_number}`
+    }
     return(
-        <tr>
+        <tr onClick={ () => redirectDriver() }>
             <td><FaUserAlt size={30}/></td>
             <td>{ props.driver.name}</td>
             <td>{ props.driver.surname }</td>

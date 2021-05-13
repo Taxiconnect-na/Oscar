@@ -1,9 +1,11 @@
-console.log = function () {};
+//console.log = function () {};
 const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
 const fileUpload = require("express-fileupload")
 const app = express()
+// Import my modules
+const utils = require("./utils")
 
 const http = require("http")
 const server = http.createServer(app)
@@ -54,8 +56,8 @@ const s3 = new AWS.S3({
  * * Hard coded keys
  */
 //! Criver Buckets to be changed (dev/production)B
-//const BUCKET_NAME_DRIVER = "drivers-central-beta-aws"  //For development
-const BUCKET_NAME_DRIVER = "drivers-central-aws"     //For production
+const BUCKET_NAME_DRIVER = "drivers-central-beta-aws"  //For development
+//const BUCKET_NAME_DRIVER = "drivers-central-aws"     //For production
 const s3 = new AWS.S3({
     accessKeyId: "AKIAXVMLF7SBTB2WU72Z",
     secretAccessKey: "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"
@@ -149,6 +151,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                 const plate_number = individual.cars_data[0].plate_number
                 const car_brand = individual.cars_data[0].car_brand
                 const status = individual.operational_state.status
+                const driver_fingerprint = individual.driver_fingerprint
              
                 //Query for this individual's completed rides
                 query = {
@@ -200,6 +203,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                                 Individual_driver.plate_number = plate_number
                                 Individual_driver.car_brand = car_brand
                                 Individual_driver.status = status
+                                Individual_driver.driver_fingerprint = driver_fingerprint
                                 Individual_driver.totaltrip = totaltrip
                                 Individual_driver.totalmoney = totalmoney
                                 Individual_driver.todaytrip = todaytrip
@@ -383,13 +387,15 @@ function InsertcashPayment(driversCollection,walletTransactionsLogsCollection, q
  * @param {string} driverFingerPrint : generated fingerprint of the driver upon registration
  * @param {string} papercategory : category of the paper, options: white_paper, blue_paper, etc.
  */
-function uploadFile (fileObject, subdir, driverFingerPrint, paperCategory, resolve) {
+function uploadFile (fileObject, subdir, driverFingerPrint, paperCategory, fileName, resolve) {
 
     // Setting up S3 upload parameters
     const params = {
         Bucket: `${ BUCKET_NAME_DRIVER }/${ subdir }`,
-        Key: `${ driverFingerPrint }-${ paperCategory}` + "."+ fileObject.name.split('.') [fileObject.name.split('.').length - 1], // File name to be "saved as" @s3 bucket
-        Body: fileObject.data // File data of the file object (actual object)
+        //Key: `${ driverFingerPrint }-${ paperCategory}` + "."+ fileObject.name.split('.') [fileObject.name.split('.').length - 1], // File name to be "saved as" @s3 bucket
+        Key: `${ driverFingerPrint }-${ paperCategory}` + fileName,
+        Body: fileObject // File data of the file object (actual object)
+       
     };
 
     // Uploading files to the bucket
@@ -405,6 +411,7 @@ function uploadFile (fileObject, subdir, driverFingerPrint, paperCategory, resol
         
     })
 }
+
 
 
 
@@ -798,6 +805,56 @@ clientMongo.connect(function(err) {
             res.send({error: "Something went wrong, wrong params maybe"})
         })
 
+    })
+
+    app.post("/upload-taxi-picture", (req,res) => {
+        // BUcket location params
+        const paperCategory = "taxi_picture"
+        const subdirectory = "Taxi_picture"
+
+        // MongoDB insert
+        new Promise((res) => {
+            utils.updateEntry(
+                collectionDrivers_profiles,
+                { driver_fingerprint: req.body.fingerprint, "cars_data.taxi_number": req.body.taxi_number},
+                { "cars_data.$.taxi_picture" : `${req.body.fingerprint}-${ paperCategory }`+ req.body.taxi_picture_name},
+                res
+            )
+        })
+        .then((data) => {
+            if(data.error) {
+                res.status(500).send({error: "Failed to update data @database level"})
+            } 
+
+            // File upload to s3 
+            new Promise((res) => {
+                
+                uploadFile(new Buffer.from(req.body.taxi_picture, "base64"), subdirectory, req.body.fingerprint, paperCategory, req.body.taxi_picture_name, res)
+                
+            })
+            .then((data) => {
+                if (data.error) {
+                    // Do not register driver if error occurs during file upload
+                    res.status(500).send({error: "The taxi picture file was not uploaded to s3 bucket"})
+
+                } else {
+                    res.status(201).send({ success: "Taxi picture updated"})
+                }
+                
+        
+            })
+            .catch((error) => {
+                console.log(error)
+                res.status(500).send({error: "The taxi picture file was not uploaded to s3 bucket"})
+            })
+
+            
+        })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).send({error: "Failed to update data @promise level"})
+        })
+        
     })
 
 })

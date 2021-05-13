@@ -11,7 +11,7 @@ const helmet = require("helmet")
 const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
 // Set up redis
-const redis = require("redis")
+const redis = require("redis")  
 const client = redis.createClient({
   host: process.env.REDIS_HOST,
   port: process.env.REDIS_PORT

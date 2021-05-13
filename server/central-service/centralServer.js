@@ -1,4 +1,4 @@
-console.log = function () {};
+//console.log = function () {};
 const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
@@ -9,6 +9,7 @@ const cors = require("cors")
 const http = require("http")
 //const https = require("https")
 const fs = require("fs")
+const fetch = require('node-fetch')
 /*Options to be passed to https server
 
 const sslOptions = {
@@ -26,20 +27,22 @@ const helmet = require("helmet")
 
 const server = http.createServer(app)
 //const server = https.createServer(sslOptions, app)
-const socketIo = require("socket.io")
+const socketIo = require("socket.io");
+const bodyParser = require('body-parser');
 const io = socketIo(server, { cors: {
-    origin: "https://taxiconnectnanetwork.com",
-    //origin: "http://localhost",
+    //origin: "https://taxiconnectnanetwork.com",
+    origin: "http://localhost",
     //origin: "http://192.168.8.151",
     methods: ["GET", "POST"],
     credentials: true
-    }
+    },
 })
 
 app.use(helmet())
 app.use(express.json({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
 app.use(express.urlencoded({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
 app.use(cors())
+
 
 const PORT = process.env.CENTRAL_PORT
 
@@ -168,83 +171,16 @@ function progressScheduledCompleted(arrayData, resolve) {
 
 
 
-function MyFormData(
-    // Input data:
-    name,
-    surname,
-    title,
-    personal_id_number,
-    phone_number,
-    email,
-    operation_clearances,
-    delivery_provider,
-    /*profile_picture,
-    driver_licence_doc,
-    copy_id_paper,
-    copy_white_paper,
-    copy_public_permit,
-    copy_blue_paper,*/
-    blue_paper_expiration,
-    driver_licence_expiration,
-    bank_name,
-    owner_name_bank,
-    account_number,
-    branch_number,
-    branch_name,
-    car_brand,
-    permit_number,
-    taxi_number,
-    plate_number,
-    max_passengers,
-    //taxi_picture,
-    vehicle_type,
-    car_nature,
-    account_type,
-    //Resolve: to be used as return for async
-    resolve) {
+function MyFormData(file_value, fingerprint, resolve) {
 
     // Initialize formData
     const formData = new FormData()
 
     // Append data to formData
-    formData.append('name', name)
-    formData.append('surname', surname)
-    formData.append('title', title)
-    formData.append('personal_id_number', personal_id_number)
-    formData.append('phone_number', phone_number)
-    formData.append('email', email)
-    //formData.append('password', password)
-    formData.append('operation_clearances', operation_clearances)
-    formData.append('delivery_provider', delivery_provider)
-    /*
-    formData.append('profile_picture', profile_picture)
-    formData.append('driver_licence_doc', driver_licence_doc)
-    formData.append('copy_id_paper', copy_id_paper)
-    formData.append('copy_white_paper', copy_white_paper)
-    formData.append('copy_public_permit', copy_public_permit)
-    formData.append('copy_blue_paper', copy_blue_paper)*/
-    formData.append('blue_paper_expiration', blue_paper_expiration)
-    formData.append('driver_licence_expiration', driver_licence_expiration)
-    formData.append('bank_name', bank_name)
-    formData.append('account_number', account_number)
-    formData.append('branch_number', branch_number)
-    formData.append('branch_name', branch_name)
-    formData.append('account_type', account_type)
-    formData.append('owner_name_bank', owner_name_bank)
+    formData.append( "taxi_picture" , file_value)
+    formData.append("fingerprint", fingerprint)
 
-    /*if (formData.get('operation_clearances') === "Ride") {
-        formData.set('delivery_provider', "")
-    }*/
-
-    // Car's data
-    formData.append('car_brand', car_brand)
-    formData.append('permit_number', permit_number)
-    formData.append('taxi_number', taxi_number)
-    formData.append('plate_number', plate_number)
-    formData.append('max_passengers', max_passengers)
-    //formData.append('taxi_picture', taxi_picture)
-    formData.append('vehicle_type', vehicle_type)
-    formData.append('car_nature', car_nature)
+    console.log(formData)
 
     resolve(formData)
 
@@ -478,7 +414,14 @@ io.on("connection", (socket) => {
         }
         
     })
-    
+
+/*
+*===================================================================================================
+//*                 Driver Data related events
+*===================================================================================================
+*/
+
+
     socket.on("registerDriver", function(data) {
         if ((data !== undefined) && (data !== null)) {
 
@@ -511,100 +454,55 @@ io.on("connection", (socket) => {
 
         }
     })
-    /*
-    // Register Driver:
-    socket.on("registerDriver", function(data) {
+    
+    // upload file
+    socket.on("upload-taxi-picture", function(data) {
+        console.log(data)
+        try {
+            if ((data !== undefined) && (data !== null)) {
 
-        if ((data !== undefined) && (data !== null)) {
-            console.log("Driver registration in progress driver...")
-            console.log(`Received data (also printed below) -------> ${data}`)
-            // View received data:
-            console.log(data)
             
-            new Promise((res) => {
-                MyFormData(
-                    // Input data:
-                    data.name,
-                    data.surname,
-                    data.title,
-                    data.personal_id_number,
-                    data.phone_number,
-                    data.email,
-                    data.operation_clearances,
-                    data.delivery_provider,
-                    /*data.profile_picture,
-                    data.driver_licence_doc,
-                    data.copy_id_paper,
-                    data.copy_white_paper,
-                    data.copy_public_permit,
-                    data.copy_blue_paper,
-                    data.blue_paper_expiration,
-                    data.driver_licence_expiration,
-                    data.owner_name_bank,
-                    data.bank_name,
-                    data.account_number,
-                    data.branch_number,
-                    data.branch_name,
-                    data.car_brand,
-                    data.permit_number,
-                    data.taxi_number,
-                    data.plate_number,
-                    data.max_passengers,
-                    //data.taxi_picture,
-                    data.vehicle_type,
-                    data.car_nature,
-                    data.account_type,
-                    //Resolve: to be used as return for async
-                    res)
-            })
-            .then((outputForm) => {
-
-                try {
-
-                    console.log(`Posting With following Driver Data ######------->> ${outputForm}`)
+                console.log("===========================================================================")
+                console.log()
+                console.log("===========================================================================")
+                console.log(data)
     
-                    // Make the post request to driver's endpoint with received data
-                    axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload`, outputForm, {
-                        headers: outputForm.getHeaders()
-                        /* headers: { // headers option 
-                            'Content-Type': 'multipart/form-data'
-                        } 
-                        
-                    })
-                    .then((feedback) => {
-                        console.log(feedback.data)
-                        // Return the server's response data to client (Gateway)
-                        let registration_response = new Object(feedback.data)
-                        // feedback.data is either {success: "X"} or {error: "Y"}
-                        if(registration_response.success){
-
-                            socket.emit("registerDriver-response", { success: true, failure: false})
-
-                        } else if(registration_response.error){
-
-                            socket.emit("registerDriver-response", { success: false, failure: true})
-                        }
-                        
-    
-                    })
-                    .catch((error) => {
-                        console.log(error)
-                        socket.emit("registerDriver-response", { success: false, failure: true})
-                    })
-    
-                } catch (error) {
-                    console.log(error)
-                    socket.emit("registerDriver-response", { success: false, failure: true})
+                const my_object = {
+                    //taxi_picture: data.taxi_picture.toString("base64"),
+                    taxi_picture: data.taxi_picture,
+                    fingerprint: data.driverFingerPrint,
+                    taxi_picture_name: data.taxi_picture_name
                 }
-            })
-            .catch((error) => {
-                console.log(error)
-                socket.emit("registerDriver-response", { success: false, failure: true})
-            })
-            
+    
+                console.log(my_object)
+    
+                axios.post(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload-taxi-picture`, my_object)
+                .then((feedback) => {
+                    console.log(feedback.data)
+                    // Return the server's response data to client
+                    if(feedback.data.success) {
+                        console.log("successful file upload")
+                        socket.emit("upload-taxi-picture-response", {success: true})
+                    } else if(feedback.data.error){
+                        console.log("something went wrong during update of ride --")
+                        socket.emit("upload-taxi-picture-response", {failure: "failed to upload files"})  
+                    }
+                    
+    
+                })
+                .catch((error) => {
+                    console.log(error)
+                    socket.emit("upload-taxi-picture-response", {failure: "failed to upload files"})
+                })
+                
+            }
+
+        } catch(error) {
+            console.log(error)
         }
+        
         //! Handled undefined and null data below with else
-    }) */
+    }) 
 
     //Make Driver payment
     socket.on("makeDriverPayment", (data) => {
@@ -658,6 +556,12 @@ io.on("connection", (socket) => {
             console.log(error)
         })
     })
+
+ /*
+*===================================================================================================
+//*                 Trips related events
+*===================================================================================================
+*/
     
     // Get the passenger list
     socket.on("getPassengers", function (data) {
@@ -938,6 +842,88 @@ io.on("connection", (socket) => {
     
 
 })
+/*
+app.post("/file", (req,res) => {
+
+    //console.log(req.files)
+    console.log(req.body.fingerprint)
+    const formData = new FormData()
+    formData.append("taxi_picture", req.body.taxi_picture)
+    formData.append("fingerprint", req.body.fingerprint)
+    formData.append("taxi_picture_name", req.body.taxi_picture_name)
+
+    fetch(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload-taxi-picture`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data)
+
+        if(data.data.success) {
+            console.log("successful file upload")
+            res.status(201).send({success: true})
+        } else if(data.data.error){
+            console.log("something went wrong during update of ride --")
+            res.status(500).send({failure: "failed to upload files"})  
+        }
+    })
+    .catch((error) => {
+        console.log(error)
+        res.status(500).send({failure: "failed to upload files"}) 
+    })
+}) */
+
+
+app.post("/file", (req,res) => {
+
+    const my_object = {
+        //taxi_picture: data.taxi_picture.toString("base64"),
+        taxi_picture: req.body.taxi_picture,
+        fingerprint: req.body.driverFingerPrint,
+        taxi_picture_name: req.body.taxi_picture_name,
+        taxi_number: req.body.taxi_number
+    }
+    // Set post request parameters
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(my_object)
+        
+    }
+    console.log(my_object.fingerprint)
+    // Send request to driver server:
+    try {
+
+        fetch(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload-taxi-picture`, options)
+        .then(response => response.json())
+        .then((feedback) => {
+            console.log(feedback)
+            // Return the server's response data to client
+            if(feedback.success) {
+                console.log("successful file upload")
+                res.send({success: true})
+            } else if(feedback.error){
+                console.log("something went wrong during update of ride --")
+                res.send({failure: "failed to upload files"})  
+            }
+            
+
+        })
+        .catch((error) => {
+            console.log(error)
+            res.send({failure: "failed to upload files"})
+        })
+
+    } catch(error) {
+        console.log(error)
+    } 
+    
+
+
+}) 
 
 server.listen(PORT, () => {
     console.log(`Central server up and running at port ${ PORT }!!`)
