@@ -121,24 +121,7 @@ const DriverRegistration = () => {
         let [operation_clearances, setOperationClearances] = useState('')
         let [delivery_provider, setDeliveryProvider] = useState('')
 
-        //  Files :
-        let [profile_picture, setProfilePicture] = useState('')
-        let [profile_picture_name, setProfilePictureName] = useState('Profile picture') 
-
-        let [driver_licence_doc, setDriverLicenceDoc] = useState('')
-        let [driver_licence_doc_name, setDriverLicenceDocName] = useState("Driver's licence") 
-
-        let [copy_id_paper, setCopyIdPaper] = useState('')
-        let [copy_id_paper_name, setCopyIdPaperName] = useState('Personal ID')
-
-        let [copy_white_paper, setCopyWhitepaper] = useState('')
-        let [copy_white_paper_name, setCopyWhitepaperName] = useState('White paper')
-
-        let [copy_public_permit, setCopyPublicPermit] = useState('')
-        let [copy_public_permit_name, setCopyPublicPermitName] = useState('Public permit')
-
-        let [copy_blue_paper, setCopyBluePaper] = useState('')
-        let [copy_blue_paper_name, setCopyBluePaperName] = useState('Blue paper')
+        // Documents expiration dates
         let [blue_paper_expiration, setBluePaperExpiration] = useState(new Date())
         let [driver_licence_expiration, setDriverLicenceExpiration] = useState(new Date())
 
