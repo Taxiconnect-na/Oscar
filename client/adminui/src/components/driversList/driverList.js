@@ -18,7 +18,7 @@ function OnlineDrivers(driverArray, resolve) {
 const DriverRow = (props) => {
 
     const redirectDriver = () => {
-        window.location = `/drivers-update?driverID=${ props.driver.driver_fingerprint }&taxi=${ props.driver.taxi_number}`
+        window.location = `/drivers-update?driverID=${ props.driver.driver_fingerprint }&taxi=${ props.driver.taxi_number}&&dname=${props.driver.name}&&dsurname=${props.driver.surname}&&dplate_number=${props.driver.plate_number}&&brand=${props.driver.car_brand}&&contact=${props.driver.phone_number}&&taxipicture=${props.driver.taxi_picture}`
     }
     return(
         <tr onClick={ () => redirectDriver() }>
@@ -70,7 +70,7 @@ function DriverList() {
             });
             //...
             socket.emit("getDrivers", {data:'getting drivers'});
-        }, 10000)
+        }, 15000)
         
         return( () => {
             clearInterval(interval)
@@ -101,19 +101,18 @@ function DriverList() {
                 <div className="right-column" >
                     <h1 style={ title_style }>Registered drivers</h1>
                     <hr></hr>
-                            <div id="container-driver">
-                                
-                                <div>
-                                <h1 style={{ fontSize: 'large', color:"black", width: "auto"}}> Currently registered:  
-                                    <span style={{ fontSize: 'large', color:"blue"}}> { drivers.length } </span>  
-                                </h1>
-                                </div>
-                                <div>
-                                <h1 style={{ fontSize: 'large', color:"black", width: "auto"}}> Online:  
-                                    <span style={{ fontSize: 'large', color:"blue"}}> { online_drivers_count } </span> 
-                                </h1>
-                                </div>
+                        <div id="container-driver">
+                            <div>
+                            <h1 style={{ fontSize: 'large', color:"black", width: "auto"}}> Currently registered:  
+                                <span style={{ fontSize: 'large', color:"blue"}}> { drivers.length } </span>  
+                            </h1>
                             </div>
+                            <div>
+                            <h1 style={{ fontSize: 'large', color:"black", width: "auto"}}> Online:  
+                                <span style={{ fontSize: 'large', color:"blue"}}> { online_drivers_count } </span> 
+                            </h1>
+                            </div>
+                        </div>
                     <hr></hr>
                     <table className="table-striped" style={{ margin: 15}}>
                         <thead className="thead-light">

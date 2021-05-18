@@ -30,3 +30,45 @@
     gap: 40px;
 }
 
+.my-input-field {
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-width: thin;
+    font-size: larger;
+    margin-bottom: 2%;
+
+}
+
+input[type=text]:focus {
+    border-width: thin;
+    background-color: rgb(122, 134, 148);
+    border-style: hidden;
+}
+
+
+img {
+    width: 410px;
+    height: 290px;
+    border-radius: 25%;
+}
+
+.profile-info-driver {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+#profile-driver {
+    color: rgb(3, 2, 24);
+    font-weight: 700;
+    background-color: whitesmoke;
+    padding: 3%;
+}
+
+.uploading-info-anime {
+    font-size: small;
+    margin-left: 25%;
+    font-family: sans-serif;
+}

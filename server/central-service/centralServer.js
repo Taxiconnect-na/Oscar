@@ -30,8 +30,8 @@ const server = http.createServer(app)
 const socketIo = require("socket.io");
 const bodyParser = require('body-parser');
 const io = socketIo(server, { cors: {
-    //origin: "https://taxiconnectnanetwork.com",
-    origin: "http://localhost",
+    origin: "https://taxiconnectnanetwork.com",
+    //origin: "http://localhost",
     //origin: "http://192.168.8.151",
     methods: ["GET", "POST"],
     credentials: true
@@ -842,38 +842,59 @@ io.on("connection", (socket) => {
     
 
 })
-/*
-app.post("/file", (req,res) => {
 
-    //console.log(req.files)
-    console.log(req.body.fingerprint)
-    const formData = new FormData()
-    formData.append("taxi_picture", req.body.taxi_picture)
-    formData.append("fingerprint", req.body.fingerprint)
-    formData.append("taxi_picture_name", req.body.taxi_picture_name)
+/**
+ * *=============================================
+ * * ROUTES DEALING WITH DRIVER DATA
+ * *=============================================
+ */
 
-    fetch(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/upload-taxi-picture`, {
+// *Updates basic information about the driver, excluding files
+app.post("/update-driver-info", async (req,res) => {
+
+    //document to be updated
+    const information = {
+        driverFingerPrint: req.body.driverFingerPrint,
+        old_taxi_number: req.body.old_taxi_number,
+        name: req.body.name,
+        surname: req.body.surname,
+        phone_number: req.body.phone_number.replace(/\s/g, "").startsWith("+")? req.body.phone_number.replace(/\s/g, ""): "+" + req.body.phone_number.replace(/\s/g, ""),
+        taxi_number: req.body.taxi_number,
+        plate_number: req.body.plate_number
+    }
+
+    const options = {
         method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data)
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(information)
+    }
 
-        if(data.data.success) {
+    console.log(information)
+
+    try {
+        
+        const data = await fetch(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/update-driver-info`, options)
+        const feedback = await data.json()
+
+        if(feedback.success) {
             console.log("successful file upload")
-            res.status(201).send({success: true})
-        } else if(data.data.error){
+            res.send({success: true})
+            
+        } else if(feedback.error){
             console.log("something went wrong during update of ride --")
-            res.status(500).send({failure: "failed to upload files"})  
-        }
-    })
-    .catch((error) => {
-        console.log(error)
-        res.status(500).send({failure: "failed to upload files"}) 
-    })
-}) */
+            res.send({failure: "failed to upload files"})
+            
+        } 
+        
 
+    } catch(error) {
+        console.log(error)
+        res.send({failure: "failed to upload files"})
+        
+    }
+})
 
 app.post("/file", (req,res) => {
 
@@ -919,11 +940,299 @@ app.post("/file", (req,res) => {
 
     } catch(error) {
         console.log(error)
+        res.send({failure: "failed to upload files"})
     } 
-    
+})
 
 
-}) 
+app.post("/profile-picture", (req,res) => {
+
+    const my_object = {
+        //taxi_picture: data.taxi_picture.toString("base64"),
+        profile_picture: req.body.profile_picture,
+        fingerprint: req.body.driverFingerPrint,
+        profile_picture_name: req.body.profile_picture_name,
+
+    }
+    // Set post request parameters
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(my_object)
+        
+    }
+    console.log(my_object.fingerprint)
+    // Send request to driver server:
+    try {
+
+        fetch(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/update-profile-picture`, options)
+        .then(response => response.json())
+        .then((feedback) => {
+            console.log(feedback)
+            // Return the server's response data to client
+            if(feedback.success) {
+                console.log("successful file upload")
+                res.send({success: true})
+            } else if(feedback.error){
+                console.log("something went wrong during update of profile file --")
+                res.send({failure: "failed to upload files"})  
+            }
+            
+
+        })
+        .catch((error) => {
+            console.log(error)
+            res.send({failure: "failed to upload files"})
+        })
+
+    } catch(error) {
+        console.log(error)
+        res.send({failure: "failed to upload files"})
+    } 
+})
+
+
+app.post("/driver-licence", (req,res) => {
+
+    const my_object = {
+        driver_licence: req.body.driver_licence,
+        fingerprint: req.body.driverFingerPrint,
+        driver_licence_doc_name: req.body.driver_licence_doc_name,
+
+    }
+    // Set post request parameters
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(my_object)
+        
+    }
+    console.log(my_object.fingerprint)
+    // Send request to driver server:
+    try {
+
+        fetch(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/update-driver-licence`, options)
+        .then(response => response.json())
+        .then((feedback) => {
+            console.log(feedback)
+            // Return the server's response data to client
+            if(feedback.success) {
+                console.log("successful file upload")
+                res.send({success: true})
+            } else if(feedback.error){
+                console.log("something went wrong during update of driver licence file --")
+                res.send({failure: "failed to upload files"})  
+            }
+            
+
+        })
+        .catch((error) => {
+            console.log(error)
+            res.send({failure: "failed to upload files"})
+        })
+
+    } catch(error) {
+        console.log(error)
+        res.send({failure: "failed to upload files"})
+    } 
+})
+
+
+app.post("/id-paper", (req,res) => {
+
+    const my_object = {
+        copy_id_paper: req.body.copy_id_paper,
+        fingerprint: req.body.driverFingerPrint,
+        copy_id_paper_name: req.body.copy_id_paper_name,
+
+    }
+    // Set post request parameters
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(my_object)
+        
+    }
+    console.log(my_object)
+    // Send request to driver server:
+    try {
+
+        fetch(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/update-id-paper`, options)
+        .then(response => response.json())
+        .then((feedback) => {
+            console.log(feedback)
+            // Return the server's response data to client
+            if(feedback.success) {
+                console.log("successful file upload")
+                res.send({success: true})
+            } else if(feedback.error){
+                console.log("something went wrong during update of id paper file @driver-service--")
+                res.send({failure: "failed to upload files"})  
+            }
+            
+
+        })
+        .catch((error) => {
+            console.log(error)
+            res.send({failure: "failed to upload files"})
+        })
+
+    } catch(error) {
+        console.log(error)
+        res.send({failure: "failed to upload files"})
+    } 
+})
+
+
+app.post("/white-paper", (req,res) => {
+
+    const my_object = {
+        copy_white_paper: req.body.copy_white_paper,
+        fingerprint: req.body.driverFingerPrint,
+        copy_white_paper_name: req.body.copy_white_paper_name,
+
+    }
+    // Set post request parameters
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(my_object)
+        
+    }
+    console.log(my_object.fingerprint)
+    // Send request to driver server:
+    try {
+
+        fetch(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/update-white-paper`, options)
+        .then(response => response.json())
+        .then((feedback) => {
+            console.log(feedback)
+            // Return the server's response data to client
+            if(feedback.success) {
+                console.log("successful file upload")
+                res.send({success: true})
+            } else if(feedback.error){
+                console.log("something went wrong during update of white paper file --")
+                res.send({failure: "failed to upload files"})  
+            }
+            
+
+        })
+        .catch((error) => {
+            console.log(error)
+            res.send({failure: "failed to upload files"})
+        })
+
+    } catch(error) {
+        console.log(error)
+        res.send({failure: "failed to upload files"})
+    } 
+})
+
+
+app.post("/public-permit", (req,res) => {
+
+    const my_object = {
+        copy_public_permit: req.body.copy_public_permit,
+        fingerprint: req.body.driverFingerPrint,
+        copy_public_permit_name: req.body.copy_public_permit_name,
+
+    }
+    // Set post request parameters
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(my_object)
+        
+    }
+    console.log(my_object)
+    // Send request to driver server:
+    try {
+
+        fetch(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/update-public-permit`, options)
+        .then(response => response.json())
+        .then((feedback) => {
+            console.log(feedback)
+            // Return the server's response data to client
+            if(feedback.success) {
+                console.log("successful file upload")
+                res.send({success: true})
+            } else if(feedback.error){
+                console.log("something went wrong during update of public permit file --")
+                res.send({failure: "failed to upload files"})  
+            }
+            
+
+        })
+        .catch((error) => {
+            console.log(error)
+            res.send({failure: "failed to upload files"})
+        })
+
+    } catch(error) {
+        console.log(error)
+        res.send({failure: "failed to upload files"})
+    } 
+})
+
+
+app.post("/blue-paper", (req,res) => {
+
+    const my_object = {
+        copy_blue_paper: req.body.copy_blue_paper,
+        fingerprint: req.body.driverFingerPrint,
+        copy_blue_paper_name: req.body.copy_blue_paper_name,
+
+    }
+    // Set post request parameters
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(my_object)
+        
+    }
+    console.log(my_object.fingerprint)
+    // Send request to driver server:
+    try {
+
+        fetch(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/update-blue-paper`, options)
+        .then(response => response.json())
+        .then((feedback) => {
+            console.log(feedback)
+            // Return the server's response data to client
+            if(feedback.success) {
+                console.log("successful file upload")
+                res.send({success: true})
+            } else if(feedback.error){
+                console.log("something went wrong during update of blue paper file --")
+                res.send({failure: "failed to upload files"})  
+            }
+            
+
+        })
+        .catch((error) => {
+            console.log(error)
+            res.send({failure: "failed to upload files"})
+        })
+
+    } catch(error) {
+        console.log(error)
+        res.send({failure: "failed to upload files"})
+    } 
+})
+
 
 server.listen(PORT, () => {
     console.log(`Central server up and running at port ${ PORT }!!`)

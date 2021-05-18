@@ -56,8 +56,8 @@ const s3 = new AWS.S3({
  * * Hard coded keys
  */
 //! Criver Buckets to be changed (dev/production)B
-const BUCKET_NAME_DRIVER = "drivers-central-beta-aws"  //For development
-//const BUCKET_NAME_DRIVER = "drivers-central-aws"     //For production
+//const BUCKET_NAME_DRIVER = "drivers-central-beta-aws"  //For development
+const BUCKET_NAME_DRIVER = "drivers-central-aws"     //For production
 const s3 = new AWS.S3({
     accessKeyId: "AKIAXVMLF7SBTB2WU72Z",
     secretAccessKey: "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"
@@ -152,6 +152,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                 const car_brand = individual.cars_data[0].car_brand
                 const status = individual.operational_state.status
                 const driver_fingerprint = individual.driver_fingerprint
+                const taxi_picture = individual.cars_data[0].taxi_picture
              
                 //Query for this individual's completed rides
                 query = {
@@ -200,6 +201,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                                 Individual_driver.surname = surname
                                 Individual_driver.phone_number = phone_number
                                 Individual_driver.taxi_number = taxi_number
+                                Individual_driver.taxi_picture = taxi_picture
                                 Individual_driver.plate_number = plate_number
                                 Individual_driver.car_brand = car_brand
                                 Individual_driver.status = status
@@ -389,6 +391,7 @@ function InsertcashPayment(driversCollection,walletTransactionsLogsCollection, q
  */
 function uploadFile (fileObject, subdir, driverFingerPrint, paperCategory, fileName, resolve) {
 
+    console.log("UPLOADING FILE TO AWS S3 BUCKET")
     // Setting up S3 upload parameters
     const params = {
         Bucket: `${ BUCKET_NAME_DRIVER }/${ subdir }`,
@@ -659,63 +662,11 @@ clientMongo.connect(function(err) {
 
             [driverFingerprint, car_fingerprint, paymentNumber] = result
 
-            /*Promise.all([
-                    /**   
-                 ** Upload files to s3 bucket (Production setup)
-                
-                new Promise((load1) => {
-                    uploadFile(profile_picture, "Profiles_pictures", driverFingerprint, "profile_picture", load1)
-                }),
-                new Promise((load2) => {
-                    uploadFile(driver_licence_doc, "Driver_licence", driverFingerprint, "driver_licence", load2)
-                }),
-                new Promise((load3) => {
-                    uploadFile(driver_licence_doc, "Driver_licence", driverFingerprint, "driver_licence", load3)
-                }),
-                new Promise((load4) => {
-                    uploadFile(copy_id_paper, "Id_paper", driverFingerprint, "id_paper", load4)
-                }),
-                new Promise((load5) => {
-                    uploadFile(copy_white_paper, "White_paper", driverFingerprint, "white_paper", load5)
-                }),
-                new Promise((load6) => {
-                    uploadFile(copy_public_permit, "Public_permit", driverFingerprint, "public_permit", load6)
-                }),
-                new Promise((load7) => {
-                    uploadFile(copy_blue_paper, "Blue_paper", driverFingerprint, "blue_paper", load7)
-                }),
-                new Promise((load8) => {
-                    uploadFile(taxi_picture, "Taxi_picture", driverFingerprint, "taxi_picture", load8)
-                })
-               
-            ]).then((uploads) => {
-
-                [l1, l2, l3, l4, l5, l6, l7, l8] = uploads
-
-                // Make sure files were uploaded
-                if (l1.error || l2.error || l3.error || l4.error || l5.error || l6.error || l7.error || l8.error) {
-                    // Do not register driver if error occurs during file upload
-                    res.status(500).send({error: "One or multiple files were not uploaded to s3 bucket"})
-
-                } else { // proceed with registration
-
-                    // Signal successful file upload
-                    console.log("*********** SUCCESSFUL FILE UPLOAD **********") */
-                    
-        
-                
-
-            /*}).catch((error) => {
-                console.log(error)
-                res.status(500).send({error: "Something went wrong during registration , params maybe"})
-
-            }) */
-
             // Driver's object to be stored in db
             let driver = {
                 name: req.body.name,
                 surname: req.body.surname,
-                phone_number: req.body.phone_number,
+                phone_number: req.body.phone_number.replace(/\s/g, ""),
                 email: req.body.email,
                 password: "12345678",
                 operation_clearances: [req.body.operation_clearances],
@@ -807,7 +758,58 @@ clientMongo.connect(function(err) {
 
     })
 
-    app.post("/upload-taxi-picture", (req,res) => {
+    /**
+     * *UPDATE BASIC DRIVER INFORMATION
+     */
+
+    app.post("/update-driver-info", (req, res) => {
+
+        console.log("UPDATE DRIVER INFORMATION API CALLED")
+
+        const driverFingerPrint = req.body.driverFingerPrint
+        const old_taxi_number = req.body.old_taxi_number
+        const name =  req.body.name
+        const surname =  req.body.surname
+        const phone_number = req.body.phone_number
+        const taxi_number = req.body.taxi_number
+        const plate_number = req.body.plate_number
+       
+
+        new Promise((res) => {
+            utils.updateEntry(
+                collectionDrivers_profiles,
+                {driver_fingerprint: driverFingerPrint, "cars_data.taxi_number": old_taxi_number},
+                {
+                    name: name,
+                    surname: surname,
+                    phone_number: phone_number,
+                    "cars_data.$.taxi_number": taxi_number,
+                    "cars_data.$.plate_number": plate_number,
+                    "cars_data.$.date_updated": windhoekDateTime.addHours(2),
+                    date_updated: windhoekDateTime.addHours(2)
+                },
+                res
+            )
+        })
+        .then((update_response) => {
+            
+            if(update_response.error) {
+                res.status(500).send({error: "Failed to update driver info data @database level"})
+            } else if (update_response.success) {
+                // return success message
+                res.status(201).send({ success: "Taxi picture updated"})
+            }
+        })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).send({error: "Failed to update driver info data @database level"})
+        })
+    })
+
+    /**
+     * *UPDATE TAXI/VEHICLE PICTURE
+     */
+    app.post("/upload-taxi-picture", (req,res) => { 
         // BUcket location params
         const paperCategory = "taxi_picture"
         const subdirectory = "Taxi_picture"
@@ -857,7 +859,333 @@ clientMongo.connect(function(err) {
         
     })
 
+
+    /**
+     * *UPDATE PROFILE PICTURE
+     */
+     app.post("/update-profile-picture", (req,res) => {
+        // BUcket location params
+        const paperCategory = "profile_picture"
+        const subdirectory = "Profiles_Pictures"
+
+        // MongoDB insert
+        new Promise((res) => {
+            utils.updateEntry(
+                collectionDrivers_profiles,
+                { driver_fingerprint: req.body.fingerprint},
+                { "identification_data.profile_picture" : `${req.body.fingerprint}-${ paperCategory }`+ req.body.profile_picture_name},
+                res
+            )
+        })
+        .then((data) => {
+            if(data.error) {
+                res.status(500).send({error: "Failed to update data @database level"})
+            } 
+
+            // File upload to s3 
+            new Promise((res) => {
+                
+                uploadFile(new Buffer.from(req.body.profile_picture, "base64"), subdirectory, req.body.fingerprint, paperCategory, req.body.profile_picture_name, res)
+                
+            })
+            .then((data) => {
+                if (data.error) {
+                    // Do not register driver if error occurs during file upload
+                    res.status(500).send({error: "The taxi picture file was not uploaded to s3 bucket"})
+
+                } else {
+                    res.status(201).send({ success: "Profile picture updated"})
+                }
+                
+        
+            })
+            .catch((error) => {
+                console.log(error)
+                res.status(500).send({error: "The profile picture file was not uploaded to s3 bucket"})
+            })
+
+            
+        })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).send({error: "Failed to update data @promise level profile picture"})
+        })
+        
+    })
+
+    
+    /**
+     * *UPDATE DRIVER LICENCE DOCUMENT
+     */
+     app.post("/update-driver-licence", (req,res) => {
+        // BUcket location params
+        const paperCategory = "driver_licence"
+        const subdirectory = "Driver_licence"
+
+        // MongoDB insert
+        new Promise((res) => {
+            utils.updateEntry(
+                collectionDrivers_profiles,
+                { driver_fingerprint: req.body.fingerprint},
+                { "identification_data.driver_licence_doc" : `${req.body.fingerprint}-${ paperCategory }`+ req.body.driver_licence_doc_name},
+                res
+            )
+        })
+        .then((data) => {
+            if(data.error) {
+                res.status(500).send({error: "Failed to update data @database level"})
+            } 
+
+            // File upload to s3 
+            new Promise((res) => {
+                
+                uploadFile(new Buffer.from(req.body.driver_licence, "base64"), subdirectory, req.body.fingerprint, paperCategory, req.body.driver_licence_doc_name, res)
+                
+            })
+            .then((data) => {
+                if (data.error) {
+                    // Do not register driver if error occurs during file upload
+                    res.status(500).send({error: "The driver licence document was not uploaded to s3 bucket"})
+
+                } else {
+                    res.status(201).send({ success: "Driver licence updated"})
+                }
+                
+        
+            })
+            .catch((error) => {
+                console.log(error)
+                res.status(500).send({error: "The driver licence document file was not uploaded to s3 bucket"})
+            })
+
+            
+        })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).send({error: "Failed to update data @promise level driver licence"})
+        })
+        
+    })
+
+
+    /**
+     * *UPDATE ID paper
+     */
+     app.post("/update-id-paper", (req,res) => {
+        // BUcket location params
+        const paperCategory = "id_paper"
+        const subdirectory = "Id_paper"
+
+        // MongoDB insert
+        new Promise((res) => {
+            utils.updateEntry(
+                collectionDrivers_profiles,
+                { driver_fingerprint: req.body.fingerprint},
+                { "identification_data.copy_id_paper" : `${req.body.fingerprint}-${ paperCategory }`+ req.body.copy_id_paper_name},
+                res
+            )
+        })
+        .then((data) => {
+            if(data.error) {
+                res.status(500).send({error: "Failed to update data @database level (ID paper)"})
+            } 
+
+            // File upload to s3 
+            new Promise((res) => {
+                
+                uploadFile(new Buffer.from(req.body.copy_id_paper, "base64"), subdirectory, req.body.fingerprint, paperCategory, req.body.copy_id_paper_name, res)
+                
+            })
+            .then((data) => {
+                if (data.error) {
+                    // Do not register driver if error occurs during file upload
+                    res.status(500).send({error: "The id paper document was not uploaded to s3 bucket"})
+
+                } else {
+                    res.status(201).send({ success: "ID paper updated"})
+                }
+                
+        
+            })
+            .catch((error) => {
+                console.log(error)
+                res.status(500).send({error: "The ID paper document file was not uploaded to s3 bucket"})
+            })
+
+            
+        })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).send({error: "Failed to update data @promise level ID paper"})
+        })
+        
+    })
+    
+
+
+    /**
+     * *UPDATE WHITE PAPER
+     */
+     app.post("/update-white-paper", (req,res) => {
+        // BUcket location params
+        const paperCategory = "white_paper"
+        const subdirectory = "White_paper"
+
+        // MongoDB insert
+        new Promise((res) => {
+            utils.updateEntry(
+                collectionDrivers_profiles,
+                { driver_fingerprint: req.body.fingerprint},
+                { "identification_data.copy_white_paper" : `${req.body.fingerprint}-${ paperCategory }`+ req.body.copy_white_paper_name},
+                res
+            )
+        })
+        .then((data) => {
+            if(data.error) {
+                res.status(500).send({error: "Failed to update data @database level"})
+            } 
+
+            // File upload to s3 
+            new Promise((res) => {
+                
+                uploadFile(new Buffer.from(req.body.copy_white_paper, "base64"), subdirectory, req.body.fingerprint, paperCategory, req.body.copy_white_paper_name, res)
+                
+            })
+            .then((data) => {
+                if (data.error) {
+                    // Do not register driver if error occurs during file upload
+                    res.status(500).send({error: "The white paper document was not uploaded to s3 bucket"})
+
+                } else {
+                    res.status(201).send({ success: "White paper updated"})
+                }
+                
+        
+            })
+            .catch((error) => {
+                console.log(error)
+                res.status(500).send({error: "The White paper document file was not uploaded to s3 bucket"})
+            })
+
+            
+        })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).send({error: "Failed to update data @promise level White paper"})
+        })
+        
+    })
+
+
+    /**
+     * *UPDATE PUBLIC PERMIT
+     */
+     app.post("/update-public-permit", (req,res) => {
+        // BUcket location params
+        const paperCategory = "public_permit"
+        const subdirectory = "Public_permit"
+
+        // MongoDB insert
+        new Promise((res) => {
+            utils.updateEntry(
+                collectionDrivers_profiles,
+                { driver_fingerprint: req.body.fingerprint},
+                { "identification_data.copy_public_permit" : `${req.body.fingerprint}-${ paperCategory }`+ req.body.copy_public_permit_name},
+                res
+            )
+        })
+        .then((data) => {
+            if(data.error) {
+                res.status(500).send({error: "Failed to update data @database level"})
+            } 
+
+            // File upload to s3 
+            new Promise((res) => {
+                
+                uploadFile(new Buffer.from(req.body.copy_public_permit, "base64"), subdirectory, req.body.fingerprint, paperCategory, req.body.copy_public_permit_name, res)
+                
+            })
+            .then((data) => {
+                if (data.error) {
+                    // Do not register driver if error occurs during file upload
+                    res.status(500).send({error: "The public permit document was not uploaded to s3 bucket"})
+
+                } else {
+                    res.status(201).send({ success: "Public permit updated"})
+                }
+                
+        
+            })
+            .catch((error) => {
+                console.log(error)
+                res.status(500).send({error: "The Public permit document file was not uploaded to s3 bucket"})
+            })
+
+            
+        })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).send({error: "Failed to update data @promise level White paper"})
+        })
+        
+    })
+
+
+    /**
+     * *UPDATE BLUE PAPER
+     */
+     app.post("/update-blue-paper", (req,res) => {
+        // BUcket location params
+        const paperCategory = "blue_paper"
+        const subdirectory = "Blue_paper"
+
+        // MongoDB insert
+        new Promise((res) => {
+            utils.updateEntry(
+                collectionDrivers_profiles,
+                { driver_fingerprint: req.body.fingerprint},
+                { "identification_data.copy_blue_paper" : `${req.body.fingerprint}-${ paperCategory }`+ req.body.copy_blue_paper_name},
+                res
+            )
+        })
+        .then((data) => {
+            if(data.error) {
+                res.status(500).send({error: "Failed to update data @database level"})
+            } 
+
+            // File upload to s3 
+            new Promise((res) => {
+                
+                uploadFile(new Buffer.from(req.body.copy_blue_paper, "base64"), subdirectory, req.body.fingerprint, paperCategory, req.body.copy_blue_paper_name, res)
+                
+            })
+            .then((data) => {
+                if (data.error) {
+                    // Do not register driver if error occurs during file upload
+                    res.status(500).send({error: "The Blue paper document was not uploaded to s3 bucket"})
+
+                } else {
+                    res.status(201).send({ success: "Blue paper updated"})
+                }
+                
+        
+            })
+            .catch((error) => {
+                console.log(error)
+                res.status(500).send({error: "The Blue paper document file was not uploaded to s3 bucket"})
+            })
+
+            
+        })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).send({error: "Failed to update data @promise level Blue paper"})
+        })
+    })
+
 })
+
+
 
 server.listen(PORT, () => {
     console.log(`Driver server up and running @ port ${ PORT } `)
