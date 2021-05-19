@@ -40,6 +40,13 @@ const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
 });
 
+const redis = require("redis")
+const client = redis.createClient({
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT
+})
+
+
 /*
 * AWS Bucket credentials
 */
@@ -136,120 +143,488 @@ function GetCashWallet(arrayData, resolve) {
  */
 
 function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
+    console.log("Runnnig getDriverinfo() function")
 
-    DriversCollection
-    .find({})
-    .toArray()
-    .then((individualsList) => {
-        let drivers = individualsList.map((individual) => {
-            return new Promise((outcome) => {
-                // Get the following:
-                const name = individual.name
-                const surname = individual.surname
-                const phone_number = individual.phone_number
-                const taxi_number = individual.cars_data[0].taxi_number
-                const plate_number = individual.cars_data[0].plate_number
-                const car_brand = individual.cars_data[0].car_brand
-                const status = individual.operational_state.status
-                const driver_fingerprint = individual.driver_fingerprint
-                const taxi_picture = individual.cars_data[0].taxi_picture
-             
-                //Query for this individual's completed rides
-                query = {
-                    taxi_id: individual.driver_fingerprint,
-                    isArrivedToDestination: true
-                }
-                
-                FilteringCollection
-                .find(query)
-                .toArray()
-                .then((result) => {
+    client.get("drivers-list", (err, reply) => {
+        console.log("Inside the client.get function")
+        if(err) {
+            console.log("ERROR FOUND AT REDIS DRIVERS LIST")
+            console.log(err)
+            //*Direct request to database, Then save in redis the output
+            DriversCollection
+            .find({})
+            .toArray()
+            .then((individualsList) => {
+                let drivers = individualsList.map((individual) => {
+                    return new Promise((outcome) => {
+                        // Get the following:
+                        const name = individual.name
+                        const surname = individual.surname
+                        const phone_number = individual.phone_number
+                        const taxi_number = individual.cars_data[0].taxi_number
+                        const plate_number = individual.cars_data[0].plate_number
+                        const car_brand = individual.cars_data[0].car_brand
+                        const status = individual.operational_state.status
+                        const driver_fingerprint = individual.driver_fingerprint
+                        const taxi_picture = individual.cars_data[0].taxi_picture
                     
-                    const totaltrip = result.length
-
-                    //Make computation to get corresponding total money made
-                    new Promise((res) => {
-                        GetCashWallet(result, res)
-                    }).then((futuremoney) => {
-                        const totalmoney = futuremoney.totalCashWallet
-
-                        // Get today's data:
-                        let startOfToday = new Date()
-                        startOfToday.setHours(0, 0, 0, 0)
+                        //Query for this individual's completed rides
+                        query = {
+                            taxi_id: individual.driver_fingerprint,
+                            isArrivedToDestination: true
+                        }
                         
                         FilteringCollection
-                        .find( {
-                            taxi_id: individual.driver_fingerprint,
-                            isArrivedToDestination: true,
-                            date_requested: { $gte: startOfToday }
-                        })
+                        .find(query)
                         .toArray()
-                        .then((todaydata) => {
-                            const todaytrip = todaydata.length
-
+                        .then((result) => {
+                            
+                            const totaltrip = result.length
+    
+                            //Make computation to get corresponding total money made
                             new Promise((res) => {
-                                GetCashWallet(todaydata, res)
-                            }).then((todaymoney) => {
-
-                                const todayTotalMoney = todaymoney.totalCashWallet
-
-                                // Initialize Individual data
-                                let Individual_driver = {}
-
-                                // Append data to the Individual driver Object:
-                                Individual_driver.name = name
-                                Individual_driver.surname = surname
-                                Individual_driver.phone_number = phone_number
-                                Individual_driver.taxi_number = taxi_number
-                                Individual_driver.taxi_picture = taxi_picture
-                                Individual_driver.plate_number = plate_number
-                                Individual_driver.car_brand = car_brand
-                                Individual_driver.status = status
-                                Individual_driver.driver_fingerprint = driver_fingerprint
-                                Individual_driver.totaltrip = totaltrip
-                                Individual_driver.totalmoney = totalmoney
-                                Individual_driver.todaytrip = todaytrip
-                                Individual_driver.totalMoneyToday = todayTotalMoney
-
-                                // Append this driver's info to the drivers list
-                                outcome(Individual_driver)
-
-
+                                GetCashWallet(result, res)
+                            }).then((futuremoney) => {
+                                const totalmoney = futuremoney.totalCashWallet
+    
+                                // Get today's data:
+                                let startOfToday = new Date()
+                                startOfToday.setHours(0, 0, 0, 0)
+                                
+                                FilteringCollection
+                                .find( {
+                                    taxi_id: individual.driver_fingerprint,
+                                    isArrivedToDestination: true,
+                                    date_requested: { $gte: startOfToday }
+                                })
+                                .toArray()
+                                .then((todaydata) => {
+                                    const todaytrip = todaydata.length
+    
+                                    new Promise((res) => {
+                                        GetCashWallet(todaydata, res)
+                                    }).then((todaymoney) => {
+    
+                                        const todayTotalMoney = todaymoney.totalCashWallet
+    
+                                        // Initialize Individual data
+                                        let Individual_driver = {}
+    
+                                        // Append data to the Individual driver Object:
+                                        Individual_driver.name = name
+                                        Individual_driver.surname = surname
+                                        Individual_driver.phone_number = phone_number
+                                        Individual_driver.taxi_number = taxi_number
+                                        Individual_driver.taxi_picture = taxi_picture
+                                        Individual_driver.plate_number = plate_number
+                                        Individual_driver.car_brand = car_brand
+                                        Individual_driver.status = status
+                                        Individual_driver.driver_fingerprint = driver_fingerprint
+                                        Individual_driver.totaltrip = totaltrip
+                                        Individual_driver.totalmoney = totalmoney
+                                        Individual_driver.todaytrip = todaytrip
+                                        Individual_driver.totalMoneyToday = todayTotalMoney
+    
+                                        // Append this driver's info to the drivers list
+                                        outcome(Individual_driver)
+    
+    
+                                    }).catch((error) => {
+                                        console.log(error)
+                                        resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                    })
+    
+                                }).catch((error) => {
+                                    console.log(error)
+                                    resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                })                        
+    
+                            }).catch((error) => {
+                                console.log(error)
+                                resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                
+                            })
+    
+                            
+                        }).catch((error) => {
+                            console.log(error)
+                            resolve({ response: "error", flag: "Invalid_params_maybe" })
+                        })
+                    })
+                })
+                Promise.all(drivers).then(
+                    (result) => {
+                        client.set("drivers-list", JSON.stringify(result), redis.print)
+                        resolve(result)
+                    },
+                    (error) => {
+                        console.log(error)
+                        resolve({ response: "error", flag: "Invalid_params_maybe" })
+                    }
+                )
+            }).catch((error) => {
+                console.log(error)
+            })  
+        } else if(reply) {
+            if(reply !== null) {
+                //* Resolve found result
+                resolve(JSON.parse(reply))
+                //!! Update cash but do not resolve anything:
+                console.log("updating driver list cache...")
+                //*Update result @background in redis from Mongo with a new Promise
+                new Promise((unreturned) => {
+                    DriversCollection
+                    .find({})
+                    .toArray()
+                    .then((individualsList) => {
+                        let drivers = individualsList.map((individual) => {
+                            return new Promise((outcome) => {
+                                // Get the following:
+                                const name = individual.name
+                                const surname = individual.surname
+                                const phone_number = individual.phone_number
+                                const taxi_number = individual.cars_data[0].taxi_number
+                                const plate_number = individual.cars_data[0].plate_number
+                                const car_brand = individual.cars_data[0].car_brand
+                                const status = individual.operational_state.status
+                                const driver_fingerprint = individual.driver_fingerprint
+                                const taxi_picture = individual.cars_data[0].taxi_picture
+                            
+                                //Query for this individual's completed rides
+                                query = {
+                                    taxi_id: individual.driver_fingerprint,
+                                    isArrivedToDestination: true
+                                }
+                                
+                                FilteringCollection
+                                .find(query)
+                                .toArray()
+                                .then((result) => {
+                                    
+                                    const totaltrip = result.length
+            
+                                    //Make computation to get corresponding total money made
+                                    new Promise((res) => {
+                                        GetCashWallet(result, res)
+                                    }).then((futuremoney) => {
+                                        const totalmoney = futuremoney.totalCashWallet
+            
+                                        // Get today's data:
+                                        let startOfToday = new Date()
+                                        startOfToday.setHours(0, 0, 0, 0)
+                                        
+                                        FilteringCollection
+                                        .find( {
+                                            taxi_id: individual.driver_fingerprint,
+                                            isArrivedToDestination: true,
+                                            date_requested: { $gte: startOfToday }
+                                        })
+                                        .toArray()
+                                        .then((todaydata) => {
+                                            const todaytrip = todaydata.length
+            
+                                            new Promise((res) => {
+                                                GetCashWallet(todaydata, res)
+                                            }).then((todaymoney) => {
+            
+                                                const todayTotalMoney = todaymoney.totalCashWallet
+            
+                                                // Initialize Individual data
+                                                let Individual_driver = {}
+            
+                                                // Append data to the Individual driver Object:
+                                                Individual_driver.name = name
+                                                Individual_driver.surname = surname
+                                                Individual_driver.phone_number = phone_number
+                                                Individual_driver.taxi_number = taxi_number
+                                                Individual_driver.taxi_picture = taxi_picture
+                                                Individual_driver.plate_number = plate_number
+                                                Individual_driver.car_brand = car_brand
+                                                Individual_driver.status = status
+                                                Individual_driver.driver_fingerprint = driver_fingerprint
+                                                Individual_driver.totaltrip = totaltrip
+                                                Individual_driver.totalmoney = totalmoney
+                                                Individual_driver.todaytrip = todaytrip
+                                                Individual_driver.totalMoneyToday = todayTotalMoney
+            
+                                                // Append this driver's info to the drivers list
+                                                outcome(Individual_driver)
+            
+            
+                                            }).catch((error) => {
+                                                console.log(error)
+                                                resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                            })
+            
+                                        }).catch((error) => {
+                                            console.log(error)
+                                            resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                        })                        
+            
+                                    }).catch((error) => {
+                                        console.log(error)
+                                        resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                        
+                                    })
+            
+                                    
+                                }).catch((error) => {
+                                    console.log(error)
+                                    resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                })
+                            })
+                        })
+                        Promise.all(drivers).then(
+                            (result) => {
+                                client.set("drivers-list", JSON.stringify(result), redis.print)
+                                //resolve(result)
+                            },
+                            (error) => {
+                                console.log(error)
+                                resolve({ response: "error", flag: "Invalid_params_maybe" })
+                            }
+                        )
+                    }).catch((error) => {
+                        console.log(error)
+                    })
+                })
+                
+            } else{
+                console.log("NO CACHE FOUND FOR DRIVERS LIST")
+                //* Direct request to Mongo, Then save result
+                DriversCollection
+                .find({})
+                .toArray()
+                .then((individualsList) => {
+                    let drivers = individualsList.map((individual) => {
+                        return new Promise((outcome) => {
+                            // Get the following:
+                            const name = individual.name
+                            const surname = individual.surname
+                            const phone_number = individual.phone_number
+                            const taxi_number = individual.cars_data[0].taxi_number
+                            const plate_number = individual.cars_data[0].plate_number
+                            const car_brand = individual.cars_data[0].car_brand
+                            const status = individual.operational_state.status
+                            const driver_fingerprint = individual.driver_fingerprint
+                            const taxi_picture = individual.cars_data[0].taxi_picture
+                        
+                            //Query for this individual's completed rides
+                            query = {
+                                taxi_id: individual.driver_fingerprint,
+                                isArrivedToDestination: true
+                            }
+                            
+                            FilteringCollection
+                            .find(query)
+                            .toArray()
+                            .then((result) => {
+                                
+                                const totaltrip = result.length
+        
+                                //Make computation to get corresponding total money made
+                                new Promise((res) => {
+                                    GetCashWallet(result, res)
+                                }).then((futuremoney) => {
+                                    const totalmoney = futuremoney.totalCashWallet
+        
+                                    // Get today's data:
+                                    let startOfToday = new Date()
+                                    startOfToday.setHours(0, 0, 0, 0)
+                                    
+                                    FilteringCollection
+                                    .find( {
+                                        taxi_id: individual.driver_fingerprint,
+                                        isArrivedToDestination: true,
+                                        date_requested: { $gte: startOfToday }
+                                    })
+                                    .toArray()
+                                    .then((todaydata) => {
+                                        const todaytrip = todaydata.length
+        
+                                        new Promise((res) => {
+                                            GetCashWallet(todaydata, res)
+                                        }).then((todaymoney) => {
+        
+                                            const todayTotalMoney = todaymoney.totalCashWallet
+        
+                                            // Initialize Individual data
+                                            let Individual_driver = {}
+        
+                                            // Append data to the Individual driver Object:
+                                            Individual_driver.name = name
+                                            Individual_driver.surname = surname
+                                            Individual_driver.phone_number = phone_number
+                                            Individual_driver.taxi_number = taxi_number
+                                            Individual_driver.taxi_picture = taxi_picture
+                                            Individual_driver.plate_number = plate_number
+                                            Individual_driver.car_brand = car_brand
+                                            Individual_driver.status = status
+                                            Individual_driver.driver_fingerprint = driver_fingerprint
+                                            Individual_driver.totaltrip = totaltrip
+                                            Individual_driver.totalmoney = totalmoney
+                                            Individual_driver.todaytrip = todaytrip
+                                            Individual_driver.totalMoneyToday = todayTotalMoney
+        
+                                            // Append this driver's info to the drivers list
+                                            outcome(Individual_driver)
+        
+        
+                                        }).catch((error) => {
+                                            console.log(error)
+                                            resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                        })
+        
+                                    }).catch((error) => {
+                                        console.log(error)
+                                        resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                    })                        
+        
+                                }).catch((error) => {
+                                    console.log(error)
+                                    resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                    
+                                })
+        
+                                
                             }).catch((error) => {
                                 console.log(error)
                                 resolve({ response: "error", flag: "Invalid_params_maybe" })
                             })
-
+                        })
+                    })
+                    Promise.all(drivers).then(
+                        (result) => {
+                            client.set("drivers-list", JSON.stringify(result), redis.print)
+                            resolve(result)
+                        },
+                        (error) => {
+                            console.log(error)
+                            resolve({ response: "error", flag: "Invalid_params_maybe" })
+                        }
+                    )
+                }).catch((error) => {
+                    console.log(error)
+                })
+            }
+        } else {
+            //*Direct request to database, Then save in redis the output
+            DriversCollection
+            .find({})
+            .toArray()
+            .then((individualsList) => {
+                let drivers = individualsList.map((individual) => {
+                    return new Promise((outcome) => {
+                        // Get the following:
+                        const name = individual.name
+                        const surname = individual.surname
+                        const phone_number = individual.phone_number
+                        const taxi_number = individual.cars_data[0].taxi_number
+                        const plate_number = individual.cars_data[0].plate_number
+                        const car_brand = individual.cars_data[0].car_brand
+                        const status = individual.operational_state.status
+                        const driver_fingerprint = individual.driver_fingerprint
+                        const taxi_picture = individual.cars_data[0].taxi_picture
+                    
+                        //Query for this individual's completed rides
+                        query = {
+                            taxi_id: individual.driver_fingerprint,
+                            isArrivedToDestination: true
+                        }
+                        
+                        FilteringCollection
+                        .find(query)
+                        .toArray()
+                        .then((result) => {
+                            
+                            const totaltrip = result.length
+    
+                            //Make computation to get corresponding total money made
+                            new Promise((res) => {
+                                GetCashWallet(result, res)
+                            }).then((futuremoney) => {
+                                const totalmoney = futuremoney.totalCashWallet
+    
+                                // Get today's data:
+                                let startOfToday = new Date()
+                                startOfToday.setHours(0, 0, 0, 0)
+                                
+                                FilteringCollection
+                                .find( {
+                                    taxi_id: individual.driver_fingerprint,
+                                    isArrivedToDestination: true,
+                                    date_requested: { $gte: startOfToday }
+                                })
+                                .toArray()
+                                .then((todaydata) => {
+                                    const todaytrip = todaydata.length
+    
+                                    new Promise((res) => {
+                                        GetCashWallet(todaydata, res)
+                                    }).then((todaymoney) => {
+    
+                                        const todayTotalMoney = todaymoney.totalCashWallet
+    
+                                        // Initialize Individual data
+                                        let Individual_driver = {}
+    
+                                        // Append data to the Individual driver Object:
+                                        Individual_driver.name = name
+                                        Individual_driver.surname = surname
+                                        Individual_driver.phone_number = phone_number
+                                        Individual_driver.taxi_number = taxi_number
+                                        Individual_driver.taxi_picture = taxi_picture
+                                        Individual_driver.plate_number = plate_number
+                                        Individual_driver.car_brand = car_brand
+                                        Individual_driver.status = status
+                                        Individual_driver.driver_fingerprint = driver_fingerprint
+                                        Individual_driver.totaltrip = totaltrip
+                                        Individual_driver.totalmoney = totalmoney
+                                        Individual_driver.todaytrip = todaytrip
+                                        Individual_driver.totalMoneyToday = todayTotalMoney
+    
+                                        // Append this driver's info to the drivers list
+                                        outcome(Individual_driver)
+    
+    
+                                    }).catch((error) => {
+                                        console.log(error)
+                                        resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                    })
+    
+                                }).catch((error) => {
+                                    console.log(error)
+                                    resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                })                        
+    
+                            }).catch((error) => {
+                                console.log(error)
+                                resolve({ response: "error", flag: "Invalid_params_maybe" })
+                                
+                            })
+    
+                            
                         }).catch((error) => {
                             console.log(error)
                             resolve({ response: "error", flag: "Invalid_params_maybe" })
-                        })                        
-
-                    }).catch((error) => {
+                        })
+                    })
+                })
+                Promise.all(drivers).then(
+                    (result) => {
+                        client.set("drivers-list", JSON.stringify(result), redis.print)
+                        resolve(result)
+                    },
+                    (error) => {
                         console.log(error)
                         resolve({ response: "error", flag: "Invalid_params_maybe" })
-                        
-                    })
-
-                    
-                }).catch((error) => {
-                    console.log(error)
-                    resolve({ response: "error", flag: "Invalid_params_maybe" })
-                })
-            })
-        })
-        Promise.all(drivers).then(
-            (result) => {
-                resolve(result)
-            },
-            (error) => {
+                    }
+                )
+            }).catch((error) => {
                 console.log(error)
-                resolve({ response: "error", flag: "Invalid_params_maybe" })
-            }
-        )
-    }).catch((error) => {
-        console.log(error)
-    })  
+            })
+        }
+    })
 }
 
 
