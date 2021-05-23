@@ -502,7 +502,8 @@ io.on("connection", (socket) => {
         }
         
         //! Handled undefined and null data below with else
-    }) 
+    })
+
 
     //Make Driver payment
     socket.on("makeDriverPayment", (data) => {
@@ -555,6 +556,53 @@ io.on("connection", (socket) => {
         }).catch((error) => {
             console.log(error)
         })
+    })
+
+    socket.on("getDriversWithCommission", function(data) {
+        console.log(data)
+
+        axios.get(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/driver-data`)
+        .then((feedback) => {
+            let driverList = new Object(feedback.data)
+            console.log(`NUMBER OF DRIVERS FOUND FROM DRIVER API: ${driverList.length}`)
+        
+            let newDriverList = driverList.map((driver) => {
+                return new Promise((future) => {
+                    axios.get(`172.31.20.41:9696/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`)
+                    .then((data) => {
+    
+                        console.log(data.data)
+    
+                        future({
+                            name: driver.name,
+                            surname: driver.surname,
+                            phone_number: driver.phone_number,
+                            taxi_number: driver.taxi_number,
+                            total_commission: data.data.header.remaining_commission? data.data.header.remaining_commission:"not found",
+                            wallet_balance: data.data.header.remaining_due_to_driver? data.data.header.remaining_due_to_driver:"not found"
+                        })
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        socket.emit("getDriversWithCommission-response", {error: "something went wrong 1"})
+                    })
+                })        
+            })
+    
+            Promise.all(newDriverList)
+            .then((result) => {
+                socket.emit("getDriversWithCommission-response", result)
+            })
+            .catch((error) => {
+                console.log(error)
+                socket.emit("getDriversWithCommission-response", {error: "something went wrong 2"})
+            })
+    
+        }).catch((error) => {
+            console.log(error)
+            socket.emit("getDriversWithCommission-response", {error: "something went wrong 3"})
+        })
+
     })
 
  /*

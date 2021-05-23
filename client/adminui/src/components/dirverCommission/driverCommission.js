@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import socket from '../socket'
 import Sidebar from "../sidebar/sidebar"
 
 function fetchData(resolve) {
@@ -49,6 +50,7 @@ export default function DriverCommission() {
 
     useEffect( () => {
         
+        /*
         new Promise((res) => {
             fetchData(res)
         })
@@ -59,6 +61,24 @@ export default function DriverCommission() {
             }
 
             setDrivers(result)
+        })*/
+        const interval = setInterval(() => {
+            console.log("driverslistCommission@taxiconnect")
+
+            socket.on("getDriversWithCommission-response", (data) => {
+                if ((data !== undefined) && (data != null)) {
+                    console.log(data)
+                    //mydata = data
+                    setDrivers(data)   
+
+                }
+            });
+            //...
+            socket.emit("getDriversWithCommission", {data:'getting drivers commission'});
+        }, 8000)
+        
+        return( () => {
+            clearInterval(interval)
         })
 
     },[])
@@ -93,7 +113,7 @@ export default function DriverCommission() {
 
                         </thead>
                         <tbody>
-                            { driverData() }
+                            { driverData }
                         </tbody>
                     </table>
                 </div>
