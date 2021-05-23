@@ -2,39 +2,40 @@ import React, { useEffect, useState } from 'react'
 import socket from '../socket'
 import Sidebar from "../sidebar/sidebar"
 
-function fetchData(resolve) {
-    /*
-    const options = {
-        method: "GET",
-        mode: "no-cors",
-        'Access-Control-Allow-Credentials':true
-    } */
-    fetch(`${process.env.REACT_APP_GATEWAY}/driver-commission`)
-    .then( response => response.json())
-    .then((data) => {
-        console.log(data)
-        resolve(data)
-    })
-    .catch((error) => {
-        console.log(error)
-        resolve({error: "failed"})
-    })
+
+const isToday = (someDate) => {
+    const today = new Date()
+    return someDate.getDate() == today.getDate() &&
+      someDate.getMonth() == today.getMonth() &&
+      someDate.getFullYear() == today.getFullYear()
 }
 
-
 const DriverRow = (props) => {
+    
+    const redirectDriverPayment = () => {
+        window.location = `/driver-commission-payment?driver_identifier=${ props.driver.driver_fingerprint }&taxi=${ props.driver.taxi_number}&&dname=${props.driver.name}&&dsurname=${props.driver.surname}`
+    }
 
-    /*const redirectDriver = () => {
-        window.location = `/drivers-update?driverID=${ props.driver.driver_fingerprint }&taxi=${ props.driver.taxi_number}&&dname=${props.driver.name}&&dsurname=${props.driver.surname}&&dplate_number=${props.driver.plate_number}&&brand=${props.driver.car_brand}&&contact=${props.driver.phone_number}&&taxipicture=${props.driver.taxi_picture}`
-    }*/
+    let todayStyle
+    if(isToday(new Date(props.driver.scheduled_payment_date))){
+        todayStyle = {
+            backgroundColor: "#c43737"
+        }
+    } else {
+        todayStyle = {
+            // Empty
+        }
+    }
+
     return(
-        <tr>
+        <tr onClick={ () => { redirectDriverPayment() }} style={todayStyle}>
             <td>{ props.driver.name}</td>
             <td>{ props.driver.surname }</td>
             <td>{ props.driver.phone_number }</td>
             <td>{ props.driver.taxi_number }</td>
             <td>{ props.driver.total_commission }</td>
             <td> { props.driver.wallet_balance }</td>
+            <td>{props.driver.scheduled_payment_date.toString().slice(0,10) }</td> 
         </tr>
     )
 }
@@ -45,23 +46,10 @@ const DriverRow = (props) => {
  */
 export default function DriverCommission() {
 
-    let [trial, setTrial] = useState(null)
     let [drivers, setDrivers] = useState([])
 
     useEffect( () => {
-        
-        /*
-        new Promise((res) => {
-            fetchData(res)
-        })
-        .then(result => {
-            if(result.error) {
-                console.log("An error occured", result)
-                
-            }
 
-            setDrivers(result)
-        })*/
         const interval = setInterval(() => {
             console.log("driverslistCommission@taxiconnect")
 
@@ -98,7 +86,7 @@ export default function DriverCommission() {
                 <Sidebar />
                 </div>
                 <div className="right-column" >
-                    <h1 style={{ display: "grid", placeItems: "center"}}> DRIVERS PAYMENTS </h1>
+                    <h1 style={{ display: "grid", placeItems: "center", margin: "2%"}}> DRIVERS PAYMENTS </h1>
 
                     <table className="table-hover" >
                         <thead className="thead-light">
@@ -109,11 +97,12 @@ export default function DriverCommission() {
                                 <th>Taxi Number</th>
                                 <th>Total commission</th>
                                 <th>Wallet Balance</th>
+                                <th>Scheduled payment date</th>
                             </tr>
 
                         </thead>
                         <tbody>
-                            { driverData }
+                            { driverData() }
                         </tbody>
                     </table>
                 </div>

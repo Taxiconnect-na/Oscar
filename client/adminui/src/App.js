@@ -30,7 +30,8 @@ import Revenues from './components/visualize/Revenues'
 import ConnectTypes from './components/visualize/ConnectTypes'
 import PaymentMethods from './components/visualize/PaymentMethods'
 import DriverDataUpdate from './components/driverRegistration/driverDataUpdate'
-import DriverCommission from './components/dirverCommission/driverCommission'
+import DriverCommission from './components/driverCommission/driverCommission'
+import DriverCommissionInsert from './components/driverCommission/driverCommissionInsert'
 
 
 
@@ -343,6 +344,7 @@ function App() {
                 <Route path="/visualize-payment-methods" component ={PaymentMethods} />
                 <Route path="/drivers-update" component={DriverDataUpdate} />
                 <Route path="/driver-commission" component={DriverCommission} />
+                <Route path="/driver-commission-payment" component={DriverCommissionInsert} />
               </Switch>
             </Router>
           </div>

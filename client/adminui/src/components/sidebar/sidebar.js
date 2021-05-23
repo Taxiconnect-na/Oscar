@@ -43,7 +43,7 @@ function Sidebar() {
                     <MenuItem><Link to="/passengers"><FaThList style={iconStyle} />Users </Link></MenuItem>
                     <MenuItem><Link to="/driver-payment"><MdBusiness style={iconStyle} />Make payment </Link></MenuItem>
                     <MenuItem><Link to="/visualize"><AiFillSignal style={iconStyle} />Visualize </Link></MenuItem>
-                    {/*<MenuItem><Link to="/driver-commission">Driver Commission</Link></MenuItem>*/}
+                    <MenuItem><Link to="/driver-commission">Driver Commission</Link></MenuItem>
                 </Menu>
             </ProSidebar>;
         </div>

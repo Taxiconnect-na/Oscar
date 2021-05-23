@@ -1,4 +1,4 @@
-//console.log = function () {};
+console.log = function () {};
 const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
@@ -578,8 +578,10 @@ io.on("connection", (socket) => {
                             surname: driver.surname,
                             phone_number: driver.phone_number,
                             taxi_number: driver.taxi_number,
-                            total_commission: data.data.header.remaining_commission? data.data.header.remaining_commission:"not found",
-                            wallet_balance: data.data.header.remaining_due_to_driver? data.data.header.remaining_due_to_driver:"not found"
+                            driver_fingerprint: driver.driver_fingerprint,
+                            total_commission: data.data.header.remaining_commission? data.data.header.remaining_commission:"0",
+                            wallet_balance: data.data.header.remaining_due_to_driver? data.data.header.remaining_due_to_driver:"0",
+                            scheduled_payment_date: data.data.header.scheduled_payment_date? data.data.header.scheduled_payment_date: "N/A"
                         })
                     })
                     .catch((error) => {
@@ -1281,48 +1283,39 @@ app.post("/blue-paper", (req,res) => {
     } 
 })
 
-app.get("/driver-commission", (req, res) => {
+app.post("/driver-commission-payment", (req, res) => {
 
-    console.log("DRIVER DATA API CALLED @CENTRAL GET")
-    axios.get(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/driver-data`)
+    console.log("DRIVER DATA COMMISION @CENTRAL")
+
+    const my_object = {
+        driver_fingerprint: req.body.driver_fingerprint,
+        amount: Number(req.body.amount)
+    }
+    console.log(my_object)
+    // Set post request parameters
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(my_object)
+        
+    }
+
+    fetch(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/driver-commission-payment`, options)
+    .then(response => response.json())
     .then((feedback) => {
-        let driverList = new Object(feedback.data)
-    
-        let newDriverList = driverList.map((driver) => {
-            return new Promise((future) => {
-                axios.get(`172.31.20.41:9696/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`)
-                .then((data) => {
-
-                    console.log(data.data)
-
-                    future({
-                        name: driver.name,
-                        surname: driver.surname,
-                        phone_number: driver.phone_number,
-                        taxi_number: driver.taxi_number,
-                        total_commission: data.data.header.remaining_commission,
-                        wallet_balance: data.data.header.remaining_due_to_driver
-                    })
-                })
-                .catch((error) => {
-                    console.log(error)
-                    res.send({error: "Something went wrong"})
-                })
-            })        
-        })
-
-        Promise.all(newDriverList)
-        .then((result) => {
-            res.send(result)
-        })
-        .catch((error) => {
-            console.log(error)
-            res.send({error: "Something went wrong"})
-        })
-
-    }).catch((error) => {
-        console.log(error)
+        console.log(feedback)
+        if(feedback.error) {
+            res.send({ error: " Something went wrong @commission payment @central"})
+        }
+        res.status(200).send({success: "successful commission payment was made"})
     })
+    .catch((error) => {
+        console.log(error)
+        res.send({ error: " Something went wrong @commission payment @central"})
+    })
+
 })
 
 

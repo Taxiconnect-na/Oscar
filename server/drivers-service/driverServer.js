@@ -912,6 +912,31 @@ clientMongo.connect(function(err) {
         }
 
     })
+    
+    //* Driver Commission payment 
+    app.post("/driver-commission-payment", (req, res) => {
+        console.log("DRIVER-COMMISSION-PAYMENT API CALLED")
+
+        new Promise((res) => {
+            utils.MakePaymentCommissionTCSubtracted(
+                collectionWallet_transaction_logs,
+                req.body.driver_fingerprint,
+                Number(req.body.amount),
+                res
+            )
+        })
+        .then((result) => {
+            if(result.error) {
+                res.status(500).send({error: "Oops! something went wrong at server driver db function insert level"})
+            }
+
+            res.status(201).send({ success: `Payment inserted of ${req.body.amount}`})
+        })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).send({error: "Oops! something went wrong at server"})
+        })
+    })
 
     // Upload Endpoint for driver registration
     app.post('/upload', (req, res) => {
