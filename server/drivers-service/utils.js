@@ -31,5 +31,44 @@
 }
 
 
+
+function MakePaymentCommissionTCSubtracted(
+  walletTransactionsLogsCollection, 
+  recipient_fp, 
+  amount, 
+  resolve) {
+  // Initialize transaction object
+  const transaction = {}
+
+  const transaction_nature = "commissionTCSubtracted"
+  const receiver = "TAXICONNECT"
+  const date_captured = windhoekDateTime
+
+  transaction.amount = amount
+  transaction.transaction_nature = transaction_nature
+  transaction.receiver = receiver
+  transaction.recipient_fp = recipient_fp
+  
+  transaction.date_captured = date_captured
+  
+
+  // Insert transaction into db
+  walletTransactionsLogsCollection
+  .insertOne(transaction)
+  .then((res) => {
+      
+      if(res.result.ok) {
+          console.log(res.result)
+          resolve({success: "One payment inserted"})
+      }
+  })
+  .catch((error) => {
+      console.log(error)
+      resolve({error: "Seems like wrong parameters @db query"})
+  })
+
+}
+
 // Exported functions
 exports.updateEntry = updateEntry
+exports.MakePaymentCommissionTCSubtracted = MakePaymentCommissionTCSubtracted

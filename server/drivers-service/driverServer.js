@@ -701,8 +701,10 @@ function CreatePaymentNumber(collectionDrivers_profiles, resolve) {
 }
 
 /**
- * @function InsertcashPayment: Inserts a payment made by a driver, which gets saved into the
- *                               wallet transactions collection
+ * @function InsertcashPayment: Insert the amount due to driver from his wallet.
+ *  This is basically the driver's money in his wallet that we owe him
+ *  Initially drivers would come to the office to get the money from above NAD 100
+ * When a driver is given his NAD100, this object is inserted                             
  * @param {collection} driversCollection 
  * @param {collection} walletTransactionsLogsCollection 
  * @param {object} query 
@@ -719,32 +721,33 @@ function InsertcashPayment(driversCollection,walletTransactionsLogsCollection, q
     .then((result) => {
         
         if(result) {
+            
             const money = amount
-        const user_fingerprint = "Taxiconnect"
-        const recipient_fp = result.driver_fingerprint
-        const payment_currency = "NAD"
-        const transaction_nature = "weeklyPaidDriverAutomatic"
-        const date_captured = (new Date()).addHours(2)
-        const timestamp = ((new Date()).addHours(2)).getTime()
+            const user_fingerprint = result.driver_fingerprint //
+            const recipient_fp = result.driver_fingerprint
+            const payment_currency = "NAD" //
+            const transaction_nature = "weeklyPaidDriverAutomatic"
+            const date_captured = (new Date()).addHours(2)
+            const timestamp = ((new Date()).addHours(2)).getTime()
 
-        transaction.user_fingerprint = user_fingerprint
-        transaction.recipient_fp = recipient_fp
-        transaction.payment_currency = payment_currency
-        transaction.transaction_nature = transaction_nature
-        transaction.date_captured = date_captured
-        transaction.timestamp = timestamp
-        transaction.amount = money
-
-        // Insert transaction into db
-        walletTransactionsLogsCollection
-        .insertOne(transaction)
-        .then((next) => {
-            resolve(`++++++++++++ ONE CASH PAYMENT OF [  N$ ${amount}  ] BY ${result.name} inserted ++++++++++++++++`)
-        })
-        .catch((error) => {
-            console.log(error)
-            resolve({error: "Seems like wrong parameters @db query"})
-        })
+            transaction.user_fingerprint = user_fingerprint
+            transaction.transaction_fp = result.driver_fingerprint + ((new Date()).addHours(2)).getTime()
+            transaction.payment_currency = payment_currency //
+            transaction.transaction_nature = transaction_nature
+            transaction.date_captured = date_captured
+            transaction.timestamp = timestamp
+            transaction.amount = money //
+           
+            // Insert transaction into db
+            walletTransactionsLogsCollection
+            .insertOne(transaction)
+            .then((next) => {
+                resolve(`++++++++++++ ONE CASH PAYMENT OF [  N$ ${amount}  ] BY ${result.name} inserted ++++++++++++++++`)
+            })
+            .catch((error) => {
+                console.log(error)
+                resolve({error: "Seems like wrong parameters @db query"})
+            })
         } else {
             resolve({error: "driver not found"})
         }

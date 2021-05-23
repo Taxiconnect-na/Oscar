@@ -1233,6 +1233,50 @@ app.post("/blue-paper", (req,res) => {
     } 
 })
 
+app.get("/driver-commission", (req, res) => {
+
+    console.log("DRIVER DATA API CALLED @CENTRAL GET")
+    axios.get(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/driver-data`)
+    .then((feedback) => {
+        let driverList = new Object(feedback.data)
+    
+        let newDriverList = driverList.map((driver) => {
+            return new Promise((future) => {
+                axios.get(`172.31.20.41:9696/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`)
+                .then((data) => {
+
+                    console.log(data.data)
+
+                    future({
+                        name: driver.name,
+                        surname: driver.surname,
+                        phone_number: driver.phone_number,
+                        taxi_number: driver.taxi_number,
+                        total_commission: data.data.header.remaining_commission,
+                        wallet_balance: data.data.header.remaining_due_to_driver
+                    })
+                })
+                .catch((error) => {
+                    console.log(error)
+                    res.send({error: "Something went wrong"})
+                })
+            })        
+        })
+
+        Promise.all(newDriverList)
+        .then((result) => {
+            res.send(result)
+        })
+        .catch((error) => {
+            console.log(error)
+            res.send({error: "Something went wrong"})
+        })
+
+    }).catch((error) => {
+        console.log(error)
+    })
+})
+
 
 server.listen(PORT, () => {
     console.log(`Central server up and running at port ${ PORT }!!`)
