@@ -568,7 +568,7 @@ io.on("connection", (socket) => {
         
             let newDriverList = driverList.map((driver) => {
                 return new Promise((future) => {
-                    axios.get(`172.31.20.41:9696/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`)
+                    axios.get(`http://172.31.20.41:9696/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`)
                     .then((data) => {
     
                         console.log(data.data)
