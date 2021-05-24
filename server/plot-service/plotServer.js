@@ -17,6 +17,29 @@ const client = redis.createClient({
     port: process.env.REDIS_PORT
 }) 
 
+const client = redis.createClient({
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+  });
+
+var RedisClustr = require("redis-clustr");
+var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
+    ? new RedisClustr({
+            servers: [
+                {
+                host: process.env.REDIS_HOST_ELASTICACHE,
+                port: process.env.REDIS_PORT_ELASTICACHE,
+                },
+            ],
+            createClient: function (port, host) {
+                // this is the default behaviour
+                return redis.createClient(port, host);
+            },
+        })
+    : client;
+
+
+
 const http = require("http")
 /*const https = require("https")
 const fs = require("fs")
@@ -106,7 +129,7 @@ function getDayName(number) {
 
 function GeneralPlottingData(collectionRidesDeliveryData, collectionRidesDeliveryDataCancelled ,filteringQuery, fire ) {
 
-    client.get("general-plotting-data", (err, reply) => {
+    redisCluster.get("general-plotting-data", (err, reply) => {
 
         if(err) {
             console.log(" ERROR OCCURED @REDIS-CLIENT_GET, NO CACHE FOUND, Getting data from DB")
@@ -207,7 +230,7 @@ function GeneralPlottingData(collectionRidesDeliveryData, collectionRidesDeliver
                             console.log(`General plotting data count cancelled: ${result2.length}`)
                            // console.log(result2)
                             //* Saving output into redis
-                            client.setex("general-plotting-data", 20000, JSON.stringify(result1.concat(result2)), redis.print)
+                            redisCluster.setex("general-plotting-data", 20000, JSON.stringify(result1.concat(result2)), redis.print)
                             //Return the combination of both lists (cancelled and successful) as ONE LIST
                             fire(result1.concat(result2))
                         })
@@ -339,7 +362,7 @@ function GeneralPlottingData(collectionRidesDeliveryData, collectionRidesDeliver
                                     console.log(`General plotting data count cancelled: ${result2.length}`)
                                 // console.log(result2)
                                     //* Saving output into redis
-                                    client.setex("general-plotting-data", 20000, JSON.stringify(result1.concat(result2)), redis.print)
+                                    redisCluster.setex("general-plotting-data", 20000, JSON.stringify(result1.concat(result2)), redis.print)
                                     //Return the combination of both lists (cancelled and successful) as ONE LIST
                                     //! No return as cached had been returned fire(result1.concat(result2))
                                 })
@@ -472,7 +495,7 @@ function GeneralPlottingData(collectionRidesDeliveryData, collectionRidesDeliver
                                 console.log(`General plotting data count cancelled: ${result2.length}`)
                             // console.log(result2)
                                 //* Saving output into redis
-                                client.setex("general-plotting-data", 20000, JSON.stringify(result1.concat(result2)), redis.print)
+                                redisCluster.setex("general-plotting-data", 20000, JSON.stringify(result1.concat(result2)), redis.print)
                                 //Return the combination of both lists (cancelled and successful) as ONE LIST
                                 fire(result1.concat(result2))
                             })
@@ -599,7 +622,7 @@ function GeneralPlottingData(collectionRidesDeliveryData, collectionRidesDeliver
                             console.log(`General plotting data count cancelled: ${result2.length}`)
                            // console.log(result2)
                             //* Saving output into redis
-                            client.setex("general-plotting-data", 20000, JSON.stringify(result1.concat(result2)), redis.print)
+                            redisCluster.setex("general-plotting-data", 20000, JSON.stringify(result1.concat(result2)), redis.print)
                             //Return the combination of both lists (cancelled and successful) as ONE LIST
                             fire(result1.concat(result2))
                         })

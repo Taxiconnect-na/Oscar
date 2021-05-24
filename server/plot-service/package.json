@@ -11,11 +11,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
+    "express": "^4.17.1",
     "helmet": "^4.4.1",
     "mongodb": "^3.6.3",
-    "redis": "^3.0.2"
+    "redis": "^3.0.2",
+    "redis-clustr": "^1.7.0"
   }
 }
