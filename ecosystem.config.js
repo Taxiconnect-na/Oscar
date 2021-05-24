@@ -3,7 +3,7 @@ module.exports = {
       {
         name: "drivers-service",
         script: "./server/drivers-service/driverServer.js",
-        instances: 1,
+        instances: 2,
         autorestart: true,
         watch: false,
         max_memory_restart: "1G",

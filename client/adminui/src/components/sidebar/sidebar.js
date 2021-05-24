@@ -8,6 +8,7 @@ import { MdBusiness } from 'react-icons/md'
 import { BsFillTrashFill } from "react-icons/bs"
 import React, { useState } from 'react'
 import { AiFillSignal } from "react-icons/ai"
+import { GiTakeMyMoney } from "react-icons/gi"
 
 function Sidebar() {
     let [over, setOver] = useState(false)
@@ -43,7 +44,7 @@ function Sidebar() {
                     <MenuItem><Link to="/passengers"><FaThList style={iconStyle} />Users </Link></MenuItem>
                     <MenuItem><Link to="/driver-payment"><MdBusiness style={iconStyle} />Make payment </Link></MenuItem>
                     <MenuItem><Link to="/visualize"><AiFillSignal style={iconStyle} />Visualize </Link></MenuItem>
-                    <MenuItem><Link to="/driver-commission">Driver Commission</Link></MenuItem>
+                    <MenuItem><Link to="/driver-commission"><GiTakeMyMoney style={iconStyle} />Commissions</Link></MenuItem>
                 </Menu>
             </ProSidebar>;
         </div>

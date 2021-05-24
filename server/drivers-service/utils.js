@@ -50,7 +50,7 @@ function MakePaymentCommissionTCSubtracted(
   amount, 
   resolve) {
 
-    if(amount === null || recipient_fp === null || amount=== undefined || recipient_fp === undefined) {
+    if(amount === null || recipient_fp === null || amount=== undefined || recipient_fp === undefined || amount===0) {
       resolve({error: "Seems like wrong parameters @db query"})
     }
     // Initialize transaction object

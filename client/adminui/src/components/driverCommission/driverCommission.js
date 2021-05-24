@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import socket from '../socket'
 import Sidebar from "../sidebar/sidebar"
+import "./driverCommission.css"
 
 
 const isToday = (someDate) => {
@@ -17,13 +18,22 @@ const DriverRow = (props) => {
     }
 
     let todayStyle
+    let commissionStyle
+
     if(isToday(new Date(props.driver.scheduled_payment_date))){
         todayStyle = {
             backgroundColor: "#c43737"
         }
     } else {
         todayStyle = {
-            // Empty
+            border: "solid 0.5px"
+        }
+    }
+
+    if(props.driver.total_commission >= 20){
+        commissionStyle = {
+            backgroundColor: "green",
+            color: "white",
         }
     }
 
@@ -31,11 +41,11 @@ const DriverRow = (props) => {
         <tr onClick={ () => { redirectDriverPayment() }} style={todayStyle}>
             <td>{ props.driver.name}</td>
             <td>{ props.driver.surname }</td>
-            <td>{ props.driver.phone_number }</td>
+            <td><strong>{ props.driver.phone_number }</strong></td>
             <td>{ props.driver.taxi_number }</td>
-            <td>{ props.driver.total_commission }</td>
-            <td> { props.driver.wallet_balance }</td>
-            <td>{props.driver.scheduled_payment_date.toString().slice(0,10) }</td> 
+            <td style={commissionStyle}><strong>{ props.driver.total_commission }</strong></td>
+            <td > { props.driver.wallet_balance }</td>
+            <td><strong>{props.driver.scheduled_payment_date.toString().slice(0,10) }</strong></td> 
         </tr>
     )
 }
@@ -81,14 +91,14 @@ export default function DriverCommission() {
 
   return (
     <div>
-        <div className="wrapper">
-                <div className="left-column">
+        <div className="template">
+                <div className="sidebar">
                 <Sidebar />
                 </div>
-                <div className="right-column" >
+                <div className="main-content" >
                     <h1 style={{ display: "grid", placeItems: "center", margin: "2%"}}> DRIVERS PAYMENTS </h1>
 
-                    <table className="table-hover" >
+                    <table className="table-hover" style={{ border: "solid 1px", marginBottom:"2%"}}>
                         <thead className="thead-light">
                             <tr>
                                 <th>Name</th>

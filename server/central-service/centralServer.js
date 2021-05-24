@@ -593,7 +593,12 @@ io.on("connection", (socket) => {
     
             Promise.all(newDriverList)
             .then((result) => {
-                socket.emit("getDriversWithCommission-response", result)
+                // Sort result by scheduled_payment_date
+                let sortedList = result.sort(function(a,b){
+                    return new Date(b.scheduled_payment_date) - new Date(a.scheduled_payment_date);
+                });
+
+                socket.emit("getDriversWithCommission-response", sortedList.reverse())
             })
             .catch((error) => {
                 console.log(error)
