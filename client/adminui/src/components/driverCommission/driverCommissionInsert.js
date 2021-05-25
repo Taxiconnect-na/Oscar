@@ -7,8 +7,18 @@ const DriverRow = (props) => {
 
   return(
       <tr >  
-          <td style={{ fontSize: "large", paddingBottom: "4%"}}> { props.dataCash.month }</td>
+          <td style={{ fontSize: "large"}}> { props.dataCash.month }</td>
           <td style={{ fontSize: "large"}}>{ props.dataCash.total_cash }</td>
+      </tr>
+  )
+}
+
+const DriverRow2 = (props) => {
+
+  return(
+      <tr >  
+          <td style={{ fontSize: "large", paddingBottom: "4%"}}> { props.dataWallet.month }</td>
+          <td style={{ fontSize: "large"}}>{ props.dataWallet.total_wallet }</td>
       </tr>
   )
 }
@@ -27,8 +37,8 @@ export default function DriverCommissionInsert({ location }) {
   let [failure, setFailure] = useState(false)
   let [uploading, setUploading] = useState(false)
 
-  let [drivers_data_cash, setDriverDataCash] = useState([ {total_cash: "some amount", month:"test month"}])
-  let [driver_data_wallet, setDriverDataWallet] = useState([])
+  let [drivers_data_cash, setDriverDataCash] = useState([ {total_cash: "", month:""}])
+  let [drivers_data_wallet, setDriverDataWallet] = useState([ {total_wallet: "", month:""}])
 
   useEffect(() => {
 
@@ -135,6 +145,12 @@ export default function DriverCommissionInsert({ location }) {
     })
   }
 
+  const driverDataWallet = () => {
+    return drivers_data_wallet.map((data) => {
+        return <DriverRow2 dataWallet={data} />
+    })
+  }
+
   const viewCashHandler = () => {
     const options = {
       method: 'POST',
@@ -152,6 +168,7 @@ export default function DriverCommissionInsert({ location }) {
     .then(response => response.json())
     .then((data) => {
        setDriverDataCash(data.cash)
+       setDriverDataWallet(data.wallet)
     })
   }
 
@@ -191,7 +208,9 @@ export default function DriverCommissionInsert({ location }) {
           </form>
         </div>
         <div style={{ display: "grid", placeItems: "center", marginTop: "2%"}}>
-          <button onClick={() => viewCashHandler()}>view earnings</button>
+          <h1> DRIVER'S EARNINGS </h1> <h4>(since April 2021)</h4>
+          <hr></hr>
+          <button onClick={() => viewCashHandler()} className="btn btn-primary btn-xs">Click to view earnings</button>
           <table className="table-striped" style={{ border: "solid 1px", width: "60%"}}>
                 <thead className="thead-light">
                   <tr >
@@ -204,6 +223,21 @@ export default function DriverCommissionInsert({ location }) {
                 </thead>
                 <tbody>
                   { driverDataCash() }
+                </tbody>
+            </table>
+            <br></br>
+            <table className="table-striped" style={{ border: "solid 1px", width: "60%"}}>
+                <thead className="thead-light">
+                  <tr >
+                    <th colSpan={2}> WALLET </th>
+                  </tr>
+                  <tr>
+                      <th>MONTH</th>
+                      <th>TOTAL EARNINGS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  { driverDataWallet() }
                 </tbody>
             </table>
         </div>
