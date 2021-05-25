@@ -1,4 +1,4 @@
-console.log = function () {};
+//console.log = function () {};
 const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
@@ -1319,6 +1319,250 @@ app.post("/driver-commission-payment", (req, res) => {
     .catch((error) => {
         console.log(error)
         res.send({ error: " Something went wrong @commission payment @central"})
+    })
+
+})
+
+/**
+ * *========================================================================
+ *  *    RUSH
+ * *========================================================================
+ * 
+ */
+
+Array.prototype.groupBy = function(field){
+let groupedArr = [];
+this.forEach(function(e){
+    //look for an existent group
+    let group = groupedArr.find(g => g['field'] === e[field]);
+    if (group == undefined){
+    //add new group if it doesn't exist
+    group = {field: e[field], groupList: []};
+    groupedArr.push(group);
+    }
+    
+    //add the element to the group
+    group.groupList.push(e);
+});
+
+return groupedArr;
+}
+
+
+function FilterYearRideTypePaymentMethod(transaction_data, transaction_nature, year, payment_method) {
+    // Filter for "RIDES"
+    return new Promise((resolve, reject) => {
+    let filtered_rides = transaction_data.filter((ride) => {
+        return ride.transaction_nature === transaction_nature
+    })
+
+    console.log(filtered_rides.length)
+    
+    let year2021_filtered = filtered_rides.filter((ride) => {
+        return new Date(ride.rawDate_made).getFullYear().toString() === year
+    })
+
+    console.log(year2021_filtered.length)
+
+    let payment_method_filtered = year2021_filtered.filter((ride) => {
+        return ride.payment_method === payment_method
+    })
+
+    resolve(payment_method_filtered)
+
+    })
+    .catch((error) => {
+    console.log(error)
+    reject({error: true})
+    })
+
+}
+
+function SumAmountField(object) {
+const Sum = (arr) => arr.reduce((num1, num2) => num1 + num2, 0) // The sum function
+//Initialize array
+let finalArray = object.map((each) => {
+    return each.amount
+})
+
+return Sum(finalArray)
+
+}
+
+function getMonthName(number) {
+switch(number) {
+    case "1":
+        return "January"
+        break
+    case "2":
+        return "February"
+        break
+    case "3":
+        return "March"
+        break
+    case "4":
+        return "April"
+        break
+    case "5":
+        return "May"
+        break
+    case "6":
+        return "June"
+        break
+    case "7":
+        return "July"
+        break
+    case "8":
+        return "August"
+        break
+    case "9":
+        return "September"
+        break
+    case "10":
+        return "October"
+        break
+    case "11":
+        return "November"
+        break
+    case "12":
+        return "December"
+        break
+    
+}
+}
+
+
+app.post("/view-earnings", (req, res) => {
+    //172.31.20.41
+    console.log(req.body.driverFingerPrint)
+    axios.get(`http://172.31.20.41:9696/getDrivers_walletInfosDeep?user_fingerprint=${ req.body.driverFingerPrint}&transactionData=true`)
+        //.then(response => response.json())
+    .then((data) => {
+        console.log("Attempting ========>")
+        //console.log(data.data)
+        FilterYearRideTypePaymentMethod(data.data.transactions_data, "RIDE", "2021", "CASH")
+        .then((result) => {
+            //console.log(result.length)
+            
+            let newObject = result.map((trans) => {
+                return new Promise((resolve) => {
+                    resolve({
+                    amount: trans.amount,
+                    month: (new Date(trans.rawDate_made).getMonth() + 1).toString(),
+                    })
+                })
+                .catch((error) => {
+                    console.log(error)
+                    //resolve({error: "somthing fishy"})
+                    res.send({error: "could not process"})
+                })
+            })
+
+            Promise.all(newObject)
+            .then((result) => {
+                //console.log(result)
+                console.log("========================================")
+                let grouped = result.groupBy("month")
+
+                let groupedArranged = grouped.map((category) => {
+                    //console.log(category)
+
+                    return new Promise((resolve) => {
+                    // Compute sum of the groupList part
+                    // resolve sum and corresponding month
+                    resolve({
+                        total_cash: SumAmountField(category.groupList)? SumAmountField(category.groupList) : 0 ,
+                        month: getMonthName(category.field)? getMonthName(category.field) : null
+                    })
+                    })
+                })
+
+                Promise.all(groupedArranged)
+                .then((outcome1) => {
+                    console.log(outcome1)
+                    let cashEarning = { cash: outcome1.reverse()}
+                    //res.send(outcome)
+                    //!!===================================================TO BE FACTORED AS FUNCTION
+                    FilterYearRideTypePaymentMethod(data.data.transactions_data, "RIDE", "2021", "WALLET")
+                    .then((result5) => {
+                        //console.log(result.length)
+                        console.log("=======================")
+                        console.log(result5)
+                        console.log("=======================")
+                        let newObject2 = result5.map((trans2) => {
+                            return new Promise((resolve) => {
+                                resolve({
+                                amount: trans2.amount,
+                                month: (new Date(trans2.rawDate_made).getMonth() + 1).toString(),
+                                })
+                            })
+                            .catch((error) => {
+                                console.log(error)
+                                //resolve({error: "somthing fishy"})
+                                res.send({error: "could not process"})
+                            })
+                        })
+            
+                        Promise.all(newObject2)
+                        .then((result2) => {
+                            //console.log(result)
+                            console.log("========================================")
+                            let grouped2 = result2.groupBy("month")
+            
+                            let groupedArranged2 = grouped2.map((category2) => {
+                                //console.log(category)
+            
+                                return new Promise((resolve) => {
+                                // Compute sum of the groupList part
+                                // resolve sum and corresponding month
+                                resolve({
+                                    total_wallet: SumAmountField(category2.groupList)? SumAmountField(category2.groupList) : 0 ,
+                                    month: getMonthName(category2.field)? getMonthName(category2.field) : null
+                                })
+                                })
+                            })
+            
+                            Promise.all(groupedArranged2)
+                            .then((outcome2) => {
+                                let walletEarning = { wallet: outcome2.reverse() }
+                                
+                                res.send({...cashEarning, ...walletEarning})
+                                
+            
+                            })
+                            .catch((error) => {
+                                console.log(error)
+                                res.send({error: "could not process"})
+                            })
+            
+                        })
+                        .catch((error) => {
+                            console.log(error)
+                            res.send({error: "could not process"})
+                        })
+                        
+                        
+                    })
+
+                // !!============================================
+                })
+                .catch((error) => {
+                    console.log(error)
+                    res.send({error: "could not process"})
+                })
+
+            })
+            .catch((error) => {
+                console.log(error)
+                res.send({error: "could not process"})
+            })
+            
+            
+        })
+
+    })
+    .catch((error) => {
+        console.log(error)
     })
 
 })

@@ -3,6 +3,18 @@ import queryString from 'query-string'
 import Sidebar from '../sidebar/sidebar'
 
 
+const DriverRow = (props) => {
+
+  return(
+      <tr >  
+          <td style={{ fontSize: "large", paddingBottom: "4%"}}> { props.dataCash.month }</td>
+          <td style={{ fontSize: "large"}}>{ props.dataCash.total_cash }</td>
+      </tr>
+  )
+}
+
+
+
 export default function DriverCommissionInsert({ location }) {
 
   let [driverFingerPrint, setDriverFingerprint] = useState("")
@@ -14,6 +26,9 @@ export default function DriverCommissionInsert({ location }) {
   let [success, setSuccess] = useState(false)
   let [failure, setFailure] = useState(false)
   let [uploading, setUploading] = useState(false)
+
+  let [drivers_data_cash, setDriverDataCash] = useState([ {total_cash: "some amount", month:"test month"}])
+  let [driver_data_wallet, setDriverDataWallet] = useState([])
 
   useEffect(() => {
 
@@ -114,6 +129,32 @@ export default function DriverCommissionInsert({ location }) {
     padding: "1%"
   }
 
+  const driverDataCash = () => {
+    return drivers_data_cash.map((data) => {
+        return <DriverRow dataCash={data} />
+    })
+  }
+
+  const viewCashHandler = () => {
+    const options = {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+          driverFingerPrint: queryString.parse(location.search).driver_identifier,
+      })
+      
+    }
+
+    fetch(`${process.env.REACT_APP_GATEWAY}/view-earnings`, options)
+    //fetch(`http://localhost:10014/view-earnings`, options)
+    .then(response => response.json())
+    .then((data) => {
+       setDriverDataCash(data.cash)
+    })
+  }
+
   return (
 
     <div className="template">
@@ -149,6 +190,24 @@ export default function DriverCommissionInsert({ location }) {
                   
           </form>
         </div>
+        <div style={{ display: "grid", placeItems: "center", marginTop: "2%"}}>
+          <button onClick={() => viewCashHandler()}>view earnings</button>
+          <table className="table-striped" style={{ border: "solid 1px", width: "60%"}}>
+                <thead className="thead-light">
+                  <tr >
+                    <th colSpan={2}> CASH </th>
+                  </tr>
+                  <tr>
+                      <th>MONTH</th>
+                      <th>TOTAL EARNINGS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  { driverDataCash() }
+                </tbody>
+            </table>
+        </div>
+        
         
       </div>
     </div>
