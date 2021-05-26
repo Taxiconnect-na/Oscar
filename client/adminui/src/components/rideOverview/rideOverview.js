@@ -119,7 +119,7 @@ const RideRow = (props) => {
                             <td className="td-second">N$ { props.ride.amount }</td>
                             <td className="td-second">{ props.ride.origin}</td>
                             <td className="td-second">{dest()}</td>
-                            <td className="td-second">{props.ride.wished_pickup_time.toString().slice(0,10)} @({props.ride.wished_pickup_time.toString().slice(11,19)})
+                            <td className="td-second">{props.ride.wished_pickup_time? props.ride.wished_pickup_time.toString().slice(0,10) : "unknown"} @({ props.ride.wished_pickup_time? props.ride.wished_pickup_time.toString().slice(11,19) : "unknown"})
                             </td>
                         </tr>
                     </tbody>
@@ -283,7 +283,7 @@ const RideRow = (props) => {
                             <td className="td-second">N$ { props.ride.amount }</td>
                             <td className="td-second">{ props.ride.origin}</td>
                             <td className="td-second">{dest()}</td>
-                            <td className="td-second">{props.ride.wished_pickup_time.toString().slice(0,10)} @({props.ride.wished_pickup_time.toString().slice(11,19)})
+                            <td className="td-second">{props.ride.wished_pickup_time? props.ride.wished_pickup_time.toString().slice(0,10) : "unknown"} @({ props.ride.wished_pickup_time? props.ride.wished_pickup_time.toString().slice(11,19) : "unknown"})
                             </td>
                             <td >
                             <div className="action-buttons">
@@ -417,7 +417,8 @@ const RideRow = (props) => {
                             <td className="td-second">N$ { props.ride.amount }</td>
                             <td className="td-second">{ props.ride.origin}</td>
                             <td className="td-second">{dest()}</td>
-                            <td className="td-second">{props.ride.wished_pickup_time.toString().slice(0,10)} @({props.ride.wished_pickup_time.toString().slice(11,19)})
+                            <td className="td-second">
+                            {props.ride.wished_pickup_time? props.ride.wished_pickup_time.toString().slice(0,10) : "unknown"} @({ props.ride.wished_pickup_time? props.ride.wished_pickup_time.toString().slice(11,19) : "unknown"})
                             </td>
                         </tr>
                     </tbody>
