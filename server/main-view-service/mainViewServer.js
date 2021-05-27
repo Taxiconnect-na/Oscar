@@ -17,6 +17,24 @@ const client = redis.createClient({
   port: process.env.REDIS_PORT
 })
 
+var RedisClustr = require("redis-clustr");
+var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
+    ? new RedisClustr({
+            servers: [
+                {
+                host: process.env.REDIS_HOST_ELASTICACHE,
+                port: process.env.REDIS_PORT_ELASTICACHE,
+                },
+            ],
+            createClient: function (port, host) {
+                // this is the default behaviour
+                return redis.createClient(port, host);
+            },
+        })
+    : client;
+
+
+
 const http = require("http")
 /*const https = require("https")
 const fs = require("fs")
@@ -144,7 +162,7 @@ function activelyGet_allThe_stats(
   resolve
 ) {
 
-  client.get("statistics-cache", (err, reply) => {
+  redisCluster.get("statistics-cache", (err, reply) => {
     
     // Get Data from db and save it in cache if there's an error
     if (err) {
@@ -237,7 +255,7 @@ function activelyGet_allThe_stats(
                         console.log(finalObject);
 
                         //? Cache final object:
-                        client.set("statistics-cache", JSON.stringify(finalObject), redis.print)
+                        redisCluster.set("statistics-cache", JSON.stringify(finalObject), redis.print)
 
                         //? resolve the main object with the successfull request
                         resolve(finalObject);
@@ -370,7 +388,7 @@ function activelyGet_allThe_stats(
                             //console.log(finalObject);
     
                             //? Cache final object:
-                            client.setex("statistics-cache", 600000, JSON.stringify(finalObject), redis.print)
+                            redisCluster.setex("statistics-cache", 600000, JSON.stringify(finalObject), redis.print)
     
                             //! Do not resolve the main object with the successfull request
                             
@@ -506,7 +524,7 @@ function activelyGet_allThe_stats(
                           //console.log(finalObject);
 
                           //? Cache final object:
-                          client.setex("statistics-cache", 600000, JSON.stringify(finalObject), redis.print)
+                          redisCluster.setex("statistics-cache", 600000, JSON.stringify(finalObject), redis.print)
 
                           //? resolve the main object with the successfull request
                           resolve(finalObject);
@@ -635,7 +653,7 @@ function activelyGet_allThe_stats(
                         console.log(finalObject);
 
                         //? Cache final object:
-                        client.setex("statistics-cache", 600000, JSON.stringify(finalObject), redis.print)
+                        redisCluster.setex("statistics-cache", 600000, JSON.stringify(finalObject), redis.print)
 
                         //? resolve the main object with the successfull request
                         resolve(finalObject);
@@ -691,7 +709,7 @@ function getRideOverview(collectionRidesDeliveryData,
   resolve ) {
 
     // Attempt to get data from cache first, if fail, get from mongodb
-    client.get("rideOverview-cache", (err, reply) => {
+    redisCluster.get("rideOverview-cache", (err, reply) => {
       console.log("looking for data in redis...")
       //console.log("Found ride cache: ", reply)
 
@@ -966,7 +984,7 @@ function getRideOverview(collectionRidesDeliveryData,
                       (result) => {
                           console.log(`${result.length} rides found`)
                           // Cash 
-                          client.setex("rideOverview-cache", 600000, JSON.stringify(result), redis.print)
+                          redisCluster.setex("rideOverview-cache", 600000, JSON.stringify(result), redis.print)
                           //!! No return : !resolve(result)
                           console.log("update of ride-overview completed")
                       },
@@ -1112,7 +1130,7 @@ function getRideOverview(collectionRidesDeliveryData,
               Promise.all(alltrips).then(
                   (result) => {
                       console.log(`${result.length} rides found`)
-                      client.setex("rideOverview-cache", 600000, JSON.stringify(result), redis.print)
+                      redisCluster.setex("rideOverview-cache", 600000, JSON.stringify(result), redis.print)
                       resolve(result)
                   },
                   (error) => {
@@ -1251,7 +1269,7 @@ function getRideOverview(collectionRidesDeliveryData,
                 (result) => {
                     console.log("No cache found...")
                     console.log(`${result.length} rides found`)
-                    client.setex("rideOverview-cache", 600000, JSON.stringify(result), redis.print)
+                    redisCluster.setex("rideOverview-cache", 600000, JSON.stringify(result), redis.print)
                     resolve(result)
                 },
                 (error) => {
@@ -1274,7 +1292,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
   resolve ) {
 
     // Getting data from redis cache or mongodb otherwise
-    client.get("deliveryOverview-cache", (err, reply) => {
+    redisCluster.get("deliveryOverview-cache", (err, reply) => {
       console.log("searching for delivery-overview cache...")
       console.log("Found deliveries in cache: ", reply)
 
@@ -1411,7 +1429,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
             Promise.all(alltrips).then(
                 (result) => {
                     //! Cache result:
-                    client.set("deliveryOverview-cache", JSON.stringify(result), redis.print)
+                    redisCluster.set("deliveryOverview-cache", JSON.stringify(result), redis.print)
                     console.log(`${result.length}Deliveries found`)
                     resolve(result)
                 },
@@ -1563,7 +1581,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
                     (result) => {
                         console.log(`${result.length}Deliveries found`)
                         //!! DO NOT RETURN : !resolve(result), rather cache updated value
-                        client.set("deliveryOverview-cache", JSON.stringify(result))
+                        redisCluster.set("deliveryOverview-cache", JSON.stringify(result))
                         console.log("delivery-overview updated in background...")
                     },
                     (error) => {
@@ -1713,7 +1731,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
               // Get all added objects from res0
               Promise.all(alltrips).then(
                   (result) => {
-                      client.set("deliveryOverview-cache", JSON.stringify(result))
+                    redisCluster.set("deliveryOverview-cache", JSON.stringify(result))
                       console.log(`${result.length}Deliveries found`)
                       resolve(result)
                   },
@@ -1857,7 +1875,7 @@ function getDeliveryOverview(collectionRidesDeliveryData,
             // Get all added objects from res0
             Promise.all(alltrips).then(
                 (result) => {
-                    client.set("deliveryOverview-cache", JSON.stringify(result), redis.print)
+                  redisCluster.set("deliveryOverview-cache", JSON.stringify(result), redis.print)
                     console.log(`${result.length}Deliveries found`)
                     resolve(result)
                 },
