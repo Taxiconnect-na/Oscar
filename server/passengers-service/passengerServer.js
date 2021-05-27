@@ -17,6 +17,24 @@ const client = redis.createClient({
     port: process.env.REDIS_PORT
 })
 
+var RedisClustr = require("redis-clustr");
+var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
+    ? new RedisClustr({
+            servers: [
+                {
+                host: process.env.REDIS_HOST_ELASTICACHE,
+                port: process.env.REDIS_PORT_ELASTICACHE,
+                },
+            ],
+            createClient: function (port, host) {
+                // this is the default behaviour
+                return redis.createClient(port, host);
+            },
+        })
+    : client;
+
+
+
 const http = require("http")
 /*const https = require("https")
 const fs = require("fs")
@@ -58,7 +76,7 @@ app.get("/", (req, res) => {
 function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
 
     //getAsync("passengers-cache").then( (reply) => {
-    client.get("passengers-cash", (err, reply) => {    
+      redisCluster.get("passengers-cash", (err, reply) => {    
         console.log("looking for data...")
         if (err) {
             // Connect to db and fetch:
@@ -109,7 +127,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                 })
                 Promise.all(passengers).then(
                     (result) => {
-                        client.setex("passengers-cash", 200000,JSON.stringify(result), redis.print)
+                      redisCluster.setex("passengers-cash", 200000,JSON.stringify(result), redis.print)
                         resolve(result)
                         
                     },
@@ -178,7 +196,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                             (result) => {
                                 //resolve(result)
                                 // save in cache
-                                client.setex("passengers-cash", 200000, JSON.stringify(result), redis.print)
+                                redisCluster.setex("passengers-cash", 200000, JSON.stringify(result), redis.print)
                                 console.log("UPDATING cash in progress....")
                             },
                             (error) => {
@@ -249,7 +267,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                     })
                     Promise.all(passengers).then(
                         (result) => {
-                            client.setex("passengers-cash", 200000, JSON.stringify(result))
+                          redisCluster.setex("passengers-cash", 200000, JSON.stringify(result))
                             resolve(result)
                             // save in cache
                         },
@@ -313,7 +331,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
                     })
                     Promise.all(passengers).then(
                         (result) => {
-                            client.setex("passengers-cash", 200000, JSON.stringify(result))
+                          redisCluster.setex("passengers-cash", 200000, JSON.stringify(result))
                             resolve(result)
                             // save in cache
                           
@@ -345,7 +363,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
 
  function getCancelledRidesPassenger(collectionCancelledRides, collectionPassengers, collectionDrivers, resolve){
     // Attempt to get data from cache first
-    client.get("cancelledRides-cache", (err, reply) => {
+    redisCluster.get("cancelledRides-cache", (err, reply) => {
       console.log("looking for data in redis...")
   
       if (err) {
@@ -435,7 +453,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
           Promise.all(allCancelled).then(
             (result) => {
               console.log("No cash was found for cancelled rides")
-              client.setex("cancelledRides-cache", 600000, JSON.stringify(result), redis.print)
+              redisCluster.setex("cancelledRides-cache", 600000, JSON.stringify(result), redis.print)
               resolve(result)
             },
             (error) => {
@@ -543,7 +561,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
             Promise.all(allCancelled).then(
               (result) => {
                 console.log("No cash was found for cancelled rides")
-                client.setex("cancelledRides-cache", 600000, JSON.stringify(result), redis.print)
+                redisCluster.setex("cancelledRides-cache", 600000, JSON.stringify(result), redis.print)
                 //! No resolve
               },
               (error) => {
@@ -641,6 +659,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
           Promise.all(allCancelled).then(
             (result) => {
               console.log("No cash was found for cancelled rides")
+              redisCluster.setex("cancelledRides-cache", 600000, JSON.stringify(result), redis.print)
               resolve(result)
             },
             (error) => {
@@ -739,7 +758,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
           Promise.all(allCancelled).then(
             (result) => {
               console.log("No cash was found for cancelled rides")
-              client.setex("cancelledRides-cache", 600000, JSON.stringify(result), redis.print)
+              redisCluster.setex("cancelledRides-cache", 600000, JSON.stringify(result), redis.print)
               resolve(result)
             },
             (error) => {
@@ -761,7 +780,7 @@ function getPassengersInfo(IndividualsCollection,FilteringCollection, resolve) {
 
 function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, collectionDrivers, resolve){
     // Attempt to get data from cache first
-    client.get("cancelledDeliveries-cache", (err, reply) => {
+    redisCluster.get("cancelledDeliveries-cache", (err, reply) => {
       console.log("looking for data in redis...")
   
       if (err) {
@@ -851,7 +870,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
           Promise.all(allCancelled).then(
             (result) => {
               console.log("No cash was found for cancelled rides")
-              client.setex("cancelledDeliveries-cache", 600000, JSON.stringify(result), redis.print)
+              redisCluster.setex("cancelledDeliveries-cache", 600000, JSON.stringify(result), redis.print)
               resolve(result)
             },
             (error) => {
@@ -959,7 +978,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
             Promise.all(allCancelled).then(
               (result) => {
                 console.log("No cash was found for cancelled rides")
-                client.setex("cancelledDeliveries-cache", 600000, JSON.stringify(result), redis.print)
+                redisCluster.setex("cancelledDeliveries-cache", 600000, JSON.stringify(result), redis.print)
                 //! No resolve
               },
               (error) => {
@@ -1061,6 +1080,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
             },
             (error) => {
               console.log(error)
+              redisCluster.setex("cancelledDeliveries-cache", 600000, JSON.stringify(result), redis.print)
               resolve({error: "Did not manage to get all promises"})
             }
           )
@@ -1155,7 +1175,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
           Promise.all(allCancelled).then(
             (result) => {
               console.log("No cash was found for cancelled rides")
-              client.setex("cancelledDeliveries-cache", 600000, JSON.stringify(result), redis.print)
+              redisCluster.setex("cancelledDeliveries-cache", 600000, JSON.stringify(result), redis.print)
               resolve(result)
             },
             (error) => {

@@ -468,10 +468,10 @@ function RideOverview() {
                     data.map((ride) => {
                         console.log(ride)
                     }) */
-                    console.log("**********************************")
-                    console.log("Received statistics ")
+                    //console.log("**********************************")
+                    //console.log("Received statistics ")
                     //console.log(data)
-                    console.log("**********************************")
+                    //console.log("**********************************")
                     setRides(data)
                    
 

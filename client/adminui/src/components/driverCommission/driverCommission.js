@@ -65,6 +65,7 @@ export default function DriverCommission() {
 
             socket.on("getDriversWithCommission-response", (data) => {
                 if ((data !== undefined) && (data != null)) {
+                    console.log("received", data)
                     console.log(data)
                     //mydata = data
                     setDrivers(data)   
@@ -73,7 +74,7 @@ export default function DriverCommission() {
             });
             //...
             socket.emit("getDriversWithCommission", {data:'getting drivers commission'});
-        }, 8000)
+        }, 9000)
         
         return( () => {
             clearInterval(interval)
@@ -83,9 +84,11 @@ export default function DriverCommission() {
 
 
     const driverData = () => {
-        return drivers.map((driver) => {
-            return <DriverRow driver={driver} />
-        })
+        if ( drivers.length > 0) {
+            return drivers.map((driver) => {
+                return <DriverRow driver={driver} />
+            })
+        } else {}
         
     }
 
