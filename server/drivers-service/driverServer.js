@@ -47,6 +47,23 @@ const client = redis.createClient({
 })
 
 
+var RedisClustr = require("redis-clustr");
+var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
+    ? new RedisClustr({
+            servers: [
+                {
+                host: process.env.REDIS_HOST_ELASTICACHE,
+                port: process.env.REDIS_PORT_ELASTICACHE,
+                },
+            ],
+            createClient: function (port, host) {
+                // this is the default behaviour
+                return redis.createClient(port, host);
+            },
+        })
+    : client;
+
+
 /*
 * AWS Bucket credentials
 */
@@ -145,7 +162,7 @@ function GetCashWallet(arrayData, resolve) {
 function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
     console.log("Runnnig getDriverinfo() function")
 
-    client.get("drivers-list", (err, reply) => {
+    redisCluster.get("drivers-list", (err, reply) => {
         console.log("Inside the client.get function")
         if(err) {
             console.log("ERROR FOUND AT REDIS DRIVERS LIST")
@@ -254,7 +271,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                 })
                 Promise.all(drivers).then(
                     (result) => {
-                        client.set("drivers-list", JSON.stringify(result), redis.print)
+                        redisCluster.set("drivers-list", JSON.stringify(result), redis.print)
                         resolve(result)
                     },
                     (error) => {
@@ -376,7 +393,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                         })
                         Promise.all(drivers).then(
                             (result) => {
-                                client.set("drivers-list", JSON.stringify(result), redis.print)
+                                redisCluster.set("drivers-list", JSON.stringify(result), redis.print)
                                 //resolve(result)
                             },
                             (error) => {
@@ -495,7 +512,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                     })
                     Promise.all(drivers).then(
                         (result) => {
-                            client.set("drivers-list", JSON.stringify(result), redis.print)
+                            redisCluster.set("drivers-list", JSON.stringify(result), redis.print)
                             resolve(result)
                         },
                         (error) => {
@@ -612,7 +629,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                 })
                 Promise.all(drivers).then(
                     (result) => {
-                        client.set("drivers-list", JSON.stringify(result), redis.print)
+                        redisCluster.set("drivers-list", JSON.stringify(result), redis.print)
                         resolve(result)
                     },
                     (error) => {
