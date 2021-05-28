@@ -50,7 +50,7 @@ function DriverList() {
                                     reconnection: true,
                                     //upgrade: true,
                                     reconnectionAttempts: Infinity})  */
-        const interval = setInterval(() => {
+        //const interval = setInterval(() => {
             console.log("driverslist@taxiconnect")
             socket.on("getDrivers-response", (data) => {
                 if ((data !== undefined) && (data != null)) {
@@ -70,11 +70,11 @@ function DriverList() {
             });
             //...
             socket.emit("getDrivers", {data:'getting drivers'});
-        }, 15000)
+        /*}, 15000)
         
         return( () => {
             clearInterval(interval)
-        }) 
+        }) */
     },[ // Re-render whenever any of the following variables changes
         
       
@@ -94,11 +94,11 @@ function DriverList() {
 
     return(
         <div> 
-            <div className="wrapper">
-                <div className="left-column">
+            <div className="template">
+                <div className="sidebar">
                 <Sidebar />
                 </div>
-                <div className="right-column" >
+                <div className="main-content" >
                     <h1 style={ title_style }>Registered drivers</h1>
                     <hr></hr>
                         <div id="container-driver">
