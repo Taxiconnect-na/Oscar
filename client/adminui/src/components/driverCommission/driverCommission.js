@@ -60,7 +60,7 @@ export default function DriverCommission() {
 
     useEffect( () => {
 
-        const interval = setInterval(() => {
+        //const interval = setInterval(() => {
             console.log("driverslistCommission@taxiconnect")
 
             socket.on("getDriversWithCommission-response", (data) => {
@@ -74,13 +74,13 @@ export default function DriverCommission() {
             });
             //...
             socket.emit("getDriversWithCommission", {data:'getting drivers commission'});
-        }, 9000)
+        /*}, 9000)
         
         return( () => {
             clearInterval(interval)
-        })
+        }) */
 
-    },[])
+    },[drivers])
 
 
     const driverData = () => {

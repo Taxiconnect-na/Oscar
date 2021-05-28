@@ -504,7 +504,7 @@ function RideOverview() {
             })
             socket.emit("get-trips-in-progress-count", {data: "Get rides in progress count today"})
 
-        },2000)
+        },15000)
 
         return( () => {
             clearInterval(interval)

@@ -289,7 +289,7 @@ function DeliveryOverview() {
             })
             socket.emit("get-trips-in-progress-count", {data: "Get deliveries in progress count today"})
 
-        },5000)
+        },15000)
 
         return( () => {
             clearInterval(interval)

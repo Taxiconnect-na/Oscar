@@ -336,12 +336,12 @@ function App() {
                 <Route path="/cancelled-rides" component={CancelledRides} />
                 <Route path="/cancelled-deliveries" component={CancelledDeliveries} />
                 <Route path="/graph" component={Graph} />
-                <Route path="/visualize" component={DataVisualizerRoutesList} />
+                {/*<Route path="/visualize" component={DataVisualizerRoutesList} />
                 <Route path="/visualize-ride-counts" component ={RideCounts} />
                 <Route path="/visualize-gross-sales" component ={GrossSales} />
                 <Route path="/visualize-revenues" component ={Revenues} />
                 <Route path="/visualize-connect-types" component ={ConnectTypes} />
-                <Route path="/visualize-payment-methods" component ={PaymentMethods} />
+    <Route path="/visualize-payment-methods" component ={PaymentMethods} /> */}
                 <Route path="/drivers-update" component={DriverDataUpdate} />
                 <Route path="/driver-commission" component={DriverCommission} />
                 <Route path="/driver-commission-payment" component={DriverCommissionInsert} />
