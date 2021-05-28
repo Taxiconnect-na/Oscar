@@ -40,7 +40,7 @@ export default function CancelledRides() {
     let [cancelledRides, setCancelledRides] = useState([])
 
     useEffect(() => {
-        const interval = setInterval(() => {
+        //const interval = setInterval(() => {
             console.log("counting.... ")
             
             socket.on("getCancelledRides-passenger-feedback", (data) => {
@@ -51,11 +51,11 @@ export default function CancelledRides() {
                 }
             })
             socket.emit("getCancelledRides-passenger", {data: "get cancelled rides"})
-        }, 2000)
+        /*}, 2000)
 
         return( () => {
             clearInterval(interval)
-        })
+        })*/
 
     },[
         cancelledRides

@@ -31,7 +31,7 @@ function Overview() {
                                     //upgrade: true,
                                     reconnectionAttempts: Infinity})  */
                                     
-        const interval = setInterval(() => {
+        //const interval = setInterval(() => {
             console.log("mack@taxiconnect")
             socket.on("statistics-response", (data) => {
                 console.log(data)
@@ -53,11 +53,11 @@ function Overview() {
             });
             //...
             socket.emit("statistics", {data:'specs'});
-        }, 20000)
+        /*}, 20000)
 
         return( () => {
             clearInterval(interval)
-        })
+        })*/
     },[ // Re-render whenever any of the following variables changes
         totalFareSuccessful,
         totalTripSuccessful,
