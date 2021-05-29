@@ -41,10 +41,10 @@ const clientMongo = new MongoClient(uri, {
 });
 
 const redis = require("redis")
-const client = redis.createClient({
+const client = null /*redis.createClient({
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT
-})
+})*/
 
 
 var RedisClustr = require("redis-clustr");
