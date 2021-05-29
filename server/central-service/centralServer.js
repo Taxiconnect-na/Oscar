@@ -7,7 +7,7 @@ const axios = require("axios")
 const FormData = require("form-data")
 const cors = require("cors")
 const http = require("http")
-//const https = require("https")
+const https = require("https")
 const fs = require("fs")
 const fetch = require('node-fetch')
 /*Options to be passed to https server
@@ -16,23 +16,24 @@ const sslOptions = {
     key: fs.readFileSync(path.resolve(__dirname, "/etc/letsencrypt/live/taxiconnectnanetwork.com/privkey.pem")),
     cert: fs.readFileSync(path.resolve(__dirname, "/etc/letsencrypt/live/taxiconnectnanetwork.com/cert.pem"))
 }
-
+*/
 const sslOptions = {
     key: fs.readFileSync(path.resolve(__dirname, "../Encryptions/key.pem")),
     cert: fs.readFileSync(path.resolve(__dirname, "../Encryptions/cert.pem"))
 }
-*/
+
 // Import helmet for http headers protection
 const helmet = require("helmet")
 
-const server = http.createServer(app)
-//const server = https.createServer(sslOptions, app)
+//const server = http.createServer(app)
+const server = https.createServer(sslOptions, app)
 const socketIo = require("socket.io");
 const bodyParser = require('body-parser');
 const io = socketIo(server, { cors: {
-    origin: "https://taxiconnectnanetwork.com",
+    //origin: "https://taxiconnectnanetwork.com",
     //origin: "http://localhost",
     //origin: "http://192.168.8.151",
+    origin: "https://taxiconnectna.com",
     methods: ["GET", "POST"],
     credentials: true
     },
