@@ -38,6 +38,7 @@ PORT = process.env.DRIVER_ROOT
 
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
+    useNewUrlParser: true
 });
 
 const redis = require("redis")

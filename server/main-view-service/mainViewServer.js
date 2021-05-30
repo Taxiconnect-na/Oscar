@@ -60,6 +60,7 @@ const uri = process.env.DB_URI;
 const dbName = process.env.DB_NAME;
 const clientMongo = new MongoClient(uri, {
   useUnifiedTopology: true,
+  useNewUrlParser: true
 });
 
 Date.prototype.addHours = function(h) {
@@ -256,7 +257,7 @@ function activelyGet_allThe_stats(
                         console.log(finalObject);
 
                         //? Cache final object:
-                        redisCluster.set("statistics-cache", JSON.stringify(finalObject), redis.print)
+                        redisCluster.setex("statistics-cache", 600000, JSON.stringify(finalObject), redis.print)
 
                         //? resolve the main object with the successfull request
                         resolve(finalObject);

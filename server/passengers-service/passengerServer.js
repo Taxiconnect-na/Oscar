@@ -59,6 +59,7 @@ app.use(helmet())
 const PORT = process.env.PASSENGER_ROOT
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
+    useNewUrlParser: true
   });
 
 // For testing purpose:

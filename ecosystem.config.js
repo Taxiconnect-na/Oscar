@@ -8,11 +8,12 @@ module.exports = {
         watch: false,
         max_memory_restart: "1G",
         env: {
-          NODE_ENV: "development",
-        },
-        env_production: {
           NODE_ENV: "production",
+          //NODE_ENV: "development"
         },
+        /*env_production: {
+          NODE_ENV: "production",
+        },*/
       },
       {
         name: "passengers-service",
@@ -22,11 +23,12 @@ module.exports = {
         watch: false,
         max_memory_restart: "1G",
         env: {
-          NODE_ENV: "development",
-        },
-        env_production: {
           NODE_ENV: "production",
+          //NODE_ENV: "development",
         },
+        /*env_production: {
+          NODE_ENV: "production",
+        },*/
       },
       {
         name: "central-service",
@@ -36,11 +38,12 @@ module.exports = {
         watch: false,
         max_memory_restart: "1G",
         env: {
-          NODE_ENV: "development",
-        },
-        env_production: {
           NODE_ENV: "production",
+          //NODE_ENV: "development",
         },
+        /*env_production: {
+          NODE_ENV: "production",
+        },*/
       },
       {
         name: "main-view-service",
@@ -50,11 +53,12 @@ module.exports = {
         watch: false,
         max_memory_restart: "1G",
         env: {
-          NODE_ENV: "development",
-        },
-        env_production: {
           NODE_ENV: "production",
+          //NODE_ENV: "development",
         },
+        /*env_production: {
+          NODE_ENV: "production",
+        },*/
       },
    
       {
@@ -64,11 +68,12 @@ module.exports = {
         watch: false,
         max_memory_restart: "1G",
         env: {
-          NODE_ENV: "development",
-        },
-        env_production: {
           NODE_ENV: "production",
+          //NODE_ENV: "development",
         },
+        /*env_production: {
+          NODE_ENV: "production",
+        },*/
       },
       /*
       {
@@ -79,9 +84,10 @@ module.exports = {
         watch: false,
         max_memory_restart: "1G",
         env: {
-          NODE_ENV: "development",
+          NODE_ENV: "production",
+          //NODE_ENV: "development",
         },
-        env_production: {
+        /*env_production: {
           NODE_ENV: "production",
         },
       }*/
