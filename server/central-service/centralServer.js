@@ -1,6 +1,12 @@
-console.log = function () {};
+require('newrelic');
+//console.log = function () {};
 const path = require('path')
-require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
+//! Self contained
+require("dotenv").config({ path: path.resolve(__dirname, './.env')});
+//! With other  services (pm2 managed)
+//require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
+
+//*IMPORTS
 const express = require("express")
 const app = express()  
 const axios = require("axios")

@@ -9,6 +9,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 5556
+EXPOSE 10020
 
 CMD ["node", "driverServer.js"]

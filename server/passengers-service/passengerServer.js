@@ -1,4 +1,5 @@
-console.log = function () {};
+require('newrelic');
+//console.log = function () {};
 const path = require('path')
 // For self contained app
 //require("dotenv").config({ path: path.resolve(__dirname, './.env')});
@@ -12,10 +13,12 @@ const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
 
 const redis = require("redis")
-const client = null /*redis.createClient({
+
+//const client = null 
+const client = redis.createClient({
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT
-})*/
+})
 
 var RedisClustr = require("redis-clustr");
 var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
@@ -33,6 +36,11 @@ var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
         })
     : client;
 
+//! Error handling redis Error 
+redisCluster.on('error', function (er) {
+  console.trace("Passenger server connection to redis ")
+  console.error(er.stack) 
+})
 
 
 const http = require("http")

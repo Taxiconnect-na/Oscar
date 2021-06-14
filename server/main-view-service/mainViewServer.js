@@ -1,4 +1,5 @@
-console.log = function () {};
+require('newrelic');
+//console.log = function () {};
 const path = require('path')
 // For self contained app
 //require("dotenv").config({ path: path.resolve(__dirname, './.env')});
@@ -13,10 +14,13 @@ const MongoClient = require("mongodb").MongoClient
 // Set up redis
 const redis = require("redis")  
 
-const client = null /*redis.createClient({
+//! Configure this for development/production
+
+const client = null /*redis.createClient({  //!development
   host: process.env.REDIS_HOST,
   port: process.env.REDIS_PORT
-})*/
+}) */
+
 
 var RedisClustr = require("redis-clustr");
 var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
@@ -33,6 +37,13 @@ var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
             },
         })
     : client;
+
+//! Error handling redis Error 
+redisCluster.on('error', function (er) {
+  console.trace("Main view server connection to redis failed ")
+  console.error(er.stack) 
+})
+
 
 
 
@@ -1016,112 +1027,112 @@ function getRideOverview(collectionRidesDeliveryData,
               // Initialize the list of all trips
               //console.log(result)
               let alltrips =result.map((trip) => {
-                  return new Promise((res0) => {
-                    
-                  // Get the following for each trip
-                    const request_fp = trip.request_fp
-                    const passengers_number = trip.passengers_number
-                    const request_type = trip.request_type
-                    const date_time = trip.date_requested
-                    const wished_pickup_time = trip.wished_pickup_time
-                    const isAccepted = trip.ride_state_vars.isAccepted
-                    const isPickedUp = trip.ride_state_vars.inRideToDestination
-                    const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
-                    const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
-                    const isArrivedToDestination = trip.isArrivedToDestination
-                    const connect_type = trip.connect_type
-                    const payment_method = trip.payment_method
-                    const amount = trip.fare
-                    const destinations = trip.destinationData
-                    const origin = trip.pickup_location_infos.suburb
-                    //console.log(trip.client_id)
-                    // Request for corresponding passenger
-                    query = {
-                        user_fingerprint: trip.client_id
-                    }
-                    // Make Database request of corrresponding passenger
+                return new Promise((res0) => {
+                  
+                // Get the following for each trip
+                  const request_fp = trip.request_fp
+                  const passengers_number = trip.passengers_number
+                  const request_type = trip.request_type
+                  const date_time = trip.date_requested
+                  const wished_pickup_time = trip.wished_pickup_time
+                  const isAccepted = trip.ride_state_vars.isAccepted
+                  const isPickedUp = trip.ride_state_vars.inRideToDestination
+                  const isDroppedPassenger = trip.ride_state_vars.isRideCompleted_riderSide
+                  const isDroppedDriver = trip.ride_state_vars.isRideCompleted_driverSide
+                  const isArrivedToDestination = trip.isArrivedToDestination
+                  const connect_type = trip.connect_type
+                  const payment_method = trip.payment_method
+                  const amount = trip.fare
+                  const destinations = trip.destinationData
+                  const origin = trip.pickup_location_infos.suburb
+                  //console.log(trip.client_id)
+                  // Request for corresponding passenger
+                  query = {
+                      user_fingerprint: trip.client_id
+                  }
+                  // Make Database request of corrresponding passenger
 
-                    collectionPassengers_profiles
-                    .find(query)
-                    .toArray()
-                    .then((user)=> {
-                        // request for the driver to get the taxi number
-                        queryDriver = {
-                          driver_fingerprint: trip.taxi_id
-                        }
-                        collectionDrivers_profiles
-                        .findOne(queryDriver)
-                        .then((driver) => {
-                          const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "Pending..."
+                  collectionPassengers_profiles
+                  .find(query)
+                  .toArray()
+                  .then((user)=> {
+                      // request for the driver to get the taxi number
+                      queryDriver = {
+                        driver_fingerprint: trip.taxi_id
+                      }
+                      collectionDrivers_profiles
+                      .findOne(queryDriver)
+                      .then((driver) => {
+                        const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "Pending..."
 
-                          // initialize the trip details object
-                          const tripDetails = {}
-                          if (user[0]){
+                        // initialize the trip details object
+                        const tripDetails = {}
+                        if (user[0]){
 
-                            const name = user[0]["name"]
-                            const surname = user[0]["surname"]
-                            const gender = user[0]["gender"]
-                            const cellphone = user[0]["phone_number"]
-                          
-                            //create the Object containing collected data
-                            tripDetails.request_fp = request_fp
-                            tripDetails.passengers_number = passengers_number
-                            tripDetails.request_type = request_type
-                            tripDetails.date_time = date_time
-                            tripDetails.isAccepted = isAccepted
-                            tripDetails.wished_pickup_time = wished_pickup_time
-                            tripDetails.isPickedUp = isPickedUp
-                            tripDetails.isDroppedPassenger = isDroppedPassenger
-                            tripDetails.isDroppedDriver = isDroppedDriver
-                            tripDetails.isArrivedToDestination = isArrivedToDestination
-                            tripDetails.connect_type = connect_type
-                            tripDetails.payment_method = payment_method 
-                            tripDetails.amount = amount 
-                            tripDetails.destinations = destinations
-                            tripDetails.name = name 
-                            tripDetails.surname = surname
-                            tripDetails.gender = gender
-                            tripDetails.cellphone = cellphone
-                            tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
-                            tripDetails.origin = origin
-                            // Add trip detail to final response 
-                            res0(tripDetails)
-                          
-                          } else {
-                            //! Set the passenger details to "not found" if fingerprint is 
-                            //!   unknown(suspecious case)
-                            const name = "not found"
-                            const surname = "not found"
-                            const gender = "not found"
-                            const cellphone = "not found"
+                          const name = user[0]["name"]
+                          const surname = user[0]["surname"]
+                          const gender = user[0]["gender"]
+                          const cellphone = user[0]["phone_number"]
+                        
+                          //create the Object containing collected data
+                          tripDetails.request_fp = request_fp
+                          tripDetails.passengers_number = passengers_number
+                          tripDetails.request_type = request_type
+                          tripDetails.date_time = date_time
+                          tripDetails.isAccepted = isAccepted
+                          tripDetails.wished_pickup_time = wished_pickup_time
+                          tripDetails.isPickedUp = isPickedUp
+                          tripDetails.isDroppedPassenger = isDroppedPassenger
+                          tripDetails.isDroppedDriver = isDroppedDriver
+                          tripDetails.isArrivedToDestination = isArrivedToDestination
+                          tripDetails.connect_type = connect_type
+                          tripDetails.payment_method = payment_method 
+                          tripDetails.amount = amount 
+                          tripDetails.destinations = destinations
+                          tripDetails.name = name 
+                          tripDetails.surname = surname
+                          tripDetails.gender = gender
+                          tripDetails.cellphone = cellphone
+                          tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
+                          tripDetails.origin = origin
+                          // Add trip detail to final response 
+                          res0(tripDetails)
+                        
+                        } else {
+                          //! Set the passenger details to "not found" if fingerprint is 
+                          //!   unknown(suspecious case)
+                          const name = "not found"
+                          const surname = "not found"
+                          const gender = "not found"
+                          const cellphone = "not found"
 
-                            tripDetails.request_fp = request_fp
-                            tripDetails.passengers_number = passengers_number
-                            tripDetails.request_type = request_type
-                            tripDetails.date_time = date_time
-                            tripDetails.isAccepted = isAccepted
-                            tripDetails.wished_pickup_time = wished_pickup_time
-                            tripDetails.isPickedUp = isPickedUp
-                            tripDetails.isDroppedPassenger = isDroppedPassenger
-                            tripDetails.isDroppedDriver = isDroppedDriver
-                            tripDetails.isArrivedToDestination = isArrivedToDestination
-                            tripDetails.connect_type = connect_type
-                            tripDetails.payment_method = payment_method 
-                            tripDetails.amount = amount 
-                            tripDetails.destinations = destinations
-                            tripDetails.name = name 
-                            tripDetails.surname = surname
-                            tripDetails.gender = gender
-                            tripDetails.cellphone = cellphone 
-                            tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
-                            tripDetails.origin = origin
-                            // Add trip detail to final response 
-                            res0(tripDetails)
-                        }
+                          tripDetails.request_fp = request_fp
+                          tripDetails.passengers_number = passengers_number
+                          tripDetails.request_type = request_type
+                          tripDetails.date_time = date_time
+                          tripDetails.isAccepted = isAccepted
+                          tripDetails.wished_pickup_time = wished_pickup_time
+                          tripDetails.isPickedUp = isPickedUp
+                          tripDetails.isDroppedPassenger = isDroppedPassenger
+                          tripDetails.isDroppedDriver = isDroppedDriver
+                          tripDetails.isArrivedToDestination = isArrivedToDestination
+                          tripDetails.connect_type = connect_type
+                          tripDetails.payment_method = payment_method 
+                          tripDetails.amount = amount 
+                          tripDetails.destinations = destinations
+                          tripDetails.name = name 
+                          tripDetails.surname = surname
+                          tripDetails.gender = gender
+                          tripDetails.cellphone = cellphone 
+                          tripDetails.taxi_number = taxi_number? taxi_number:"Pending..." 
+                          tripDetails.origin = origin
+                          // Add trip detail to final response 
+                          res0(tripDetails)
+                      }
 
-                        }, (error) => {
-                          console.log(error)
-                        })
+                      }, (error) => {
+                        console.log(error)
+                      })
 
                     }).catch((error) => { 
                         console.log(error)

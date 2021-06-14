@@ -9,6 +9,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 5558
+EXPOSE 10014
 
 CMD ["node", "centralServer.js"]

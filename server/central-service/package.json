@@ -18,6 +18,7 @@
     "express": "^4.17.1",
     "form-data": "^4.0.0",
     "helmet": "^4.4.1",
+    "newrelic": "^7.5.0",
     "node-fetch": "^2.6.1",
     "socket.io": "^3.1.0"
   }

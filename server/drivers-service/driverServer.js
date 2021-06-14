@@ -1,4 +1,5 @@
-console.log = function () {};
+require('newrelic');
+//console.log = function () {};
 const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
@@ -1218,7 +1219,7 @@ clientMongo.connect(function(err) {
                 res.status(500).send({error: "Failed to update driver info data @database level"})
             } else if (update_response.success) {
                 // return success message
-                res.status(201).send({ success: "Taxi picture updated"})
+                res.status(201).send({ success: "Driver info updated"})
             }
         })
         .catch((error) => {
