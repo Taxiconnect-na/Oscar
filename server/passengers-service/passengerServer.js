@@ -14,11 +14,11 @@ const MongoClient = require("mongodb").MongoClient
 
 const redis = require("redis")
 
-//const client = null 
-const client = redis.createClient({
+const client = null 
+/*const client = redis.createClient({
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT
-})
+})*/
 
 var RedisClustr = require("redis-clustr");
 var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
