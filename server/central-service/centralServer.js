@@ -36,7 +36,8 @@ const server = http.createServer(app)
 const socketIo = require("socket.io");
 const bodyParser = require('body-parser');
 const io = socketIo(server, { cors: {
-    origin: "https://taxiconnectnanetwork.com",
+    //origin: "https://taxiconnectnanetwork.com",
+    origin: "http://13.56.37.251",
     //origin: "http://localhost",
     //origin: "http://192.168.8.151",
     //origin: "https://taxiconnectna.com",
@@ -575,8 +576,8 @@ io.on("connection", (socket) => {
         
             let newDriverList = driverList.map((driver) => {
                 return new Promise((future) => {
-                    //public:  3.101.127.13:9696   private 172.31.20.41:9696
-                    axios.get(`http://172.31.20.41:9696/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`)
+                    //public:  13.56.37.251:9696   private 172.31.16.195:9696
+                    axios.get(`http://172.31.16.195:9696/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`)
                     .then((data) => {
     
                         console.log(data.data)
