@@ -31,7 +31,12 @@ const DriverRow = (props) => {
             <td>{ props.driver.car_brand }</td>
             <td style={{ color: "white", 
                          backgroundColor: props.driver.status==="online"? "green":"red"}}>
-                    { props.driver.status } </td>
+                    { props.driver.status } 
+            </td>
+            <td style={{ color: "white", 
+                         backgroundColor: props.driver.isDriverSuspended===true? "green":"red"}}>
+                    { props.driver.isDriverSuspended? "YES":"NO" } 
+            </td>
             <td>{ props.driver.totalMoneyToday }</td> 
             <td>{ props.driver.todaytrip }</td>
         </tr>
@@ -125,6 +130,7 @@ function DriverList() {
                                 <th>Plate number</th>
                                 <th>Car brand</th>
                                 <th>Status</th>
+                                <th>Suspended</th>
                                 <th>Daily profit</th>
                                 <th>Daily connect</th>
                             </tr>

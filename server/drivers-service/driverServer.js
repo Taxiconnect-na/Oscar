@@ -1,5 +1,5 @@
 require('newrelic');
-//console.log = function () {};
+console.log = function () {};
 const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
@@ -178,6 +178,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                     return new Promise((outcome) => {
                         // Get the following:
                         const name = individual.name
+                        const isDriverSuspended = individual.isDriverSuspended
                         const surname = individual.surname
                         const phone_number = individual.phone_number
                         const taxi_number = individual.cars_data[0].taxi_number
@@ -243,6 +244,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                                         Individual_driver.totalmoney = totalmoney
                                         Individual_driver.todaytrip = todaytrip
                                         Individual_driver.totalMoneyToday = todayTotalMoney
+                                        Individual_driver.isDriverSuspended = isDriverSuspended
     
                                         // Append this driver's info to the drivers list
                                         outcome(Individual_driver)
@@ -300,6 +302,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                             return new Promise((outcome) => {
                                 // Get the following:
                                 const name = individual.name
+                                const isDriverSuspended = individual.isDriverSuspended
                                 const surname = individual.surname
                                 const phone_number = individual.phone_number
                                 const taxi_number = individual.cars_data[0].taxi_number
@@ -365,6 +368,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                                                 Individual_driver.totalmoney = totalmoney
                                                 Individual_driver.todaytrip = todaytrip
                                                 Individual_driver.totalMoneyToday = todayTotalMoney
+                                                Individual_driver.isDriverSuspended = isDriverSuspended
             
                                                 // Append this driver's info to the drivers list
                                                 outcome(Individual_driver)
@@ -419,6 +423,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                         return new Promise((outcome) => {
                             // Get the following:
                             const name = individual.name
+                            const isDriverSuspended = individual.isDriverSuspended
                             const surname = individual.surname
                             const phone_number = individual.phone_number
                             const taxi_number = individual.cars_data[0].taxi_number
@@ -484,6 +489,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                                             Individual_driver.totalmoney = totalmoney
                                             Individual_driver.todaytrip = todaytrip
                                             Individual_driver.totalMoneyToday = todayTotalMoney
+                                            Individual_driver.isDriverSuspended = isDriverSuspended
         
                                             // Append this driver's info to the drivers list
                                             outcome(Individual_driver)
@@ -536,6 +542,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                     return new Promise((outcome) => {
                         // Get the following:
                         const name = individual.name
+                        const isDriverSuspended = individual.isDriverSuspended
                         const surname = individual.surname
                         const phone_number = individual.phone_number
                         const taxi_number = individual.cars_data[0].taxi_number
@@ -601,6 +608,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                                         Individual_driver.totalmoney = totalmoney
                                         Individual_driver.todaytrip = todaytrip
                                         Individual_driver.totalMoneyToday = todayTotalMoney
+                                        Individual_driver.isDriverSuspended = isDriverSuspended
     
                                         // Append this driver's info to the drivers list
                                         outcome(Individual_driver)
