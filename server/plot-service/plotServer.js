@@ -6,6 +6,9 @@ const path = require('path')
 // For overall server
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 
+//* Import my modules
+const utils = require("./utils")
+
 const express = require("express")
 const app = express()
 const helmet = require("helmet")
@@ -13,10 +16,10 @@ const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
 
 const redis = require("redis")
-const client = null /*redis.createClient({
+const client = /*null*/ redis.createClient({
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT
-}) */
+}) 
 
 var RedisClustr = require("redis-clustr");
 var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
@@ -34,6 +37,11 @@ var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
         })
     : client;
 
+//! Error handling redis Error 
+redisCluster.on('error', function (er) {
+    console.trace("Main view server connection to redis failed ")
+    console.error(er.stack) 
+})
 
 
 const http = require("http")
@@ -1285,6 +1293,62 @@ clientMongo.connect(function(err) {
                 res.send({error: "Failed to get monthly payment method data, maybe verify your params"})
             })          
         })
+
+        /**
+         * *-------------------------------------------------------------------------------
+         *  * MONTHLY DETAILED DATA APIS
+         * *-------------------------------------------------------------------------------
+         */
+
+        app.get("/ridesDetails/:year/:monthNumber", (req, res) => {
+            console.log("RIDES DETAILEDS API CALLED")
+            //new Promise((result) => {
+
+                    // Filtering query
+                const query = {
+                    ride_mode: "RIDE",
+                    isArrivedToDestination: true,
+                    "ride_state_vars.isRideCompleted_riderSide": true,
+                    "ride_state_vars.isRideCompleted_driverSide": true
+
+                }
+                new Promise((fire) => {
+                    GeneralPlottingData(collectionRidesDeliveryData, collectionRidesDeliveryDataCancelled, query, fire)
+                })
+                .then((result) => {
+                    if(result.error) {
+
+                        console.log(" An error occured @GeneralPlottingData")
+                        res.status(500).send({error: "Failed to get GeneralPlotting Data"})
+
+                    } else {
+
+                        try {
+
+                            utils.getRidesMonthDetailedData(result, req.params.year.replace(/\s/g, ""), req.params.monthNumber.replace(/\s/g, ""))
+                            .then((monthData) => {
+                                res.status(201).send(monthData)
+                            })
+                            .catch((error) => {
+                                console.log(error)
+                                res.status(500).send({error: "Failed to process getting Rides Monthly Detailed Data 1!"})
+                            })
+                            
+
+                        } catch(error) {
+
+                            console.log(error)
+                            res.status(500).send({error: "Failed to process getting Rides Monthly Detailed Data 2!"})
+                        }
+                    }
+                })
+                .catch((error) => {
+                    onsole.log(error)
+                    res.status(500).send({error: "Failed to process getting Rides Monthly Detailed data"})
+                })
+            //})
+        })
+
     }
     
 })

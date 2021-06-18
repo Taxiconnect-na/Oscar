@@ -483,6 +483,48 @@ function MonthlyDataCountPaymentMethod(dataToGroup, filteringYear, resolve) {
     
 }
 
+/**
+ * 
+ * @param {list} data : Data generated from GeneralPlottingData
+ * @param {string} year 
+ * @param {string} monthNumber 
+ * @returns 
+ */
+function getRidesMonthDetailedData(data, year, monthNumber ) {
+    return new Promise((resolve, reject) => {
+        let filtered_data = data.filter((data) => {
+            return data.yearMonth === `${year}-${monthNumber}`
+        })
+        
+        console.log(filtered_data.length)
+
+        let filtered_data_grouped = filtered_data.groupBy("dayNumber")
+
+        let new_filtered_data = filtered_data_grouped.map((day) => {
+            return new Promise((res) => {
+                res({
+                    year: year,
+                    month: monthNumber,
+                    day: day.field,
+                    successful_rides_count: (day.groupList.filter((data) => { return data.ride_state==="successful"})).length,
+                    cancelled_rides_count: (day.groupList.filter((data) => { return data.ride_state==="cancelled"})).length,
+                    total_sales_successful: SumFareField(day.groupList.filter((data) => { return data.ride_state==="successful"})),
+                    total_sales_cancelled: SumFareField(day.groupList.filter((data) => { return data.ride_state==="cancelled"}))
+                })
+            })
+        })
+
+        Promise.all(new_filtered_data)
+        .then((outcome) => {
+            resolve(outcome)
+        })
+        .catch((error) => {
+            console.log(error)
+            reject({error: true})
+        })
+        //console.log(filtered_data_grouped[0].groupList.filter((data) => { return data.ride_state==="successful"}))
+    })
+}
 
 
 clientMongo.connect(function() {
@@ -520,43 +562,13 @@ clientMongo.connect(function() {
         } else {
             
             console.log(result.length)
-            console.log("OK")
-            /*
-            let sorted = result.groupBy("yearMonth")
-
+            console.log("========================================") 
             
-
-            let sortedList = sorted.map((category) => {
-                //console.log({[category.field] : category.groupList})
-                //return({[category.field] : category.groupList})
-                return(
-                    {date: category.field, count: category.groupList.length}
-                )
-            }) */
-            //console.log(sorted)
-            //console.log(sorted.find(({ field }) => field === "2021-3"))
-            /*console.log(sortedList.filter((element) => {
-                return element.date.startsWith("2020")
-            })) */
-            /*
-            sortedList.map((list) => {
-                // Get the key(date) and its values and assign them as values of new object
-
-                let useful = {
-                    date: Object.keys(list)[0],
-                    objectlist: Object.values(list)[0]
-                }
-                //console.log(useful)
-                //console.log({ date: Object.keys(list)[0]})
-            }) */
-            
-            new Promise((res) => {
-                MonthlyDataCountPaymentMethod(result, "2021", res)
+            getRidesMonthDetailedData(result, "2021", "3")
+            .then((data) => {
+                console.log(data)
             })
-            .then((monthly) => {
-                //console.log(monthly)
-                console.log(monthly)
-            })  
+            
         }
     })
 })
