@@ -37,8 +37,9 @@ const socketIo = require("socket.io");
 const bodyParser = require('body-parser');
 const io = socketIo(server, { cors: {
     //origin: "https://taxiconnectnanetwork.com",
-    origin: "http://13.56.37.251",
-    //origin: "http://localhost",
+    //! New AWS server:
+    //origin: "http://13.56.37.251", 
+    origin: "http://localhost",
     //origin: "http://192.168.8.151",
     //origin: "https://taxiconnectna.com",
     methods: ["GET", "POST"],
@@ -862,6 +863,30 @@ io.on("connection", (socket) => {
             .catch((error) => {
                 console.log(error)
                 socket.emit("get-monthly-payment-method-count-vis-feedback", {error: true, empty: false})
+            })
+        }
+    })
+
+    // Get Detailed monthly rides
+    socket.on("get-monthly-per-day-rides-data", (data) => {
+        if((data !== undefined) && (data !== null)) {
+            console.log(`Attempting to get detailed monthly per day rides data with ${data.year} ${data.monthNumber}`)
+
+            axios.get(`${process.env.ROOT_URL}:${process.env.PLOT_ROOT}/ridesDetails/${data.year}/${data.monthNumber}`)
+            .then((feedback) => {
+                let response = new Object(feedback.data)
+                console.log(response)
+                if(response.error){
+                    socket.emit("get-monthly-per-day-rides-data-feedback", {error: true, empty: false})
+                } else {
+                   
+                    socket.emit("get-monthly-per-day-rides-data-feedback", response)
+                   
+                }
+            })
+            .catch((error) => {
+                console.log(error)
+                socket.emit("get-monthly-per-day-rides-data-feedback", {error: true, empty: false})
             })
         }
     })

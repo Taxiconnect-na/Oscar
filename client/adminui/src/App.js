@@ -29,6 +29,7 @@ import GrossSales from './components/visualize/GrossSales'
 import Revenues from './components/visualize/Revenues'
 import ConnectTypes from './components/visualize/ConnectTypes'
 import PaymentMethods from './components/visualize/PaymentMethods'
+import MonthlyDataDetailed from './components/visualize/MonthlyDataDetailed'
 import DriverDataUpdate from './components/driverRegistration/driverDataUpdate'
 import DriverCommission from './components/driverCommission/driverCommission'
 import DriverCommissionInsert from './components/driverCommission/driverCommissionInsert'
@@ -336,15 +337,19 @@ function App() {
                 <Route path="/cancelled-rides" component={CancelledRides} />
                 <Route path="/cancelled-deliveries" component={CancelledDeliveries} />
                 <Route path="/graph" component={Graph} />
-                {/*<Route path="/visualize" component={DataVisualizerRoutesList} />
+
+                <Route path="/visualize" component={DataVisualizerRoutesList} />
                 <Route path="/visualize-ride-counts" component ={RideCounts} />
                 <Route path="/visualize-gross-sales" component ={GrossSales} />
                 <Route path="/visualize-revenues" component ={Revenues} />
                 <Route path="/visualize-connect-types" component ={ConnectTypes} />
-    <Route path="/visualize-payment-methods" component ={PaymentMethods} /> */}
+                <Route path="/visualize-payment-methods" component ={PaymentMethods} />
+                <Route path="/monthly-data-detailed" component={MonthlyDataDetailed} />
+                 
                 <Route path="/drivers-update" component={DriverDataUpdate} />
                 <Route path="/driver-commission" component={DriverCommission} />
                 <Route path="/driver-commission-payment" component={DriverCommissionInsert} />
+                
               </Switch>
             </Router>
           </div>

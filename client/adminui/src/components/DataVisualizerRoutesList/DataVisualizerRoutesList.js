@@ -20,6 +20,10 @@ export default function DataVisualizerRoutesList() {
       window.location = "/visualize-payment-methods"
     }
 
+    const monthlyDataDetailedRedirect = () => {
+      window.location = "/monthly-data-detailed"
+    }
+
   return (
 
       <div className="template">
@@ -47,8 +51,14 @@ export default function DataVisualizerRoutesList() {
               <div className="view-options" onClick ={() => { paymentMethodRedirect() }}>  
                 Payment Methods
               </div>
+
+              <div className="view-options" onClick ={() => { monthlyDataDetailedRedirect() }}>  
+                Daily Data per Month
+              </div>
     
-            </div>    
+            </div> 
+
+              
         </div>  
       </div>
   )

@@ -16,10 +16,12 @@ const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
 
 const redis = require("redis")
-const client = /*null*/ redis.createClient({
+
+const client = null /*redis.createClient({  //!development
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT
-}) 
+  }) */
+  
 
 var RedisClustr = require("redis-clustr");
 var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
@@ -39,10 +41,10 @@ var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
 
 //! Error handling redis Error 
 redisCluster.on('error', function (er) {
-    console.trace("Main view server connection to redis failed ")
-    console.error(er.stack) 
+console.trace("Main view server connection to redis failed ")
+console.error(er.stack) 
 })
-
+  
 
 const http = require("http")
 /*const https = require("https")
@@ -1343,7 +1345,7 @@ clientMongo.connect(function(err) {
                     }
                 })
                 .catch((error) => {
-                    onsole.log(error)
+                    console.log(error)
                     res.status(500).send({error: "Failed to process getting Rides Monthly Detailed data"})
                 })
             //})
