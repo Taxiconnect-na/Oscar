@@ -62,68 +62,94 @@ export default function MonthlyDataDetailed() {
 
         <div className="main-content" id="ride-counts">
             <h1 className="plot-main-title" style={{ display: "grid", placeItems:"center", padding: "2%", backgroundColor: "whitesmoke" }}>
-                MONTHLY DATA
+                DAILY DATA 
             </h1>
             <br></br>
-            <form onSubmit = {getMonthlyDataHandler} >
-            <div className="form-group ml-4">
-                <label> Year </label>
-                <select
-                    required
-                    className="form-control "
-                    style={{ width: 350 }}
-                    value={year}
-                    onChange={(e) => { setYear(e.target.value) }}>
-                        <option></option>
-                <option key="2021" value="2021">2021</option>
-                <option key="2020" value="2020">2020</option>
-                </select>
+            <div style= {{ backgroundColor: "#0a1421", margin: "1%", padding:"2%", color: "white"}}>
+                <form onSubmit = {getMonthlyDataHandler} style={{ display:"grid", placeItems:"center"}}>
+                    <div className="form-group ml-4">
+                        <label>Select Year: </label>
+                        <select
+                            required
+                            className="form-control "
+                            style={{ width: 350 }}
+                            value={year}
+                            onChange={(e) => { setYear(e.target.value) }}>
+                                <option></option>
+                        <option key="2021" value="2021">2021</option>
+                        <option key="2020" value="2020">2020</option>
+                        </select>
+                    </div>
+                    <div className="form-group ml-4">
+                        <label> Select Month: </label>
+                        <select
+                            required
+                            className="form-control "
+                            style={{ width: 350 }}
+                            value={monthNumber}
+                            onChange={(e) => { setMonthNumber(e.target.value) }}>
+                                <option></option>
+                        <option key="1" value="1">January</option>
+                        <option key="2" value="2">February</option>
+                        <option key="3" value="3">March</option>
+                        <option key="4" value="4">April</option>
+                        <option key="5" value="5">May</option>
+                        <option key="6" value="6">June</option>
+                        <option key="7" value="7">July</option>
+                        <option key="8" value="8">August</option>
+                        <option key="9" value="9">September</option>
+                        <option key="10" value="10">October</option>
+                        <option key="11" value="11">November</option>
+                        <option key="12" value="12">December</option>
+                        </select>
+                    </div>
+                    <div >
+                        <input
+                        style = {{ backgroundColor: '#303842', display:"grid", placeItems:"center", color:"white"}}
+                        type="submit"
+                        value="Fetch"
+                        className="btn btn-primary btn-block mt-4"
+                        />
+                    </div>
+                </form>
             </div>
-            <div className="form-group ml-4">
-                <label> Month </label>
-                <select
-                    required
-                    className="form-control "
-                    style={{ width: 350 }}
-                    value={monthNumber}
-                    onChange={(e) => { setMonthNumber(e.target.value) }}>
-                        <option></option>
-                <option key="1" value="1">January</option>
-                <option key="2" value="2">February</option>
-                <option key="3" value="3">March</option>
-                <option key="4" value="4">April</option>
-                </select>
-            </div>
-            <div className="submit-registration">
-                <input
-                style = {{ backgroundColor: 'green'}}
-                type="submit"
-                value="Register"
-                className="btn btn-primary btn-block mt-4"
-                />
-            </div>
-            </form>
 
-            <button onClick={() => getMonthlyDataHandler() } className="btn btn-primary">Click </button>
-            
-            
-            
+            {monthlyData.length > 0? 
             <div style={styles.graph} className="plots">
                 <div className="plot">
-                    <h3 className="plot-title"> Monthly Data</h3>
-                    <BarChart width={500} height={400} data={MonthlyDataDetailed} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <h3 className="plot-title"> Rides </h3>
+                    <BarChart width={900} height={550} data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="2 2" />
-                        <XAxis dataKey="date" />
+                        <XAxis dataKey="day" />
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Bar name="successful_rides_count" dataKey="successful_rides_count" fill="#10659e" />
-                        <Bar name="successful_rides_count" dataKey="successful_rides_count" fill="#9e0b50" />    
+                        <Bar name="Successful" dataKey="successful_rides_count" fill="#10659e" />
+                        <Bar name="Cancelled" dataKey="cancelled_rides_count" fill="#9e0b50" />
+                           
+                    </BarChart>
+                   
+                    
+                </div>
+
+                <div className="plot">
+                    <h3 className="plot-title"> Sales [N$] </h3>
+                    <BarChart width={900} height={550} data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="2 2" />
+                        <XAxis dataKey="day" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar name="Successful" dataKey="total_sales_successful" fill="#076605" />
+                        <Bar name="Lost " dataKey="total_sales_cancelled" fill="#800000" />
+                           
                     </BarChart>
                    
                     
                 </div>
             </div>
+
+            : <h1 style={{ display: "grid", placeItems:"center", margin:"4%"}}> No data Available, fetch with valid year and month. </h1>}
         </div>
         
     </div>
