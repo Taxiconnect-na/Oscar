@@ -527,6 +527,18 @@ function getRidesMonthDetailedData(data, year, monthNumber ) {
 }
 
 
+function getActiveUsers() {
+
+    //Get all rides of the month
+
+    //Get user associated with each ride
+
+    // Append user to a list
+
+    // Get list of unique users
+}
+
+
 clientMongo.connect(function() {
 
     const dbMongo = clientMongo.db(dbName)
