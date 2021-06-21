@@ -324,18 +324,26 @@ function App() {
 
             <Router>
               <Switch>
-                <Route path="/" exact component={Overview} />
+
+                {/*<Route path="/" exact component={Overview} />*/}
+
+                <Route path="/" exact component={RideOverview} />
                 <Route path="/driver-registration"  component={DriverRegistration} />
                 <Route path= "/trip-overview/rides" component={RideOverview} />
                 <Route path ="/trip-overview/deliveries" component={DeliveryOverview} />
                 <Route path="/drivers" component={DriverList} />
+                <Route path="/cancelled-rides" component={CancelledRides} />
+                <Route path="/cancelled-deliveries" component={CancelledDeliveries} />
+                <Route path="/drivers-update" component={DriverDataUpdate} />
+
                 {/*<Route path="/passengers" component={PassengerList} /> */}
+
+                {/* 
                 <Route path="/driver-payment" component={CashPaymentDriver} />
                 <Route path="/loadertest" component={Loader} />
                 <Route path="/action/success" component={SuccessPage} />
                 <Route path="/action/error" component={ErrorPage} />
-                <Route path="/cancelled-rides" component={CancelledRides} />
-                <Route path="/cancelled-deliveries" component={CancelledDeliveries} />
+                
                 <Route path="/graph" component={Graph} />
 
                 <Route path="/visualize" component={DataVisualizerRoutesList} />
@@ -346,9 +354,9 @@ function App() {
                 <Route path="/visualize-payment-methods" component ={PaymentMethods} />
                 <Route path="/monthly-data-detailed" component={MonthlyDataDetailed} />
                  
-                <Route path="/drivers-update" component={DriverDataUpdate} />
+                
                 <Route path="/driver-commission" component={DriverCommission} />
-                <Route path="/driver-commission-payment" component={DriverCommissionInsert} />
+                <Route path="/driver-commission-payment" component={DriverCommissionInsert} /> */}
                 
               </Switch>
             </Router>

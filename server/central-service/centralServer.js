@@ -1601,6 +1601,11 @@ app.post("/view-earnings", (req, res) => {
 
 })
 
+app.get("/test", (req, res) => {
+
+    res.send({message: "central server running"})
+})
+
 
 server.listen(PORT, () => {
     console.log(`Central server up and running at port ${ PORT }!!`)
