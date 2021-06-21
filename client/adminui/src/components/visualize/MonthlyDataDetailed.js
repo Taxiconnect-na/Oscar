@@ -10,6 +10,7 @@ export default function MonthlyDataDetailed() {
     let [defaultyear, setDefaultYear] = useState(true)
     let [year, setYear] = useState("")
     let [monthNumber, setMonthNumber] = useState("")
+    let [loading, setLoading] = useState(false)
     
 
     useEffect(() => {
@@ -22,22 +23,36 @@ export default function MonthlyDataDetailed() {
 
     const getMonthlyDataHandler = (e) => {
         e.preventDefault()
-
+        setLoading(true)
         if(year.length > 0 && monthNumber.length > 0) {
             socket.on("get-monthly-per-day-rides-data-feedback", (data) => {
                 if((data !== undefined) && (data != null)) {
                     //Update cancelledRides
-                    console.log(data)
+                    setLoading(false)
+                    //console.log(data)
                     setmonthlyData(data)
                 }
             })
             socket.emit("get-monthly-per-day-rides-data", { year: year, monthNumber: monthNumber})
 
         } else {
-            alert("Year and Month not Specified")
+            alert("Wrong input")
         }
         
 
+    }
+
+    const state_style = {
+        loading: {
+            display: "grid",
+            placeItems: "center",
+            margin: "5%",
+            color: "black"
+        }
+    }
+    let state
+    if(loading) {
+        state = <h4 style= { state_style.loading}> Fetching data...</h4>
     }
 
 
@@ -149,7 +164,7 @@ export default function MonthlyDataDetailed() {
                 </div>
             </div>
 
-            : <h1 style={{ display: "grid", placeItems:"center", margin:"4%"}}> No data Available, fetch with valid year and month. </h1>}
+            : !loading? <h1 style={{ display: "grid", placeItems:"center", margin:"4%"}}> No data Available, fetch with valid year and month. </h1>: state }
         </div>
         
     </div>
