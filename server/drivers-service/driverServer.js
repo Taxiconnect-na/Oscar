@@ -1,5 +1,5 @@
 require('newrelic');
-console.log = function () {};
+//console.log = function () {};
 const path = require('path')
 require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
 const express = require("express")
@@ -18,6 +18,18 @@ const sslOptions = {
     cert: fs.readFileSync(path.resolve(__dirname, "../Encryptions/cert.pem"))
 }
 const server = https.createServer(sslOptions, app) */
+
+const winston = require('winston')
+const logger = winston.createLogger({
+    transports: [
+        new winston.transports.Console()
+    ]
+})
+/**Options:
+ * logger.info("")
+ * logger.warn("")
+ * logger.error("")
+ */
 
 
 
@@ -821,6 +833,691 @@ function uploadFile (fileObject, subdir, driverFingerPrint, paperCategory, fileN
 }
 
 
+function getCancelledRidesDriverEvent(
+    collectionGlobalEvents, 
+    collectionRidesDeliveryDataCancelled,
+    collectionRidesDeliveryData,
+    collectionPassengers_profiles,
+    collectionDrivers_profiles,
+    resolve
+    ) {
+        logger.info(" Runnig getCancelledRidesDriverEvent function")
+        redisCluster.get("cancelled-rides-by-driver", (err, reply) => {
+
+            if(err) {
+                console.log(err)
+                logger.info("An error occured at redis level")
+                //*Direct request to database, Then save in redis the output
+                collectionGlobalEvents
+                .find({ event_name: "driver_cancelling_request"})
+                .sort({date: -1})
+                .limit(150)
+                .toArray()
+                .then((events) => {
+                    //resolve(events)
+        
+                    //For each event, get the following:
+                    const allCancelledRidesByDriver = events.map((event) => {
+                        return new Promise((res1) => {
+                            const request_fp = event.request_fp
+                            const driver_fingerprint = event.driver_fingerprint
+                            const date_cancelled = event.date
+        
+                            collectionRidesDeliveryDataCancelled
+                            .findOne({request_fp: event.request_fp})
+                            .then((cancelled) => {
+                                
+                                if(cancelled !== null) {//!This is when it has been cancelled by Passenger as well
+                                    logger.info("cancelled ride found @cancelled rides collection")
+                                    const date_requested = cancelled ? cancelled.date_requested: "not found"
+                                    //const carTypeSelected = cancelled.carTypeSelected
+                                    const passengers_number = cancelled? cancelled.passengers_number: "not found"
+                                    const connect_type = cancelled? cancelled.connect_type: "not found"
+                                    const origin = cancelled? cancelled.pickup_location_infos.suburb: "not found"
+                                    const destination = cancelled? cancelled.destinationData.map((destination) => {
+                                        return destination.suburb 
+                                    }) : "not found"
+                                    const fare = cancelled? cancelled.fare: "not found"
+            
+                                    queryPassenger = {user_fingerprint: cancelled.client_id}
+                                    collectionPassengers_profiles
+                                    .findOne(queryPassenger)
+                                    .then((passenger) => {
+                                        const passenger_name = passenger? passenger.name: "not found"
+                                        const passenger_phone_number = passenger? passenger.phone_number: "not found"
+                                        // Get the driver info in case ride was accepted before cancellation
+                                     
+                                        collectionDrivers_profiles
+                                        .findOne({driver_fingerprint: driver_fingerprint})
+                                        .then((driver) => {
+                                            const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "not found"
+                                            const driver_name = driver? driver.name : "not found"
+                                            const driver_phone_number = driver? driver.phone_number: "not found"
+                        
+                                            //Return the final object
+                                            res1({
+                                                date_cancelled,
+                                                date_requested,
+                                                passengers_number,
+                                                connect_type,
+                                                origin,
+                                                destination,
+                                                fare,
+                                                passenger_name,
+                                                passenger_phone_number,
+                                                taxi_number,
+                                                driver_name,
+                                                driver_phone_number,
+                                                isRideExisting: false  //Ride is No longer present to be accepted by another
+                                            })
+                                        })
+                                        .catch((error) => {
+                                            console.log(error)
+                                            resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                        })
+                                      
+                                    })
+                                    .catch((error) => {
+                                      console.log(error)
+                                      resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                    })
+        
+                                } else { //Ride not yet cancelled on passenger's side:
+        
+                                    collectionRidesDeliveryData
+                                    .findOne({request_fp: event.request_fp})
+                                    .then((cancelled) => {
+        
+                                        const date_requested = cancelled ? cancelled.date_requested: "not found"
+                                        //const carTypeSelected = cancelled.carTypeSelected
+                                        const passengers_number = cancelled? cancelled.passengers_number: "not found"
+                                        const connect_type = cancelled? cancelled.connect_type: "not found"
+                                        const origin = cancelled? cancelled.pickup_location_infos.suburb: "not found"
+                                        const destination = cancelled? cancelled.destinationData.map((destination) => {
+                                            return destination.suburb 
+                                        }) : "not found"
+                                        const fare = cancelled? cancelled.fare: "not found"
+                
+                                        queryPassenger = {user_fingerprint: cancelled.client_id}
+                                        collectionPassengers_profiles
+                                        .findOne(queryPassenger)
+                                        .then((passenger) => {
+                                            const passenger_name = passenger? passenger.name: "not found"
+                                            const passenger_phone_number = passenger? passenger.phone_number: "not found"
+                                            // Get the driver info in case ride was accepted before cancellation
+                                            
+                                            collectionDrivers_profiles
+                                            .findOne({driver_fingerprint: driver_fingerprint})
+                                            .then((driver) => {
+                                                const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "not found"
+                                                const driver_name = driver? driver.name : "not found"
+                                                const driver_phone_number = driver? driver.phone_number: "not found"
+                            
+                                                //Return the final object
+                                                res1({
+                                                    date_cancelled,
+                                                    date_requested,
+                                                    passengers_number,
+                                                    connect_type,
+                                                    origin,
+                                                    destination,
+                                                    fare,
+                                                    passenger_name,
+                                                    passenger_phone_number,
+                                                    taxi_number,
+                                                    driver_name,
+                                                    driver_phone_number,
+                                                    isRideExisting: true  //Ride is No longer present to be accepted by another
+                                                })
+                                            })
+                                            .catch((error) => {
+                                                console.log(error)
+                                                resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                            })
+                                            
+                                        })
+                                        .catch((error) => {
+                                            console.log(error)
+                                            resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                        })
+                                    })
+                                    .catch((error) => {
+                                        logger.error(`error: ${error.message}`)
+                                        resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                    })
+                                }
+                                
+                            })
+                            .catch((error) => {
+                                console.log(error)
+                                resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                            })
+                        })
+                    })
+        
+                    Promise.all(allCancelledRidesByDriver)
+                    .then((result) => {
+                        logger.info(result)
+                        redisCluster.set("cancelled-rides-by-driver", JSON.stringify(result), redis.print)
+                        resolve({success: true, data: result})
+                    })
+                    .catch((error) => {
+                        logger.error(error)
+                        resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                    })
+                })
+                .catch((error) => {
+                    logger.error(error)
+                    resolve({success: false, error: "Failed to get all events@collectionGlobalEvents query"})
+                })
+
+                
+            } else if(reply) {
+
+                if(reply !== null) {
+                    //* Resolve found result
+                    resolve(JSON.parse(reply))
+                    //!! Update cash but do not resolve anything:
+                    logger.info("updating cancelled-rides-by-driver cache")
+                    //*Update result @background in redis from Mongo with a new Promise
+                    new Promise((unreturned) => {
+                        collectionGlobalEvents
+                        .find({ event_name: "driver_cancelling_request"})
+                        .sort({date: -1})
+                        .limit(150)
+                        .toArray()
+                        .then((events) => {
+                            //resolve(events)
+                
+                            //For each event, get the following:
+                            const allCancelledRidesByDriver = events.map((event) => {
+                                return new Promise((res1) => {
+                                    const request_fp = event.request_fp
+                                    const driver_fingerprint = event.driver_fingerprint
+                                    const date_cancelled = event.date
+                
+                                    collectionRidesDeliveryDataCancelled
+                                    .findOne({request_fp: event.request_fp})
+                                    .then((cancelled) => {
+                                        
+                                        if(cancelled !== null) {//!This is when it has been cancelled by Passenger as well
+                                            const date_requested = cancelled ? cancelled.date_requested: "not found"
+                                            //const carTypeSelected = cancelled.carTypeSelected
+                                            const passengers_number = cancelled? cancelled.passengers_number: "not found"
+                                            const connect_type = cancelled? cancelled.connect_type: "not found"
+                                            const origin = cancelled? cancelled.pickup_location_infos.suburb: "not found"
+                                            const destination = cancelled? cancelled.destinationData.map((destination) => {
+                                                return destination.suburb 
+                                            }) : "not found"
+                                            const fare = cancelled? cancelled.fare: "not found"
+                    
+                                            queryPassenger = {user_fingerprint: cancelled.client_id}
+                                            collectionPassengers_profiles
+                                            .findOne(queryPassenger)
+                                            .then((passenger) => {
+                                                const passenger_name = passenger? passenger.name: "not found"
+                                                const passenger_phone_number = passenger? passenger.phone_number: "not found"
+                                                // Get the driver info in case ride was accepted before cancellation
+                                             
+                                                collectionDrivers_profiles
+                                                .findOne({driver_fingerprint: driver_fingerprint})
+                                                .then((driver) => {
+                                                    const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "not found"
+                                                    const driver_name = driver? driver.name : "not found"
+                                                    const driver_phone_number = driver? driver.phone_number: "not found"
+                                
+                                                    //Return the final object
+                                                    res1({
+                                                        date_cancelled,
+                                                        date_requested,
+                                                        passengers_number,
+                                                        connect_type,
+                                                        origin,
+                                                        destination,
+                                                        fare,
+                                                        passenger_name,
+                                                        passenger_phone_number,
+                                                        taxi_number,
+                                                        driver_name,
+                                                        driver_phone_number,
+                                                        isRideExisting: false  //Ride is No longer present to be accepted by another
+                                                    })
+                                                })
+                                                .catch((error) => {
+                                                    console.log(error)
+                                                    resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                                })
+                                              
+                                            })
+                                            .catch((error) => {
+                                              console.log(error)
+                                              resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                            })
+                
+                                        } else { //Ride not yet cancelled on passenger's side:
+                
+                                            collectionRidesDeliveryData
+                                            .findOne({request_fp: event.request_fp})
+                                            .then((cancelled) => {
+                
+                                                const date_requested = cancelled ? cancelled.date_requested: "not found"
+                                                //const carTypeSelected = cancelled.carTypeSelected
+                                                const passengers_number = cancelled? cancelled.passengers_number: "not found"
+                                                const connect_type = cancelled? cancelled.connect_type: "not found"
+                                                const origin = cancelled? cancelled.pickup_location_infos.suburb: "not found"
+                                                const destination = cancelled? cancelled.destinationData.map((destination) => {
+                                                    return destination.suburb 
+                                                }) : "not found"
+                                                const fare = cancelled? cancelled.fare: "not found"
+                        
+                                                queryPassenger = {user_fingerprint: cancelled.client_id}
+                                                collectionPassengers_profiles
+                                                .findOne(queryPassenger)
+                                                .then((passenger) => {
+                                                    const passenger_name = passenger? passenger.name: "not found"
+                                                    const passenger_phone_number = passenger? passenger.phone_number: "not found"
+                                                    // Get the driver info in case ride was accepted before cancellation
+                                                    
+                                                    collectionDrivers_profiles
+                                                    .findOne({driver_fingerprint: driver_fingerprint})
+                                                    .then((driver) => {
+                                                        const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "not found"
+                                                        const driver_name = driver? driver.name : "not found"
+                                                        const driver_phone_number = driver? driver.phone_number: "not found"
+                                    
+                                                        //Return the final object
+                                                        res1({
+                                                            date_cancelled,
+                                                            date_requested,
+                                                            passengers_number,
+                                                            connect_type,
+                                                            origin,
+                                                            destination,
+                                                            fare,
+                                                            passenger_name,
+                                                            passenger_phone_number,
+                                                            taxi_number,
+                                                            driver_name,
+                                                            driver_phone_number,
+                                                            isRideExisting: true  //Ride is No longer present to be accepted by another
+                                                        })
+                                                    })
+                                                    .catch((error) => {
+                                                        console.log(error)
+                                                        resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                                    })
+                                                    
+                                                })
+                                                .catch((error) => {
+                                                    console.log(error)
+                                                    resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                                })
+                                            })
+                                            .catch((error) => {
+                                                logger.error(`error: ${error.message}`)
+                                                resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                            })
+                                        }
+                                        
+                                    })
+                                    .catch((error) => {
+                                        console.log(error)
+                                    })
+                                })
+                            })
+                
+                            Promise.all(allCancelledRidesByDriver)
+                            .then((result) => {
+                                logger.info(result)
+                                redisCluster.set("cancelled-rides-by-driver", JSON.stringify(result), redis.print)
+                                //resolve({success: true, data: result})
+                            })
+                            .catch((error) => {
+                                logger.error(error)
+                                resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                            })
+                        })
+                        .catch((error) => {
+                            logger.error(error)
+                            resolve({success: false, error: "Failed to get all events@collectionGlobalEvents query"})
+                        })
+                    })
+
+                } else{
+                    //* Direct request to Mongo, Then save result
+                    collectionGlobalEvents
+                    .find({ event_name: "driver_cancelling_request"})
+                    .sort({date: -1})
+                    .limit(150)
+                    .toArray()
+                    .then((events) => {
+                        //resolve(events)
+            
+                        //For each event, get the following:
+                        const allCancelledRidesByDriver = events.map((event) => {
+                            return new Promise((res1) => {
+                                const request_fp = event.request_fp
+                                const driver_fingerprint = event.driver_fingerprint
+                                const date_cancelled = event.date
+            
+                                collectionRidesDeliveryDataCancelled
+                                .findOne({request_fp: event.request_fp})
+                                .then((cancelled) => {
+                                    
+                                    if(cancelled !== null) {//!This is when it has been cancelled by Passenger as well
+                                        const date_requested = cancelled ? cancelled.date_requested: "not found"
+                                        //const carTypeSelected = cancelled.carTypeSelected
+                                        const passengers_number = cancelled? cancelled.passengers_number: "not found"
+                                        const connect_type = cancelled? cancelled.connect_type: "not found"
+                                        const origin = cancelled? cancelled.pickup_location_infos.suburb: "not found"
+                                        const destination = cancelled? cancelled.destinationData.map((destination) => {
+                                            return destination.suburb 
+                                        }) : "not found"
+                                        const fare = cancelled? cancelled.fare: "not found"
+                
+                                        queryPassenger = {user_fingerprint: cancelled.client_id}
+                                        collectionPassengers_profiles
+                                        .findOne(queryPassenger)
+                                        .then((passenger) => {
+                                            const passenger_name = passenger? passenger.name: "not found"
+                                            const passenger_phone_number = passenger? passenger.phone_number: "not found"
+                                            // Get the driver info in case ride was accepted before cancellation
+                                         
+                                            collectionDrivers_profiles
+                                            .findOne({driver_fingerprint: driver_fingerprint})
+                                            .then((driver) => {
+                                                const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "not found"
+                                                const driver_name = driver? driver.name : "not found"
+                                                const driver_phone_number = driver? driver.phone_number: "not found"
+                            
+                                                //Return the final object
+                                                res1({
+                                                    date_cancelled,
+                                                    date_requested,
+                                                    passengers_number,
+                                                    connect_type,
+                                                    origin,
+                                                    destination,
+                                                    fare,
+                                                    passenger_name,
+                                                    passenger_phone_number,
+                                                    taxi_number,
+                                                    driver_name,
+                                                    driver_phone_number,
+                                                    isRideExisting: false  //Ride is No longer present to be accepted by another
+                                                })
+                                            })
+                                            .catch((error) => {
+                                                console.log(error)
+                                                resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                            })
+                                          
+                                        })
+                                        .catch((error) => {
+                                          console.log(error)
+                                          resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                        })
+            
+                                    } else { //Ride not yet cancelled on passenger's side:
+            
+                                        collectionRidesDeliveryData
+                                        .findOne({request_fp: event.request_fp})
+                                        .then((cancelled) => {
+            
+                                            const date_requested = cancelled ? cancelled.date_requested: "not found"
+                                            //const carTypeSelected = cancelled.carTypeSelected
+                                            const passengers_number = cancelled? cancelled.passengers_number: "not found"
+                                            const connect_type = cancelled? cancelled.connect_type: "not found"
+                                            const origin = cancelled? cancelled.pickup_location_infos.suburb: "not found"
+                                            const destination = cancelled? cancelled.destinationData.map((destination) => {
+                                                return destination.suburb 
+                                            }) : "not found"
+                                            const fare = cancelled? cancelled.fare: "not found"
+                    
+                                            queryPassenger = {user_fingerprint: cancelled.client_id}
+                                            collectionPassengers_profiles
+                                            .findOne(queryPassenger)
+                                            .then((passenger) => {
+                                                const passenger_name = passenger? passenger.name: "not found"
+                                                const passenger_phone_number = passenger? passenger.phone_number: "not found"
+                                                // Get the driver info in case ride was accepted before cancellation
+                                                
+                                                collectionDrivers_profiles
+                                                .findOne({driver_fingerprint: driver_fingerprint})
+                                                .then((driver) => {
+                                                    const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "not found"
+                                                    const driver_name = driver? driver.name : "not found"
+                                                    const driver_phone_number = driver? driver.phone_number: "not found"
+                                
+                                                    //Return the final object
+                                                    res1({
+                                                        date_cancelled,
+                                                        date_requested,
+                                                        passengers_number,
+                                                        connect_type,
+                                                        origin,
+                                                        destination,
+                                                        fare,
+                                                        passenger_name,
+                                                        passenger_phone_number,
+                                                        taxi_number,
+                                                        driver_name,
+                                                        driver_phone_number,
+                                                        isRideExisting: true  //Ride is No longer present to be accepted by another
+                                                    })
+                                                })
+                                                .catch((error) => {
+                                                    console.log(error)
+                                                    resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                                })
+                                                
+                                            })
+                                            .catch((error) => {
+                                                console.log(error)
+                                                resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                            })
+                                        })
+                                        .catch((error) => {
+                                            logger.error(`error: ${error.message}`)
+                                            resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                        })
+                                    }
+                                    
+                                })
+                                .catch((error) => {
+                                    console.log(error)
+                                    resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                })
+                            })
+                        })
+            
+                        Promise.all(allCancelledRidesByDriver)
+                        .then((result) => {
+                            logger.info(result)
+                            redisCluster.set("cancelled-rides-by-driver", JSON.stringify(result), redis.print)
+                            resolve({success: true, data: result})
+                        })
+                        .catch((error) => {
+                            logger.error(error)
+                            resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                        })
+                    })
+                    .catch((error) => {
+                        logger.error(error)
+                        resolve({success: false, error: "Failed to get all events@collectionGlobalEvents query"})
+                    })
+                }
+
+            } else {
+                //*Direct request to database, Then save in redis the output
+
+                collectionGlobalEvents
+                .find({ event_name: "driver_cancelling_request"})
+                .sort({date: -1})
+                .limit(150)
+                .toArray()
+                .then((events) => {
+                    //resolve(events)
+        
+                    //For each event, get the following:
+                    const allCancelledRidesByDriver = events.map((event) => {
+                        return new Promise((res1) => {
+                            const request_fp = event.request_fp
+                            const driver_fingerprint = event.driver_fingerprint
+                            const date_cancelled = event.date
+        
+                            collectionRidesDeliveryDataCancelled
+                            .findOne({request_fp: event.request_fp})
+                            .then((cancelled) => {
+                                
+                                if(cancelled !== null) {//!This is when it has been cancelled by Passenger as well
+                                    const date_requested = cancelled ? cancelled.date_requested: "not found"
+                                    //const carTypeSelected = cancelled.carTypeSelected
+                                    const passengers_number = cancelled? cancelled.passengers_number: "not found"
+                                    const connect_type = cancelled? cancelled.connect_type: "not found"
+                                    const origin = cancelled? cancelled.pickup_location_infos.suburb: "not found"
+                                    const destination = cancelled? cancelled.destinationData.map((destination) => {
+                                        return destination.suburb 
+                                    }) : "not found"
+                                    const fare = cancelled? cancelled.fare: "not found"
+            
+                                    queryPassenger = {user_fingerprint: cancelled.client_id}
+                                    collectionPassengers_profiles
+                                    .findOne(queryPassenger)
+                                    .then((passenger) => {
+                                        const passenger_name = passenger? passenger.name: "not found"
+                                        const passenger_phone_number = passenger? passenger.phone_number: "not found"
+                                        // Get the driver info in case ride was accepted before cancellation
+                                     
+                                        collectionDrivers_profiles
+                                        .findOne({driver_fingerprint: driver_fingerprint})
+                                        .then((driver) => {
+                                            const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "not found"
+                                            const driver_name = driver? driver.name : "not found"
+                                            const driver_phone_number = driver? driver.phone_number: "not found"
+                        
+                                            //Return the final object
+                                            res1({
+                                                date_cancelled,
+                                                date_requested,
+                                                passengers_number,
+                                                connect_type,
+                                                origin,
+                                                destination,
+                                                fare,
+                                                passenger_name,
+                                                passenger_phone_number,
+                                                taxi_number,
+                                                driver_name,
+                                                driver_phone_number,
+                                                isRideExisting: false  //Ride is No longer present to be accepted by another
+                                            })
+                                        })
+                                        .catch((error) => {
+                                            console.log(error)
+                                            resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                        })
+                                      
+                                    })
+                                    .catch((error) => {
+                                      console.log(error)
+                                      resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                    })
+        
+                                } else { //Ride not yet cancelled on passenger's side:
+        
+                                    collectionRidesDeliveryData
+                                    .findOne({request_fp: event.request_fp})
+                                    .then((cancelled) => {
+        
+                                        const date_requested = cancelled ? cancelled.date_requested: "not found"
+                                        //const carTypeSelected = cancelled.carTypeSelected
+                                        const passengers_number = cancelled? cancelled.passengers_number: "not found"
+                                        const connect_type = cancelled? cancelled.connect_type: "not found"
+                                        const origin = cancelled? cancelled.pickup_location_infos.suburb: "not found"
+                                        const destination = cancelled? cancelled.destinationData.map((destination) => {
+                                            return destination.suburb 
+                                        }) : "not found"
+                                        const fare = cancelled? cancelled.fare: "not found"
+                
+                                        queryPassenger = {user_fingerprint: cancelled.client_id}
+                                        collectionPassengers_profiles
+                                        .findOne(queryPassenger)
+                                        .then((passenger) => {
+                                            const passenger_name = passenger? passenger.name: "not found"
+                                            const passenger_phone_number = passenger? passenger.phone_number: "not found"
+                                            // Get the driver info in case ride was accepted before cancellation
+                                            
+                                            collectionDrivers_profiles
+                                            .findOne({driver_fingerprint: driver_fingerprint})
+                                            .then((driver) => {
+                                                const taxi_number = driver? driver.cars_data[0]["taxi_number"] : "not found"
+                                                const driver_name = driver? driver.name : "not found"
+                                                const driver_phone_number = driver? driver.phone_number: "not found"
+                            
+                                                //Return the final object
+                                                res1({
+                                                    date_cancelled,
+                                                    date_requested,
+                                                    passengers_number,
+                                                    connect_type,
+                                                    origin,
+                                                    destination,
+                                                    fare,
+                                                    passenger_name,
+                                                    passenger_phone_number,
+                                                    taxi_number,
+                                                    driver_name,
+                                                    driver_phone_number,
+                                                    isRideExisting: true  //Ride is No longer present to be accepted by another
+                                                })
+                                            })
+                                            .catch((error) => {
+                                                console.log(error)
+                                                resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                            })
+                                            
+                                        })
+                                        .catch((error) => {
+                                            console.log(error)
+                                            resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                        })
+                                    })
+                                    .catch((error) => {
+                                        logger.error(`error: ${error.message}`)
+                                        resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                                    })
+                                }
+                                
+                            })
+                            .catch((error) => {
+                                console.log(error)
+                                resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                            })
+                        })
+                    })
+        
+                    Promise.all(allCancelledRidesByDriver)
+                    .then((result) => {
+                        logger.info(result)
+                        redisCluster.set("cancelled-rides-by-driver", JSON.stringify(result), redis.print)
+                        resolve({success: true, data: result})
+                    })
+                    .catch((error) => {
+                        logger.error(error)
+                        resolve({success: false, error: "Failed @getAllCancelled rides function level"})
+                    })
+                })
+                .catch((error) => {
+                    logger.error(error)
+                    resolve({success: false, error: "Failed to get all events@collectionGlobalEvents query"})
+                })
+            }
+        })
+
+    }
+
+
 
 
 
@@ -838,6 +1535,16 @@ clientMongo.connect(function(err) {
     const collectionWallet_transaction_logs = dbMongo.collection(
         "wallet_transactions_logs"
     )
+    const collectionGlobalEvents = dbMongo.collection(
+        "global_events"
+    )
+    const collectionPassengers_profiles = dbMongo.collection(
+        "passengers_profiles"
+      );
+      
+    const collectionRidesDeliveryDataCancelled = dbMongo.collection(
+    "cancelled_rides_deliveries_requests"
+    );
     /*
     collectionDrivers_profiles.find({}).toArray()
     .then((result) => {
@@ -956,6 +1663,18 @@ clientMongo.connect(function(err) {
             if(result.error) {
                 res.status(500).send({error: "Oops! something went wrong at server driver db function insert level"})
             }
+
+            //*update driver cash and send success
+
+            new Promise((updateDriverCash) => {
+                axios.get(`http:172.31.16.195:9696/getDrivers_walletInfosDeep?user_fingerprint=${req.body.driver_fingerprint}&transactionData=true&avoidCached_data=true`)
+                .then((data) => {
+                    console.log(data.data)
+                })
+                .catch((error) => {
+                    console.log(error)
+                })
+            })
 
             res.status(201).send({ success: `Payment inserted of ${req.body.amount}`})
         })
@@ -1610,6 +2329,34 @@ clientMongo.connect(function(err) {
         .catch((error) => {
             console.log(error)
             res.status(500).send({error: "Failed to update data @promise level Blue paper"})
+        })
+    })
+
+
+    app.get("/cancelled-rides-driver", (req, res) => {
+
+        logger.info("cancelled-rides-driver API CALLED")
+        new Promise((res) => {
+            getCancelledRidesDriverEvent(
+                collectionGlobalEvents,
+                collectionRidesDeliveryDataCancelled,
+                collectionRidesDeliveryData,
+                collectionPassengers_profiles,
+                collectionDrivers_profiles,
+                res
+            )
+        })
+        .then((result) => {
+            logger.info(result)
+            if(result.success) {
+                res.status(200).json(result.data)
+            }
+
+            res.status(500).json({success: false, error: "Internal server Error"})
+            
+        })
+        .catch((error) => {
+            console.log(error)
         })
     })
 

@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.856.0",
+    "axios": "^0.21.1",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
@@ -20,6 +21,7 @@
     "mongodb": "^3.6.3",
     "newrelic": "^7.5.0",
     "redis": "^3.0.2",
-    "redis-clustr": "^1.7.0"
+    "redis-clustr": "^1.7.0",
+    "winston": "^3.3.3"
   }
 }
