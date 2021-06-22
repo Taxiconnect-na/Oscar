@@ -997,9 +997,9 @@ function getCancelledRidesDriverEvent(
         
                     Promise.all(allCancelledRidesByDriver)
                     .then((result) => {
-                        logger.info(result)
+                        //logger.info(result)
                         redisCluster.set("cancelled-rides-by-driver", JSON.stringify(result), redis.print)
-                        resolve({success: true, data: result})
+                        resolve(result)
                     })
                     .catch((error) => {
                         logger.error(error)
@@ -1162,15 +1162,16 @@ function getCancelledRidesDriverEvent(
                                     })
                                     .catch((error) => {
                                         console.log(error)
+                                        resolve({success: false, error: "Failed @getAllCancelled rides function level"})
                                     })
                                 })
                             })
                 
                             Promise.all(allCancelledRidesByDriver)
                             .then((result) => {
-                                logger.info(result)
+                                //logger.info(result)
                                 redisCluster.set("cancelled-rides-by-driver", JSON.stringify(result), redis.print)
-                                //resolve({success: true, data: result})
+                                //resolve(result)
                             })
                             .catch((error) => {
                                 logger.error(error)
@@ -1333,9 +1334,9 @@ function getCancelledRidesDriverEvent(
             
                         Promise.all(allCancelledRidesByDriver)
                         .then((result) => {
-                            logger.info(result)
+                            //logger.info(result)
                             redisCluster.set("cancelled-rides-by-driver", JSON.stringify(result), redis.print)
-                            resolve({success: true, data: result})
+                            resolve(result)
                         })
                         .catch((error) => {
                             logger.error(error)
@@ -1499,9 +1500,9 @@ function getCancelledRidesDriverEvent(
         
                     Promise.all(allCancelledRidesByDriver)
                     .then((result) => {
-                        logger.info(result)
+                        //logger.info(result)
                         redisCluster.set("cancelled-rides-by-driver", JSON.stringify(result), redis.print)
-                        resolve({success: true, data: result})
+                        resolve(result)
                     })
                     .catch((error) => {
                         logger.error(error)
@@ -2347,15 +2348,13 @@ clientMongo.connect(function(err) {
             )
         })
         .then((result) => {
-            logger.info(result)
-            if(result.success) {
-                res.status(200).json(result.data)
-            } else {
-                res.status(500).json({success: false, error: "Internal server Error"})
+            //logger.info(result)
+            if(result.error) {
+                res.status(500).json({success: false, error: "Internal server Error"})    
             }
 
-            
-            
+            res.status(200).json({success: true, data: result})
+
         })
         .catch((error) => {
             console.log(error)
