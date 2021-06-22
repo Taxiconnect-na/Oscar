@@ -2350,9 +2350,11 @@ clientMongo.connect(function(err) {
             logger.info(result)
             if(result.success) {
                 res.status(200).json(result.data)
+            } else {
+                res.status(500).json({success: false, error: "Internal server Error"})
             }
 
-            res.status(500).json({success: false, error: "Internal server Error"})
+            
             
         })
         .catch((error) => {
