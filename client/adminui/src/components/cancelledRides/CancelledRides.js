@@ -81,7 +81,7 @@ export default function CancelledRides() {
             <Sidebar />
         </div>
         <div className="main-content">
-            <h1 style={ style.header }> CANCELLED RIDES </h1>
+            <h1 style={ style.header }> CANCELLED RIDES BY PASSENGERS </h1>
           
             <table className="table-striped" style={{ textAlign: "center"}}>
                 <thead className="thead-light">

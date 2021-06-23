@@ -663,6 +663,27 @@ io.on("connection", (socket) => {
         })
     })
 
+    // Get cancelled rides by driver
+    socket.on("getCancelledRides-drivers", function(data) {
+        console.log("Requesting cancelled rides by passenger ")
+        axios.get(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/cancelled-rides-driver`)
+        .then((result) => {
+            // Check for an error
+            if(!result.data.success) {
+                socket.emit("getCancelledRides-drivers-feedback", {error: true})
+            } else {
+                let cancelledRidesDrivers = new Object(result.data)
+
+                socket.emit("getCancelledRides-drivers-feedback", cancelledRidesDrivers)
+            }
+            
+        })
+        .catch((error) => {
+            console.log(error)
+            socket.emit("getCancelledRides-drivers-feedback", {error: true})
+        })
+    })
+
     // Get cancelled deliveries by passenger
     socket.on("getCancelledDeliveries-passenger", function(data) {
         console.log("Requesting cancelled rides by passenger ")

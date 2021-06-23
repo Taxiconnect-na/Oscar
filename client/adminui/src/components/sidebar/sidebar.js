@@ -37,7 +37,8 @@ function Sidebar() {
                         </SubMenu>
                     </SubMenu>
                     <SubMenu title="Cancelled Trips" style = {{marginLeft: 10}}>
-                        <MenuItem><Link to="/cancelled-rides">Rides</Link></MenuItem>
+                        <MenuItem><Link to="/cancelled-rides-ByPassengers">Rides(User)</Link></MenuItem>
+                        <MenuItem><Link to="/cancelled-rides-ByDrivers">Rides(Driver)</Link></MenuItem>
                         <MenuItem><Link to="/cancelled-deliveries">Deliveries</Link></MenuItem>
                     </SubMenu>
                     <MenuItem><Link to="/drivers"><FaThList style={iconStyle} />Drivers</Link></MenuItem>

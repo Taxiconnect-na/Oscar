@@ -15,6 +15,7 @@ import Loader from "./components/Loader/Loader"
 import ErrorPage from "./components/errorPage/ErrorPage"
 import SuccessPage from "./components/successPage/SuccessPage"
 import CancelledRides from "./components/cancelledRides/CancelledRides"
+import CancelledRidesDrivers from "./components/cancelledRides/CancelledRidesDrivers"
 import Graph from "./components/Graphs/Graph"
 import RideCounts from "./components/visualize/RideCounts"
 import DataVisualizerRoutesList from "./components/DataVisualizerRoutesList/DataVisualizerRoutesList"
@@ -332,7 +333,8 @@ function App() {
                 <Route path= "/trip-overview/rides" component={RideOverview} />
                 <Route path ="/trip-overview/deliveries" component={DeliveryOverview} />
                 <Route path="/drivers" component={DriverList} />
-                <Route path="/cancelled-rides" component={CancelledRides} />
+                <Route path="/cancelled-rides-ByPassengers" component={CancelledRides} />
+                <Route path="/cancelled-rides-ByDrivers" component={CancelledRidesDrivers} />
                 <Route path="/cancelled-deliveries" component={CancelledDeliveries} />
                 <Route path="/drivers-update" component={DriverDataUpdate} />
 
