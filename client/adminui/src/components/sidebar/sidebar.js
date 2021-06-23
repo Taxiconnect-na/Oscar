@@ -23,7 +23,7 @@ function Sidebar() {
             <ProSidebar>
                 <Menu iconShape="square">
                     <img src={logotaxiconnect} alt="TaxiConnect" style={{ height: 79, width: 140, marginLeft:30, marginBottom: 50}}/>
-                    {/*<MenuItem><Link to="/"><FaChartBar style={iconStyle}/>Summary</Link></MenuItem> */}
+                    <MenuItem><Link to="/"><FaChartBar style={iconStyle}/>Summary</Link></MenuItem> 
                     <MenuItem><Link to="/driver-registration"><FaRegRegistered style={iconStyle} />Register Driver</Link></MenuItem>
                     
                     <SubMenu title="Trip Overview" style = {{marginLeft: 10}}>
@@ -41,10 +41,10 @@ function Sidebar() {
                         <MenuItem><Link to="/cancelled-deliveries">Deliveries</Link></MenuItem>
                     </SubMenu>
                     <MenuItem><Link to="/drivers"><FaThList style={iconStyle} />Drivers</Link></MenuItem>
-                    {/*<MenuItem><Link to="/passengers"><FaThList style={iconStyle} />Users </Link></MenuItem>
+                    <MenuItem><Link to="/passengers"><FaThList style={iconStyle} />Users </Link></MenuItem>
                     <MenuItem><Link to="/driver-payment"><MdBusiness style={iconStyle} />Make payment </Link></MenuItem>
                     <MenuItem><Link to="/visualize"><AiFillSignal style={iconStyle} />Visualize </Link></MenuItem>
-    <MenuItem><Link to="/driver-commission"><GiTakeMyMoney style={iconStyle} />Commissions</Link></MenuItem>*/}
+    <MenuItem><Link to="/driver-commission"><GiTakeMyMoney style={iconStyle} />Commissions</Link></MenuItem>
                 </Menu>
             </ProSidebar>;
         </div>
