@@ -49,7 +49,7 @@ const CancelledRideRow = (props) => {
                 <td> { props.ride.origin } </td>
                 <td> {dest()} </td>
                 <td> { props.ride.connect_type } </td>
-                <td> { props.ride.fare } [{ props.ride.passengers_number}] </td>
+                <td> { props.ride.fare }   [{ props.ride.passengers_number}] </td>
             </tr>
         </>
     )
