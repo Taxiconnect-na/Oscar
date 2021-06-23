@@ -38,9 +38,12 @@ const CancelledRideRow = (props) => {
                 <td> { props.ride.taxi_number } </td>
                 <td> {props.ride.driver_name} </td>
                 <td> { props.ride.driver_phone_number } </td>
-                <td style={props.ride.isRideExisting? isRideExisting.yes : isRideExisting.no }> { isRideExisting } </td>
-                <td> { props.ride.date_requested.toString().slice(0,10) } | { props.ride.date_requested.toString().slice(11,19) } </td>
+                <td style={props.ride.isRideExisting? isRideExisting_style.yes : isRideExisting_style.no }> { isRideExisting } </td>
+                {/*<td> { props.ride.date_requested.toString().slice(0,10) } | { props.ride.date_requested.toString().slice(11,19) } </td>
                 <td> { props.ride.cancelled.toString().slice(0,10) } | { props.ride.cancelled.toString().slice(11,19) } </td>
+                */}
+                <td> { props.ride.date_requested.toString().slice(0,10) } | { props.ride.date_requested.toString().slice(11,19) } </td>
+                <td> { props.ride.date_cancelled.toString().slice(0,10) } | { props.ride.date_cancelled.toString().slice(11,19) } </td>
                 <td> {props.ride.passenger_name } </td>
                 <td> {props.ride.passenger_phone_number } </td>
                 <td> { props.ride.origin } </td>
@@ -69,6 +72,7 @@ export default function CancelledRidesDrivers() {
                 }
             })
             socket.emit("getCancelledRides-drivers", {data: "get cancelled rides by drivers"})
+            
         /*}, 2000)
 
         return( () => {
@@ -110,7 +114,7 @@ export default function CancelledRidesDrivers() {
                         <th>Driver cellphone</th>
                         <th>Ride Exists</th>
                         <th>Date | Time requested</th>
-                        <th>Date | Time cancelled</th>
+                        <th>Date | Time cancelled</th> 
                         <th>Passenger name</th>
                         <th>Passenger cellphone</th>
                         <th>Origin</th>

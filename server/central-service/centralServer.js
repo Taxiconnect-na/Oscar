@@ -669,18 +669,16 @@ io.on("connection", (socket) => {
         axios.get(`${process.env.ROOT_URL}:${process.env.DRIVER_ROOT}/cancelled-rides-driver`)
         .then((result) => {
             // Check for an error
-            if(!result.data.success) {
-                socket.emit("getCancelledRides-drivers-feedback", {error: true})
-            } else {
-                let cancelledRidesDrivers = new Object(result.data)
+            
+            let cancelledRidesDrivers = new Object(result.data)
 
-                socket.emit("getCancelledRides-drivers-feedback", cancelledRidesDrivers)
-            }
+            socket.emit("getCancelledRides-drivers-feedback", cancelledRidesDrivers)
+            
             
         })
-        .catch((error) => {
+        .catch((error) => {z
             console.log(error)
-            socket.emit("getCancelledRides-drivers-feedback", {error: true})
+            socket.emit("getCancelledRides-drivers-feedback", {success: false})
         })
     })
 
