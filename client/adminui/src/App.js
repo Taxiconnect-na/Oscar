@@ -326,9 +326,9 @@ function App() {
             <Router>
               <Switch>
 
-                {/*<Route path="/" exact component={Overview} />*/}
+                <Route path="/" exact component={Overview} />
 
-                <Route path="/" exact component={RideOverview} />
+                {/*<Route path="/" exact component={RideOverview} />*/}
                 <Route path="/driver-registration"  component={DriverRegistration} />
                 <Route path= "/trip-overview/rides" component={RideOverview} />
                 <Route path ="/trip-overview/deliveries" component={DeliveryOverview} />
@@ -338,7 +338,7 @@ function App() {
                 <Route path="/cancelled-deliveries" component={CancelledDeliveries} />
                 <Route path="/drivers-update" component={DriverDataUpdate} />
 
-                {/*<Route path="/passengers" component={PassengerList} /> 
+                <Route path="/passengers" component={PassengerList} /> 
 
                  
                 <Route path="/driver-payment" component={CashPaymentDriver} />
@@ -358,7 +358,7 @@ function App() {
                  
                 
                 <Route path="/driver-commission" component={DriverCommission} />
-    <Route path="/driver-commission-payment" component={DriverCommissionInsert} /> */}
+    <Route path="/driver-commission-payment" component={DriverCommissionInsert} /> 
                 
               </Switch>
             </Router>

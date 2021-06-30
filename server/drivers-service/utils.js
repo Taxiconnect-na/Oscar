@@ -41,7 +41,7 @@ var windhoekDateTime = new Date(new Date().toUTCString()).addHours(2)
         resolve({error: "The document was not updated"})
     })
 }
-
+exports.updateEntry = updateEntry
 
 
 function MakePaymentCommissionTCSubtracted(
@@ -85,7 +85,16 @@ function MakePaymentCommissionTCSubtracted(
     })
 
 }
-
-// Exported functions
-exports.updateEntry = updateEntry
+// Exported function
 exports.MakePaymentCommissionTCSubtracted = MakePaymentCommissionTCSubtracted
+
+
+exports.getRefferals = (collectionRefferalsInformationGlobal, resolve) => {
+
+  collectionRefferalsInformationGlobal
+  .find({})
+  .toArray()
+  .then((refferals) => {
+    resolve(refferals)
+  })
+}

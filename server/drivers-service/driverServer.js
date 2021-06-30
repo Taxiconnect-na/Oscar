@@ -1546,6 +1546,10 @@ clientMongo.connect(function(err) {
     const collectionRidesDeliveryDataCancelled = dbMongo.collection(
     "cancelled_rides_deliveries_requests"
     );
+
+    const collectionRefferalsInformationGlobal = dbMongo.collection(
+        "referrals_information_global"
+    )
     /*
     collectionDrivers_profiles.find({}).toArray()
     .then((result) => {
@@ -2358,6 +2362,86 @@ clientMongo.connect(function(err) {
         })
         .catch((error) => {
             console.log(error)
+        })
+    })
+
+
+    /**
+     * * SUSPEND DRIVER
+     */
+
+    app.post("/suspend-driver", (req, res) => {
+
+        logger.info("SUSPENDING DRIVER ...@suspend driver API")
+
+        const driverFingerPrint = req.body.driverFingerPrint
+        logger.info(`driver fingerprint: ${driverFingerPrint}`)
+        new Promise((res) => {
+            utils.updateEntry(
+                collectionDrivers_profiles,
+                {driver_fingerprint: driverFingerPrint },
+                {
+                    isDriverSuspended: true
+                },
+                res
+            )
+        })
+        .then((update_response) => {
+            
+            if(update_response.error) {
+                res.status(500).send({error: true, message: "Failed to suspend driver @database level"})
+            } else if (update_response.success) {
+                // return success message
+                res.status(201).send({ success: true, message: "Driver suspended"})
+            }
+        })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).send({error: "Failed to suspend driver @database level"})
+        })
+    })
+
+    app.post("/unsuspend-driver", (req, res) => {
+
+        logger.info("UNSUSPENDING DRIVER ...@unsuspend driver API")
+
+        const driverFingerPrint = req.body.driverFingerPrint
+        logger.info(`driver fingerprint: ${driverFingerPrint}`)
+        new Promise((res) => {
+            utils.updateEntry(
+                collectionDrivers_profiles,
+                {driver_fingerprint: driverFingerPrint },
+                {
+                    isDriverSuspended: false
+                },
+                res
+            )
+        })
+        .then((update_response) => {
+            
+            if(update_response.error) {
+                res.status(500).send({error: true, message: "Failed to unsuspend driver @database level"})
+            } else if (update_response.success) {
+                // return success message
+                res.status(201).send({ success: true, message: "Driver unsuspended"})
+            }
+        })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).send({error: "Failed to unsuspend driver @database level"})
+        })
+    })
+
+    app.get("/refferals", (req, res) => {
+
+        logger.info("GETTING REFFERALS API CALLED ")
+
+        new Promise((res) => {
+            utils.getRefferals(collectionRefferalsInformationGlobal, res)
+        })
+        .then((refferals) => {
+            console.log(refferals)
+            res.status(200).json(refferals)
         })
     })
 

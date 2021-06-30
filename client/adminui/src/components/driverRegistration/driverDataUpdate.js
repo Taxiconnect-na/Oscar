@@ -107,6 +107,11 @@ export default function DriverDataUpdate({ location }) {
     //Form state disable -> true/false
     let [info_form_state, setInfoFormState] = useState(true)
 
+    //Other actions state variables
+    let [suspension_loading, setSuspensionLoading] = useState(false)
+    let [suspension_success, setSuspensionSuccess] = useState(false)
+    let [suspension_failure, setSuspensionFailure] = useState(false)
+
     useEffect(() => {
 
         const { driverID, taxi, dname, dsurname, dplate_number, contact, taxipicture } = queryString.parse(location.search)
@@ -694,6 +699,86 @@ export default function DriverDataUpdate({ location }) {
     const formControlDisplay = () => {
         setInfoFormState(!info_form_state)
     }
+
+    /**
+     *  SUSPEND DRIVER HANDLER
+     */
+
+    const suspendDriver = () => {
+
+        setSuspensionLoading(true)
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                driverFingerPrint: queryString.parse(location.search).driverID,
+            })
+            
+        }
+
+        fetch(`${process.env.REACT_APP_DRIVER_SERVER}/suspend-driver`, options)
+        //fetch(`http://localhost:10020/suspend-driver`, options)
+        .then(response => response.json())
+        .then((data) => {
+            console.log(data)
+            if(data.success){
+                setSuspensionLoading(false)
+                setSuspensionSuccess(true)
+            }
+
+            else if(data.error) {
+                setSuspensionLoading(false)
+                setSuspensionFailure(true)
+            }
+            
+        })
+    }
+
+    const unsuspendDriver = () => {
+
+        setSuspensionLoading(true)
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                driverFingerPrint: queryString.parse(location.search).driverID,
+            })
+            
+        }
+
+        fetch(`${process.env.REACT_APP_DRIVER_SERVER}/unsuspend-driver`, options)
+        //fetch(`http://localhost:10020/unsuspend-driver`, options)
+        .then(response => response.json())
+        .then((data) => {
+            console.log(data)
+            if(data.success){
+                setSuspensionLoading(false)
+                setSuspensionSuccess(true)
+            }
+
+            else if(data.error) {
+                setSuspensionLoading(false)
+                setSuspensionFailure(true)
+            }
+            
+        })
+    }
+
+    let suspension_result
+    if(suspension_success) {
+        suspension_result = <AiOutlineCheckSquare style={{width: 30, height: 30, color: "green", marginLeft:"5%"}} />
+    }
+    if(suspension_loading) {
+        suspension_result = <h5 className="uploading-info-anime">In progress...</h5>
+    }
+    if(suspension_failure) {
+        suspension_result = <VscError style={{width: 30, height: 30, color: "red", marginLeft:"5%"}} />
+    }
+
   return (
 
     <div className="template">
@@ -924,6 +1009,34 @@ export default function DriverDataUpdate({ location }) {
                             />
                         </div> }
                     </form>
+                </div>
+
+                <div style={{ display:"grid", placeItems:"center", marginTop: "4%"}}>
+
+                    <h4 style={{ backgroundColor:"#0a0321", padding:"2%", color: "white"}}> OTHER ACTIONS </h4>
+
+                    <table className="table-striped" style={{ border: "solid 1px", width: "60%"}}>
+                        <thead className="thead-light">
+                            <tr>
+                                <th>Action Name</th>
+                                <th>Options</th>
+                                <th>Action Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr >  
+                                <td style={{ fontSize: "large"}}><span style={{display:"grid", placeItems:"center"}}>Suspension</span></td>
+                                <td style={{ fontSize: "large"}}>
+
+                                    <button className="btn btn-warning btn-sm" onClick={() => suspendDriver() } style={{margin:"5px"}}>suspend</button> 
+                                    <br></br>
+                                    <button className="btn btn-success btn-sm" onClick={() => unsuspendDriver() }>unsuspend</button> 
+
+                                </td>
+                                <td style={{ fontSize: "large"}}> {suspension_result? suspension_result: "no action taken"} </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>    
             </div>
         </div>
