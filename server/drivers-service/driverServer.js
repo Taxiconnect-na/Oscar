@@ -2432,16 +2432,124 @@ clientMongo.connect(function(err) {
         })
     })
 
-    app.get("/refferals", (req, res) => {
+    /**
+     *  * REFERRALS PROGRAM RELATED APIs
+     */
+    app.get("/referrals", (req, res) => {
 
         logger.info("GETTING REFFERALS API CALLED ")
 
         new Promise((res) => {
-            utils.getRefferals(collectionRefferalsInformationGlobal, res)
+            utils.getReferrals(collectionRefferalsInformationGlobal, res)
         })
-        .then((refferals) => {
-            console.log(refferals)
-            res.status(200).json(refferals)
+        .then((referrals) => {
+            if(!referrals.success){
+                res.status(500).json({success: false, error: referrals.error})
+            }
+            res.status(200).json({success: true, data: referrals.data })
+        })
+        .catch((error) => {
+            logger.error(error.message)
+            res.status(500).json({success: false, error: error.message})
+
+        })
+    })
+
+    app.get("/update-referral-paid-status/:referral_fingerprint", (req, res) => {
+
+        const referral_fingerprint = req.params.referral_fingerprint
+
+        new Promise((res) => {
+            utils.updateIsReferralPaid(collectionRefferalsInformationGlobal, referral_fingerprint, res)
+        })
+        .then((data) => {
+            logger.info(data)
+            if(!data.success) {
+                res.status(500).json({success: false, error: "Failed to update referral payment status"})
+            }
+            res.status(200).json({success: true, message: "Successfully updated referral payment status"})
+        })
+        .catch((error) => {
+            logger.error(error.message)
+            res.status(500).json({success: false, error: "< Failed to update referral payment status >"})
+        })
+    })
+
+    app.get("/update-referral-rejection-status/:referral_fingerprint", (req, res) => {
+
+        const referral_fingerprint = req.params.referral_fingerprint
+
+        new Promise((res) => {
+            utils.updateIsReferralRejected(collectionRefferalsInformationGlobal, referral_fingerprint, res)
+        })
+        .then((data) => {
+            logger.info(data)
+            if(!data.success) {
+                res.status(500).json({success: false, error: "Failed to update referral rejection status"})
+            }
+            res.status(200).json({success: true, message: "Successfully updated referral rejection status"})
+        })
+        .catch((error) => {
+            logger.error(error.message)
+            res.status(500).json({success: false, error: "< Failed to update referral rejection status >"})
+        })
+    })
+
+    app.get("/mark-referral-deleted-user-side/:referral_fingerprint", (req, res) => {
+
+        logger.info("mark-referral-deleted-user-side API CALLED")
+
+        const referral_fingerprint = req.params.referral_fingerprint
+       
+        new Promise((res) => {
+            utils.updateEntry(
+                collectionRefferalsInformationGlobal,
+                {referral_fingerprint: referral_fingerprint },
+                {
+                    is_official_deleted_user_side: true
+                },
+                res
+            )
+        })
+        .then((update_response) => {
+            logger.info(update_response)
+            if(update_response.error) {
+                res.status(500).json({success: false, error: "Failed to mark referral deleted on user side"})
+            } else if (update_response.success) {
+                // return success message
+                res.status(200).json({ success: true, message: "Successfully marked referral as deleted on user side"})
+            }
+        })
+        .catch((error) => {
+            logger.error(error.message)
+            res.status(500).json({error: "< Failed to mark referral deleted on user side >"})
+        })
+    })
+
+    app.get("/delete-referral/:referral_fingerprint", (req, res) => {
+
+        logger.info("delete-referral API CALLED")
+
+        const referral_fingerprint = req.params.referral_fingerprint
+       
+        new Promise((res) => {
+            utils.deleteEntry(
+                collectionRefferalsInformationGlobal,
+                {referral_fingerprint: referral_fingerprint },
+                res
+            )
+        })
+        .then((delete_response) => {
+            logger.info(delete_response)
+            if(!delete_response.success) {
+                res.status(500).json({success: false, error: "Failed to delete referral"})
+            }
+            
+            res.status(200).json({success: true, message: "Successfull deletion of referral"})
+        })
+        .catch((error) => {
+            logger.error(error.message)
+            res.status(500).json({error: "< Failed to mark referral deleted on user side >"})
         })
     })
 
@@ -2452,3 +2560,31 @@ clientMongo.connect(function(err) {
 server.listen(PORT, () => {
     console.log(`Driver server up and running @ port ${ PORT } `)
 })
+
+/*
+
+{
+    "_id": {
+        "$oid": "60d48c19cd55e64be7cc37d0"
+    },
+    "referral_fingerprint": "bb8665fa3494badf9b525df33a26babc7ddfbd7929e8aaa6f9f037fb5dd3130ed535fc0bf4292b409ff17b53f9f5007c3bc0d347c396692831a726ca391e3d4f",
+    "driver_name": "Max",
+    "driver_phone": "264814255888",
+    "taxi_number": "K080",
+    "user_referrer": "48aecfa6a98979574c6db8a77fd0a9e09dd4f37b2e4811343c65d31a88c404f46169466ff0e03e46",
+    "user_referrer_nature": "rider",
+    "expiration_time": {
+        "$date": "2021-06-26T15:43:53.000Z"
+    },
+    "is_referralExpired": true,
+    "is_paid": true,
+    "amount_paid": false,
+    "amount_paid_percentage": 50,
+    "is_referral_rejected": false,
+    "is_official_deleted_user_side": false,
+    "date_referred": {
+        "$date": "2021-06-24T15:43:53.000Z"
+    }
+}
+
+ */
