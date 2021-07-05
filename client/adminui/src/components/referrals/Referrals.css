@@ -1,0 +1,38 @@
+/*table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 5px;
+    text-align: left;    
+  } */
+
+.active-referrals-action {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-between;
+}
+
+.active-referrals-action > div {
+    margin: 1%;
+}
+
+.toggle-referral-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-left: 18rem;
+  padding-right: 18rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  background-color: dimgray;
+  
+}
+
+.toggle-referral-buttons > div {
+  font-weight: 700;
+  font-family:sans-serif;
+  color: aliceblue;
+}

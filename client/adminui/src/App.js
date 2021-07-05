@@ -34,6 +34,7 @@ import MonthlyDataDetailed from './components/visualize/MonthlyDataDetailed'
 import DriverDataUpdate from './components/driverRegistration/driverDataUpdate'
 import DriverCommission from './components/driverCommission/driverCommission'
 import DriverCommissionInsert from './components/driverCommission/driverCommissionInsert'
+import Referrals from "./components/referrals/Referrals"
 
 
 
@@ -358,7 +359,10 @@ function App() {
                  
                 
                 <Route path="/driver-commission" component={DriverCommission} />
-    <Route path="/driver-commission-payment" component={DriverCommissionInsert} /> 
+                <Route path="/driver-commission-payment" component={DriverCommissionInsert} /> 
+
+                {/* REFERRALS PATH  */}
+                <Route path="/referrals" component={Referrals} />
                 
               </Switch>
             </Router>
