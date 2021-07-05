@@ -36,3 +36,9 @@
   font-family:sans-serif;
   color: aliceblue;
 }
+
+.toggle-referral-text:hover {
+  cursor: pointer;
+  opacity: 0.60;
+
+}
