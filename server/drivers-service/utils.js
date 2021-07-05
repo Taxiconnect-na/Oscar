@@ -101,46 +101,145 @@ function MakePaymentCommissionTCSubtracted(
 exports.MakePaymentCommissionTCSubtracted = MakePaymentCommissionTCSubtracted
 
 
-exports.getReferrals = (collectionReferralsInformationGlobal, resolve) => {
+exports.getReferrals = (collectionReferralsInformationGlobal,
+      collectionPassengers_profiles,
+      collectionDrivers_profiles, resolve) => {
 
   collectionReferralsInformationGlobal
   .find({})
   .toArray()
   .then((referrals) => {
-    const active_referrals = referrals.filter((referral) => {
-      return referral.is_referralExpired === false
+    
+    const allReferrals = referrals.map((referral) => {
+      return new Promise((outcome) => {
+        const referral_fingerprint = referral.referral_fingerprint
+        const driver_name = referral.driver_name
+        const driver_phone = referral.driver_phone
+        const taxi_number = referral.taxi_number
+        const user_referrer = referral.user_referrer
+        const user_referrer_nature = referral.user_referrer_nature
+        const expiration_time = referral.expiration_time
+        const is_referralExpired = referral.is_referralExpired
+        const is_paid = referral.is_paid
+        const amount_paid = referral.amount_paid
+        const amount_paid_percentage = referral.amount_paid_percentage
+        const is_referral_rejected = referral.is_referral_rejected
+        const is_official_deleted_user_side = referral.is_official_deleted_user_side
+        const date_referred = referral.date_referred
+
+        if(user_referrer_nature==="rider"){
+          collectionPassengers_profiles
+          .findOne({user_fingerprint: user_referrer})
+          .then((user) => {
+            const referrer_name = user.name
+            const referrer_phone_number = user.phone_number
+            const referrer_email = user.email
+
+            outcome({
+              referral_fingerprint,
+              driver_name,
+              driver_phone,
+              taxi_number,
+              user_referrer,
+              user_referrer_nature,
+              expiration_time,
+              is_referralExpired,
+              is_paid,
+              amount_paid,
+              amount_paid_percentage,
+              is_referral_rejected,
+              is_official_deleted_user_side,
+              date_referred,
+              referrer_name,
+              referrer_phone_number,
+              referrer_email
+            })
+
+          })
+          .catch((error) => {
+            logger.error(error.message)
+            resolve({success:false, error: error.message})
+          })
+        } else {
+          collectionDrivers_profiles
+          .findOne({driver_fingerprint: user_referrer})
+          .then((user) => {
+            const referrer_name = user.name
+            const referrer_phone_number = user.phone_number
+            const referrer_email = user.email
+
+            outcome({
+              referral_fingerprint,
+              driver_name,
+              driver_phone,
+              taxi_number,
+              user_referrer,
+              user_referrer_nature,
+              expiration_time,
+              is_referralExpired,
+              is_paid,
+              amount_paid,
+              amount_paid_percentage,
+              is_referral_rejected,
+              is_official_deleted_user_side,
+              date_referred,
+              referrer_name,
+              referrer_phone_number,
+              referrer_email
+            })
+
+          })
+          .catch((error) => {
+            logger.error(error.message)
+            resolve({success:false, error: error.message})
+          })
+        }
+      })
     })
 
-    const expired_referrals = referrals.filter((referral) => {
-      return referral.is_referralExpired === true
+    Promise.all(allReferrals)
+    .then((result) => {
+      const active_referrals = result.filter((referral) => {
+        return referral.is_referralExpired === false
+      })
+  
+      const expired_referrals = result.filter((referral) => {
+        return referral.is_referralExpired === true
+      })
+  
+      const rejected_referrals = result.filter((referral) => {
+        return referral.is_referral_rejected === true
+      })
+  
+      logger.info("==============  ACTIVE REFERRALS =================")
+      logger.info(active_referrals)
+      logger.info("===================================================")
+  
+      logger.info("==============  EXPIRED REFERRALS =================")
+      logger.info(expired_referrals)
+      logger.info("===================================================")
+  
+      logger.info("==============  REJECTED REFERRALS =================")
+      logger.info(rejected_referrals)
+      logger.info("===================================================")
+  
+  
+      resolve({
+        success: true,
+        data: {
+          active_referrals,
+          expired_referrals,
+          rejected_referrals
+        }
+        
+      })
+    })
+    .catch((error) => {
+      logger.error(error.message)
+      resolve({success: false, error: error.message})
     })
 
-    const rejected_referrals = referrals.filter((referral) => {
-      return referral.is_referral_rejected === true
-    })
-
-    logger.info("==============  ACTIVE REFERRALS =================")
-    logger.info(active_referrals)
-    logger.info("===================================================")
-
-    logger.info("==============  EXPIRED REFERRALS =================")
-    logger.info(expired_referrals)
-    logger.info("===================================================")
-
-    logger.info("==============  REJECTED REFERRALS =================")
-    logger.info(rejected_referrals)
-    logger.info("===================================================")
-
-
-    resolve({
-      success: true,
-      data: {
-        active_referrals,
-        expired_referrals,
-        rejected_referrals
-      }
-      
-    })
+    
   })
   .catch((error) => {
     logger.error(error.message)

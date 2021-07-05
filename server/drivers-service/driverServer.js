@@ -2433,14 +2433,21 @@ clientMongo.connect(function(err) {
     })
 
     /**
+     * ======================================================================
      *  * REFERRALS PROGRAM RELATED APIs
+     * ======================================================================
      */
     app.get("/referrals", (req, res) => {
 
         logger.info("GETTING REFFERALS API CALLED ")
 
         new Promise((res) => {
-            utils.getReferrals(collectionRefferalsInformationGlobal, res)
+            utils.getReferrals(
+                collectionRefferalsInformationGlobal,
+                collectionPassengers_profiles,
+                collectionDrivers_profiles,
+                 res
+            )
         })
         .then((referrals) => {
             if(!referrals.success){

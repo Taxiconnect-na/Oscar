@@ -7,6 +7,34 @@ import { VscTriangleDown } from "react-icons/vsc"
 
 const ActiveRow = (props) => {
   let [details, setDetails] = useState(false)
+
+  const PaymentHandler = () => {
+    fetch(`{ process.env.REACT_APP_DRIVER_SERVER }/update-referral-paid-status/{ props.data.referral_fingerprint}`)
+    .then((data) => data.json())
+    .then((response) => {
+      if(response.success) {
+        console.log("successful update @paymentHandler")
+      } else {
+        console.log("failure oto update @paymentHandler")
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+  }
+
+  const RejectionHandler = () => {
+    
+  }
+  const DeleteReferralUserSideHandler = () => {
+    
+  }
+  const DeleteReferral = () => {
+    
+  }
+  const registerReferredDriver = () => {
+
+  }
   return(
     <>
       <tr> 
@@ -30,10 +58,14 @@ const ActiveRow = (props) => {
           <tbody>
             <tr>
               <td>Name</td>
-              <td>value</td>
+              <td>{ props.data.referrer_name }</td>
               <td rowSpan={4}>
                 <div style={{}} className="active-referrals-action">
-                  <div><button className="btn btn-success btn-sm">{ props.data.is_paid? "Mark Unpaid": "Mark Paid"}</button></div>
+                  <div>
+                    <button className="btn btn-success btn-sm" onClick={() => PaymentHandler()}>
+                    { props.data.is_paid? "Mark Unpaid": "Mark Paid"}
+                    </button>
+                  </div>
                   <div><button className="btn btn-success btn-sm">{ props.data.is_referral_rejected? "Mark unrejected": "Mark rejected"}</button></div>
                   <div><button className="btn btn-warning btn-sm">{"Delete from user"}</button></div>
                   <div><button className="btn btn-warning btn-sm">{"Delete referral"}</button></div>
@@ -43,11 +75,11 @@ const ActiveRow = (props) => {
             </tr>
             <tr>
               <td>Phone number</td>
-              <td>value</td>
+              <td>{ props.data.referrer_phone_number}</td>
             </tr>
             <tr>
               <td>Email</td>
-              <td>value</td>
+              <td>{ props.data.referrer_email }</td>
             </tr>
             <tr>
               <td>Nature</td>
@@ -86,7 +118,7 @@ const ExpiredRow = (props) => {
           <tbody>
             <tr>
               <td>Name</td>
-              <td>value</td>
+              <td>{ props.data.referrer_name }</td>
               <td rowSpan={4}>
                 <div style={{}} className="active-referrals-action">
                   <div><button className="btn btn-success btn-sm">{ props.data.is_paid? "Mark Unpaid": "Mark Paid"}</button></div>
@@ -99,11 +131,11 @@ const ExpiredRow = (props) => {
             </tr>
             <tr>
               <td>Phone number</td>
-              <td>value</td>
+              <td>{ props.data.referrer_phone_number}</td>
             </tr>
             <tr>
               <td>Email</td>
-              <td>value</td>
+              <td>{ props.data.referrer_email }</td>
             </tr>
             <tr>
               <td>Nature</td>
@@ -141,7 +173,7 @@ const RejectedRow = (props) => {
           <tbody>
             <tr>
               <td>Name</td>
-              <td>value</td>
+              <td>{ props.data.referrer_name }</td>
               <td rowSpan={4}>
                 <div style={{}} className="active-referrals-action">
                   <div><button className="btn btn-success btn-sm">{ props.data.is_paid? "Mark Unpaid": "Mark Paid"}</button></div>
@@ -154,11 +186,11 @@ const RejectedRow = (props) => {
             </tr>
             <tr>
               <td>Phone number</td>
-              <td>value</td>
+              <td>{ props.data.referrer_phone_number}</td>
             </tr>
             <tr>
               <td>Email</td>
-              <td>value</td>
+              <td>{ props.data.referrer_email }</td>
             </tr>
             <tr>
               <td>Nature</td>
@@ -207,7 +239,7 @@ export default function Referrals() {
       console.log(error)
       setLoadReferralsFailure(load_referrals_failure)
     })
-  }, [])
+  }, [active_referrals, expired_referrals, rejected_referrals])
 
   // Data per row for active referrals
   const no_data_style = {
