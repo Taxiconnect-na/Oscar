@@ -7,34 +7,326 @@ import { VscTriangleDown } from "react-icons/vsc"
 
 const ActiveRow = (props) => {
   let [details, setDetails] = useState(false)
+  let [loading, setLoading] = useState(false)
+  let [success, setSuccess] = useState(false)
+  let [failure, setFailure] = useState(false)
 
+  let [hidePayment, setHidePayment] = useState(true)
+  let [hidePaymentButton, setHidePaymentButton] = useState(false)
+  let [hidePaymentAsk, setHidePaymentAsk] = useState(false)
+
+  let [hideRejection, setHideRejection] = useState(false)
+  let [hideRejectionButton, setHideRejectionButton] = useState(false)
+  let [hideRejectionAsk, setHideRejectionAsk] = useState(true)
+
+  let [hideDeletionUserSide, setHideDeletionUserSide] = useState(false)
+  let [hideDeleteUserSideButton, setHideDeleteUserSideButton] = useState(true)
+  let [hideDeleteUserSideAsk, setHideDeleteUserSideAsk] = useState(false)
+
+  let [hideDeletionReferral, setHideDeletionReferral] = useState(false)
+  let [hideDeleteReferralButton, setHideDeleteReferralButton] = useState(true)
+  let [hideDeleteReferralAsk, setHideDeleteReferralAsk] = useState(false)
+
+  let [hideRegistration, setHideRegistration] = useState(false)
+  
+  
+  
+  // PAYMENT HANDLING
   const PaymentHandler = () => {
-    fetch(`{ process.env.REACT_APP_DRIVER_SERVER }/update-referral-paid-status/{ props.data.referral_fingerprint}`)
+    setLoading(true)
+
+    setHidePayment(true)
+    setHideRejection(false)
+    setHideDeletionUserSide(false)
+    setHideDeletionReferral(false)
+    setHideRegistration(false)
+    setHidePaymentAsk(false)
+
+    alert("updating payment status...")
+    fetch(`${ process.env.REACT_APP_DRIVER_SERVER }/update-referral-paid-status/${ props.data.referral_fingerprint}`)
     .then((data) => data.json())
     .then((response) => {
+      console.log(response)
       if(response.success) {
+        setLoading(false)
+        setSuccess(true)
+        setFailure(false)
+        alert("Successfully updated payment status")
         console.log("successful update @paymentHandler")
       } else {
-        console.log("failure oto update @paymentHandler")
+        setLoading(false)
+        setSuccess(false)
+        setFailure(true)
+        alert("failed to update the payment status")
+        console.log("failed to update @paymentHandler")
       }
     })
     .catch((error) => {
+      setLoading(false)
+      setSuccess(false)
+      setFailure(true)
+      alert("failed to update payment the status")
       console.log(error)
     })
   }
+  const showPaymentOption = () => {
+    setHidePayment(false)
+    setHideRejection(true)
+    setHideDeletionUserSide(true)
+    setHideDeletionReferral(true)
+    setHideRegistration(true)
+    setHidePaymentAsk(true)
+  }
+  const showAllActionsPayment = () => {
+    setHidePayment(true)
+    setHideRejection(false)
+    setHideDeletionUserSide(false)
+    setHideDeletionReferral(false)
+    setHideRegistration(false)
+    setHidePaymentAsk(false)
+  }
 
+  // REJECTION HANDLING
   const RejectionHandler = () => {
+
+    setHidePayment(true)
+
+    setHideRejection(false)
+    setHideDeletionUserSide(false)
+    setHideDeletionReferral(false)
+    setHideRegistration(false)
+    setHidePaymentAsk(false)
+
+    setHideRejectionAsk(true)
+    setHideRejectionButton(false)
+
+    alert("updating rejection status...")
+    fetch(`${ process.env.REACT_APP_DRIVER_SERVER }/update-referral-rejection-status/${ props.data.referral_fingerprint}`)
+    .then((data) => data.json())
+    .then((response) => {
+      console.log(response)
+      if(response.success) {
+       
+        alert("Successfully updated rejection status")
+        console.log("successful update @rejectionHandler")
+      } else {
+      
+        alert("failed to update the rejection status")
+        console.log("failed to update @rejectionHandler")
+      }
+    })
+    .catch((error) => {
+     
+      alert("failed to update the rejection status.")
+      console.log(error)
+    })
+  }
+  const showRejectionOption = () => {
+    setHidePayment(true)
+
+    setHideRejection(true)
+    setHideRejectionAsk(false)
+    setHideRejectionButton(false)
+
+    setHideDeletionUserSide(true)
+    setHideDeletionReferral(true)
+    setHideRegistration(true)
+    setHidePaymentAsk(true)
+    
     
   }
+  const showAllActionsRejection = () => {
+    setHidePayment(true)
+
+    setHideRejection(false)
+    setHideDeletionUserSide(false)
+    setHideDeletionReferral(false)
+    setHideRegistration(false)
+    setHidePaymentAsk(false)
+
+    setHideRejectionAsk(true)
+    setHideRejectionButton(false)
+  }
+
+  // DELETION HANDLING FROM RIDER SIDE
   const DeleteReferralUserSideHandler = () => {
-    
+
+    setHidePayment(true)
+    setHideRejection(false)
+
+    setHideDeletionUserSide(false)
+    setHideDeleteUserSideButton(true)
+    setHideDeleteUserSideAsk(false)
+
+    setHideDeletionReferral(false)
+    setHideRegistration(false)
+    setHidePaymentAsk(false)
+
+    setHideRejectionAsk(true)
+    setHideRejectionButton(false)
+
+    alert("Deleting referral from rider side...")
+    fetch(`${ process.env.REACT_APP_DRIVER_SERVER }/mark-referral-deleted-user-side/${ props.data.referral_fingerprint}`)
+    .then((data) => data.json())
+    .then((response) => {
+      console.log(response)
+      if(response.success) {
+       
+        alert("Successfully Deleted referral from rider side")
+        console.log("successful update @DeleteReferralUserSideHandler")
+      } else {
+      
+        alert("failed to Delete referral from rider side")
+        console.log("failed to update @DeleteReferralUserSideHandler")
+      }
+    })
+    .catch((error) => {
+     
+      alert("failed to Delete referral from rider side")
+      console.log(error)
+    })
   }
+  const showDeleteUserSideOption = () => {
+    setHidePayment(true)
+
+    setHideDeletionUserSide(false)
+    setHideDeleteUserSideButton(false)
+    setHideDeleteUserSideAsk(true)
+
+    setHideRejection(true)
+    setHideDeletionReferral(true)
+    setHideRegistration(true)
+    setHidePaymentAsk(true)
+  }
+  const showAllActionsDeleteUserSide = () => {
+    setHidePayment(true)
+    setHideRejection(false)
+
+    setHideDeletionUserSide(false)
+    setHideDeleteUserSideButton(true)
+    setHideDeleteUserSideAsk(false)
+
+    setHideDeletionReferral(false)
+    setHideRegistration(false)
+    setHidePaymentAsk(false)
+
+    setHideRejectionAsk(true)
+    setHideRejectionButton(false)
+  }
+
   const DeleteReferral = () => {
-    
+    setHidePayment(true)
+    setHideRejection(false)
+
+    setHideDeletionReferral(false)
+    setHideDeleteReferralButton(true)
+    setHideDeleteReferralAsk(false)
+
+    setHideDeletionUserSide(false)
+    setHideRegistration(false)
+    setHidePaymentAsk(false)
+
+    setHideRejectionAsk(true)
+    setHideRejectionButton(false)
+
+    alert("Deleting referral ..")
+    fetch(`${ process.env.REACT_APP_DRIVER_SERVER }/delete-referral/${ props.data.referral_fingerprint}`)
+    .then((data) => data.json())
+    .then((response) => {
+      console.log(response)
+      if(response.success) {
+       
+        alert("Successfully Deleted referral ")
+        console.log("successful update @DeleteReferral")
+      } else {
+      
+        alert("failed to Delete referral ")
+        console.log("failed to update @DeleteReferral")
+      }
+    })
+    .catch((error) => {
+     
+      alert("failed to Delete referral ")
+      console.log(error)
+    })
+  }
+  const showDeleteReferralOption = () => {
+    setHidePayment(true)
+
+    setHideDeletionReferral(false)
+    setHideDeleteReferralButton(false)
+    setHideDeleteReferralAsk(true)
+
+    setHideRejection(true)
+    setHideDeletionUserSide(true)
+    setHideRegistration(true)
+    setHidePaymentAsk(true)
+  }
+  const showAllActionsDeleteReferral = () => {
+    setHidePayment(true)
+    setHideRejection(false)
+
+    setHideDeletionReferral(false)
+    setHideDeleteReferralButton(true)
+    setHideDeleteReferralAsk(false)
+
+    setHideDeletionUserSide(false)
+    setHideRegistration(false)
+    setHidePaymentAsk(false)
+
+    setHideRejectionAsk(true)
+    setHideRejectionButton(false)
   }
   const registerReferredDriver = () => {
-
+    window.location = `/driver-registration?referral_fingerprint=${props.data.referral_fingerprint}`
   }
+  //Payment
+  const hidePaymentButtonStyle = {
+    display: hidePayment? "none":""
+  }
+  const PaymentHideStyle = {
+    display: hidePaymentButton? "none":""
+  }
+  const hidePaymentAskStyle = {
+    display: hidePaymentAsk? "none":""
+  }
+  //Rejection
+  const rejectedHideStyle = {
+    display: hideRejectionButton? "none":""
+  }
+  const hideRejectionButtonStyle = {
+    display: hideRejectionAsk? "none": ""
+  }
+  const hideRejectionAskStyle = {
+    display: hideRejection? "none":""
+  }
+  //Delete user side
+  const deleteUserSideStyle = {
+    display: hideDeletionUserSide? "none":""
+  }
+  const hideDeleteUserSideAskStyle = {
+    display: hideDeleteUserSideAsk? "none":""
+  }
+  const hideDeleteUserSideButtonStyle = {
+    display: hideDeleteUserSideButton? "none":""
+  }
+  
+  //Delete referral completely
+  const deleteReferralStyle = {
+    display: hideDeletionReferral? "none":""
+  }
+  const hideDeleteReferralAskStyle = {
+    display: hideDeleteReferralAsk? "none":""
+  }
+  const hideDeleteReferralButtonStyle = {
+    display: hideDeleteReferralButton? "none":""
+  }
+
+  const registerDriverStyle = {
+    display: hideRegistration? "none":""
+  }
+  
+  
   return(
     <>
       <tr> 
@@ -60,16 +352,84 @@ const ActiveRow = (props) => {
               <td>Name</td>
               <td>{ props.data.referrer_name }</td>
               <td rowSpan={4}>
-                <div style={{}} className="active-referrals-action">
+                <div style={PaymentHideStyle} className="active-referrals-action">
                   <div>
-                    <button className="btn btn-success btn-sm" onClick={() => PaymentHandler()}>
+                    <button className="btn btn-success btn-sm" onClick={() => showPaymentOption()} style={hidePaymentAskStyle}>
                     { props.data.is_paid? "Mark Unpaid": "Mark Paid"}
                     </button>
+
+                    <div style={hidePaymentButtonStyle} >
+                      <h5> Would you like to update the payment status ?</h5>
+                      
+                        <button className="btn btn-success btn-sm" onClick={() => PaymentHandler()} style={{ margin: "5%"}}>
+                          YES
+                        </button>
+                        <button className="btn btn-info btn-sm" onClick={() => showAllActionsPayment()} style={{ margin: "5%"}}>
+                          NO
+                        </button>
+                      
+                    </div>
                   </div>
-                  <div><button className="btn btn-success btn-sm">{ props.data.is_referral_rejected? "Mark unrejected": "Mark rejected"}</button></div>
-                  <div><button className="btn btn-warning btn-sm">{"Delete from user"}</button></div>
-                  <div><button className="btn btn-warning btn-sm">{"Delete referral"}</button></div>
-                  <div><button className="btn btn-info btn-sm">{"Register referred driver"}</button></div>
+
+                  <div style={rejectedHideStyle}>
+                    <button className="btn btn-success btn-sm" onClick={() => showRejectionOption()} style={hideRejectionAskStyle}>
+                      { props.data.is_referral_rejected? "Mark unrejected": "Mark rejected"}
+                    </button>
+
+                    <div style={hideRejectionButtonStyle} >
+                      <h5> Would you like to update the rejection status ?</h5>
+                      
+                        <button className="btn btn-success btn-sm" onClick={() => RejectionHandler()} style={{ margin: "5%"}}>
+                          YES
+                        </button>
+                        <button className="btn btn-info btn-sm" onClick={() => showAllActionsRejection()} style={{ margin: "5%"}}>
+                          NO
+                        </button>
+                      
+                    </div>
+                  </div>
+                  
+                  <div style={deleteUserSideStyle}>
+                    <button className="btn btn-warning btn-sm" onClick={() => showDeleteUserSideOption()} style={hideDeleteUserSideAskStyle}>
+                      {"Delete from rider"}
+                    </button>
+
+                    <div style={hideDeleteUserSideButtonStyle} >
+                      <h5> Would you like to delete referral from rider side ?</h5>
+                      
+                        <button className="btn btn-success btn-sm" onClick={() => DeleteReferral()} style={{ margin: "5%"}}>
+                          YES
+                        </button>
+                        <button className="btn btn-info btn-sm" onClick={() => showAllActionsDeleteUserSide()} style={{ margin: "5%"}}>
+                          NO
+                        </button>
+                      
+                    </div>
+                  </div>
+
+                  <div style={deleteReferralStyle}>
+                    <button className="btn btn-warning btn-sm" onClick={() => showDeleteReferralOption()} style={hideDeleteReferralAskStyle}>
+                      {"Delete referral"}
+                    </button>
+
+                    <div style={hideDeleteReferralButtonStyle} >
+                      <h5> Would you like to completely delete the referral ?</h5>
+                      
+                        <button className="btn btn-success btn-sm" onClick={() => DeleteReferral()} style={{ margin: "5%"}}>
+                          YES
+                        </button>
+                        <button className="btn btn-info btn-sm" onClick={() => showAllActionsDeleteReferral()} style={{ margin: "5%"}}>
+                          NO
+                        </button>
+                      
+                    </div>
+                  </div> 
+
+                  <div style={registerDriverStyle} >
+                    <button className="btn btn-info btn-sm" onClick={() => registerReferredDriver() }>
+                      {"Register referred driver"}
+                    </button>
+                  </div>
                 </div>
               </td>
             </tr>
