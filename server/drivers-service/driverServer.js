@@ -1890,6 +1890,7 @@ clientMongo.connect(function(err) {
                     },
                     push_notification_token: null
                 },
+                referral_fingerprint: req.body.referral_fingerprint? req.body.referral_fingerprint: null
 
 
             }

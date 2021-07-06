@@ -278,7 +278,7 @@ const ActiveRow = (props) => {
     setHideRejectionButton(false)
   }
   const registerReferredDriver = () => {
-    window.location = `/driver-registration?referral_fingerprint=${props.data.referral_fingerprint}`
+    window.location = `/driver-registration-from-referral?referral_fingerprint=${props.data.referral_fingerprint}`
   }
   //Payment
   const hidePaymentButtonStyle = {
@@ -481,11 +481,14 @@ const ExpiredRow = (props) => {
               <td>{ props.data.referrer_name }</td>
               <td rowSpan={4}>
                 <div style={{}} className="active-referrals-action">
+                  <h5> No action available</h5>
+                  {/*
                   <div><button className="btn btn-success btn-sm">{ props.data.is_paid? "Mark Unpaid": "Mark Paid"}</button></div>
                   <div><button className="btn btn-success btn-sm">{ props.data.is_referral_rejected? "Mark unrejected": "Mark rejected"}</button></div>
                   <div><button className="btn btn-warning btn-sm">{"Delete from user"}</button></div>
                   <div><button className="btn btn-warning btn-sm">{"Delete referral"}</button></div>
                   <div><button className="btn btn-info btn-sm">{"Register referred driver"}</button></div>
+                */}
                 </div>
               </td>
             </tr>
@@ -536,11 +539,14 @@ const RejectedRow = (props) => {
               <td>{ props.data.referrer_name }</td>
               <td rowSpan={4}>
                 <div style={{}} className="active-referrals-action">
+                <h5> No action available</h5>
+                  {/*
                   <div><button className="btn btn-success btn-sm">{ props.data.is_paid? "Mark Unpaid": "Mark Paid"}</button></div>
                   <div><button className="btn btn-success btn-sm">{ props.data.is_referral_rejected? "Mark unrejected": "Mark rejected"}</button></div>
                   <div><button className="btn btn-warning btn-sm">{"Delete from user"}</button></div>
                   <div><button className="btn btn-warning btn-sm">{"Delete referral"}</button></div>
                   <div><button className="btn btn-info btn-sm">{"Register referred driver"}</button></div>
+                */}
                 </div>
               </td>
             </tr>

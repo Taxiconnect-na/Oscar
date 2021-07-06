@@ -35,6 +35,7 @@ import DriverDataUpdate from './components/driverRegistration/driverDataUpdate'
 import DriverCommission from './components/driverCommission/driverCommission'
 import DriverCommissionInsert from './components/driverCommission/driverCommissionInsert'
 import Referrals from "./components/referrals/Referrals"
+import DriverRegistrationReferred from "./components/driverRegistration/driverRegistrationReferred"
 
 
 
@@ -331,6 +332,7 @@ function App() {
 
                 {/*<Route path="/" exact component={RideOverview} />*/}
                 <Route path="/driver-registration"  component={DriverRegistration} />
+                <Route path="/driver-registration-from-referral" component={DriverRegistrationReferred} />
                 <Route path= "/trip-overview/rides" component={RideOverview} />
                 <Route path ="/trip-overview/deliveries" component={DeliveryOverview} />
                 <Route path="/drivers" component={DriverList} />
