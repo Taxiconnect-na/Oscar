@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Link } from 'react-router-dom'  // Keep Router
 import 'react-pro-sidebar/dist/css/styles.css';
 import './sidebar.scss'
 import logotaxiconnect from '../../logotaxiconnect.png'
-import { FaChartBar, FaThList, FaRegRegistered, FaCarSide } from 'react-icons/fa'
+import { FaChartBar, FaThList, FaRegRegistered, FaCarSide, FaRegHandPointRight } from 'react-icons/fa'
 import { MdBusiness } from 'react-icons/md'
 import { BsFillTrashFill } from "react-icons/bs"
 import React, { useState } from 'react'
@@ -45,7 +45,8 @@ function Sidebar() {
                     <MenuItem><Link to="/passengers"><FaThList style={iconStyle} />Users </Link></MenuItem>
                     <MenuItem><Link to="/driver-payment"><MdBusiness style={iconStyle} />Make payment </Link></MenuItem>
                     <MenuItem><Link to="/visualize"><AiFillSignal style={iconStyle} />Visualize </Link></MenuItem>
-    <MenuItem><Link to="/driver-commission"><GiTakeMyMoney style={iconStyle} />Commissions</Link></MenuItem>
+                    <MenuItem><Link to="/driver-commission"><GiTakeMyMoney style={iconStyle} />Commissions</Link></MenuItem>
+                    <MenuItem><Link to="/referrals"><FaRegHandPointRight style={iconStyle}/>Referrals</Link></MenuItem>
                 </Menu>
             </ProSidebar>;
         </div>
