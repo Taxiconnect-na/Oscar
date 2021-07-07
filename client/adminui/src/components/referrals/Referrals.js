@@ -583,7 +583,7 @@ export default function Referrals() {
   let [details, setDetails] = useState(false)
 
   useState(() => {
-    fetch("http://localhost:10020/referrals")
+    fetch(`${ process.env.REACT_APP_DRIVER_SERVER }/referrals`)
     .then((data) => data.json() )
     .then((referrals) => {
       console.log(referrals)
