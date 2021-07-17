@@ -4,7 +4,7 @@ import "./Referrals.css"
 import { MdExpandMore } from "react-icons/md"
 import { VscTriangleDown } from "react-icons/vsc"
 
-
+//Active referrals
 const ActiveRow = (props) => {
   let [details, setDetails] = useState(false)
   let [loading, setLoading] = useState(false)
