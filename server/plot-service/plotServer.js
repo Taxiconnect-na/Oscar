@@ -13,14 +13,18 @@ const express = require("express")
 const app = express()
 const helmet = require("helmet")
 const cors = require("cors")
+
+const fs = require("fs")
+const certFile = fs.readFileSync("./rds-combined-ca-bundle.pem");
+
 const MongoClient = require("mongodb").MongoClient
 
 const redis = require("redis")
 
-const client = null /*redis.createClient({  //!development
+const client = /*null*/ redis.createClient({  //!development
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT
-  }) */
+  }) 
   
 
 var RedisClustr = require("redis-clustr");
@@ -41,7 +45,7 @@ var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
 
 //! Error handling redis Error 
 redisCluster.on('error', function (er) {
-console.trace("Main view server connection to redis failed ")
+console.trace("Plot server connection to redis failed ")
 console.error(er.stack) 
 })
   
@@ -68,10 +72,11 @@ app.use(cors())
 app.use(helmet())
 
 const PORT = process.env.PLOT_ROOT
+/*
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
     useNewUrlParser: true
-});
+}); */
 
 // For testing purpose:
 app.get("/ready", (req, res) => {
@@ -135,6 +140,7 @@ function getDayName(number) {
 
 
 function GeneralPlottingData(collectionRidesDeliveryData, collectionRidesDeliveryDataCancelled ,filteringQuery, fire ) {
+    console.log("General plotting data function running")
 
     redisCluster.get("general-plotting-data", (err, reply) => {
 
@@ -1078,7 +1084,19 @@ function MonthlyDataCountPaymentMethod(dataToGroup, filteringYear, resolve) {
 
 
 
-clientMongo.connect(function(err) {
+MongoClient.connect(
+    process.env.URL_MONGODB,
+    /production/i.test(process.env.EVIRONMENT)
+      ? {
+          tlsCAFile: certFile, //The DocDB cert
+          useUnifiedTopology: true,
+          useNewUrlParser: true,
+        }
+      : {
+          useUnifiedTopology: true,
+          useNewUrlParser: true,
+        },
+  function (err, clientMongo) {
     if (err) {
         console.log(`Error occured: ${err}`)
     } else {
@@ -1350,10 +1368,17 @@ clientMongo.connect(function(err) {
                 })
             //})
         })
+    
 
     }
     
 })
+
+app.get("/plot-sever-test", (req, res) => {
+
+    res.status(200).json({ success: true, message: "plot server up and running!"})
+})
+
 
 server.listen(PORT, () => {
     console.log(`Plot server up and running @ port ${PORT}`)

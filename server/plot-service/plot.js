@@ -1,7 +1,7 @@
 // Mongodb Connection 
 const MongoClient = require("mongodb").MongoClient
-const uri = "mongodb://localhost:27017"
-//const uri = "mongodb+srv://taxiconnect-test-mongo-user:epzcVtEZ39ZvawlM@cluster0.cumod.mongodb.net/test?authSource=admin&replicaSet=atlas-13sofg-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true"
+//const uri = "mongodb://localhost:27017"
+const uri = "mongodb://root:%40odricjunmongoepzcVtEZ39ZvawlM251997%21@52.52.97.221:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&ssl=false"
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
   });
@@ -576,7 +576,7 @@ clientMongo.connect(function() {
             console.log(result.length)
             console.log("========================================") 
             
-            getRidesMonthDetailedData(result, "2021", "3")
+            getRidesMonthDetailedData(result, "2021", "7")
             .then((data) => {
                 console.log(data)
             })

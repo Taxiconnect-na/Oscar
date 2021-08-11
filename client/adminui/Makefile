@@ -1,2 +1,2 @@
 build:
-	docker build -t admin-app:1.0 .
+	docker build -t administration-pp:1.0 .

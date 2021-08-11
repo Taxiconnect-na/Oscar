@@ -8,6 +8,9 @@ const app = express()
 // Import my modules
 const utils = require("./utils")
 
+const fs = require("fs")
+const certFile = fs.readFileSync("./rds-combined-ca-bundle.pem");
+
 const http = require("http")
 const server = http.createServer(app)
 /*const https = require("https")
@@ -32,7 +35,7 @@ const logger = winston.createLogger({
  */
 
 
-
+const axios = require("axios")
 const helmet = require("helmet")
 const cors = require("cors")
 const MongoClient = require("mongodb").MongoClient
@@ -49,10 +52,11 @@ app.use(express.json({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPR
 app.use(express.urlencoded({extended: true, limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS}))
 PORT = process.env.DRIVER_ROOT
 
+/*
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
     useNewUrlParser: true
-});
+});*/
 
 const redis = require("redis")
 const client = null /*redis.createClient({
@@ -1522,8 +1526,20 @@ function getCancelledRidesDriverEvent(
 
 
 
-clientMongo.connect(function(err) {
-    //if (err) throw err
+MongoClient.connect(
+    process.env.URL_MONGODB,
+    /production/i.test(process.env.EVIRONMENT)
+        ? {
+            tlsCAFile: certFile, //The DocDB cert
+            useUnifiedTopology: true,
+            useNewUrlParser: true,
+        }
+        : {
+            useUnifiedTopology: true,
+            useNewUrlParser: true,
+        },
+    function (err, clientMongo) {
+    if (err) {console.log(err)}
     console.log("Successful connection to Database")
 
     const dbMongo = clientMongo.db(dbName)
@@ -1679,6 +1695,12 @@ clientMongo.connect(function(err) {
                 .catch((error) => {
                     console.log(error)
                 })
+            })
+            .then((res) => {
+                // Do nothing
+            })
+            .catch((error) => {
+                logger.warn(" Failed to update DriverCash @http:172.31.16.195:9696/getDrivers_walletInfosDeep?user_fingerprint=")
             })
 
             res.status(201).send({ success: `Payment inserted of ${req.body.amount}`})

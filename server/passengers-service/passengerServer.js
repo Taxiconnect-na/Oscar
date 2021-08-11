@@ -15,6 +15,10 @@ const MongoClient = require("mongodb").MongoClient
 const redis = require("redis")
 
 const client = null 
+
+const fs = require("fs")
+const certFile = fs.readFileSync("./rds-combined-ca-bundle.pem");
+
 /*const client = redis.createClient({
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT
@@ -65,10 +69,12 @@ app.use(cors())
 app.use(helmet())
 
 const PORT = process.env.PASSENGER_ROOT
+
+/*
 const clientMongo = new MongoClient(uri, {
     useUnifiedTopology: true,
     useNewUrlParser: true
-  });
+  }); */
 
 // For testing purpose:
 app.get("/", (req, res) => {
@@ -1202,7 +1208,19 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
 
 
 
-clientMongo.connect(function(err) {
+MongoClient.connect(
+  process.env.URL_MONGODB,
+  /production/i.test(process.env.EVIRONMENT)
+    ? {
+        tlsCAFile: certFile, //The DocDB cert
+        useUnifiedTopology: true,
+        useNewUrlParser: true,
+      }
+    : {
+        useUnifiedTopology: true,
+        useNewUrlParser: true,
+      },
+function (err, clientMongo) {
     if (err) {
         console.log(`Error occured: ${err}`)
     } else {

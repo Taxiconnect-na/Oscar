@@ -75,7 +75,7 @@ module.exports = {
           NODE_ENV: "production",
         },
       },
-      /*
+      
       {
         name: "visualizer-service",
         script: "./server/plot-service/plotServer.js",
@@ -89,8 +89,8 @@ module.exports = {
         },
         /*env_production: {
           NODE_ENV: "production",
-        },
-      }*/
+        }, */
+      }
 
     ],
   };

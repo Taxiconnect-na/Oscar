@@ -2,9 +2,11 @@ require('newrelic');
 console.log = function () {};
 const path = require('path')
 // For self contained app
-//require("dotenv").config({ path: path.resolve(__dirname, './.env')});
-// For overall server
-require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
+require("dotenv").config({ path: path.resolve(__dirname, './.env')});
+//For overall server
+//require("dotenv").config({ path: path.resolve(__dirname, '../.env')});
+const fs = require("fs")
+const certFile = fs.readFileSync("./rds-combined-ca-bundle.pem");
 
 const express = require("express");
 const app = express();
@@ -69,10 +71,10 @@ app.use(express.urlencoded({extended: true, limit: process.env.MAX_DATA_BANDWIDT
 const PORT = process.env.STATS_ROOT;
 const uri = process.env.DB_URI;
 const dbName = process.env.DB_NAME;
-const clientMongo = new MongoClient(uri, {
+/*const clientMongo = new MongoClient(uri, {
   useUnifiedTopology: true,
   useNewUrlParser: true
-});
+});*/
 
 Date.prototype.addHours = function(h) {
   this.setTime(this.getTime() + (h*60*60*1000));
@@ -2366,8 +2368,19 @@ function todayRideDeliveryInProgress(collectionRidesDeliveryData, resolve) {
 }
 
 // All APIs : 
-
-clientMongo.connect(function (err) {
+MongoClient.connect(
+  process.env.URL_MONGODB,
+  /production/i.test(process.env.EVIRONMENT)
+    ? {
+        tlsCAFile: certFile, //The DocDB cert
+        useUnifiedTopology: true,
+        useNewUrlParser: true,
+      }
+    : {
+        useUnifiedTopology: true,
+        useNewUrlParser: true,
+      },
+function (err, clientMongo) {
   if (err) throw err;
   console.log("Connected to MongoDB")
 
@@ -2669,7 +2682,9 @@ clientMongo.connect(function (err) {
 
 
 
-
+app.get("/main-view-server-test", (req, res) => {
+  res.status(200).json({success: true, message: "main view server up and running!"})
+})
 
 
 
