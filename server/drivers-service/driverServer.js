@@ -2585,6 +2585,9 @@ MongoClient.connect(
 
 })
 
+app.get("/test", (req, res) => {
+    res.status(200).json({hasSucceeded: true, message: " Driver server up and running"})
+})
 
 
 server.listen(PORT, () => {

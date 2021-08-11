@@ -1300,6 +1300,11 @@ function (err, clientMongo) {
     
 })
 
+
+app.get("/test", (req, res) => {
+  res.status(200).json({hasSucceeded: true, message: " Passenger server up and running"})
+})
+
 server.listen(PORT, () => {
     console.log(`Passenger server up and running @ port ${PORT}`)
 })
