@@ -1,5 +1,5 @@
 require('newrelic');
-console.log = function () {};
+//console.log = function () {};
 const path = require('path')
 // For self contained app
 require("dotenv").config({ path: path.resolve(__dirname, './.env')});
@@ -2367,24 +2367,20 @@ function todayRideDeliveryInProgress(collectionRidesDeliveryData, resolve) {
   })
 }
 
+console.log(process.env.EVIRONMENT);
 // All APIs : 
 MongoClient.connect(
-  uri,
-  /production/i.test(process.env.EVIRONMENT)
-    ? {
-        tlsCAFile: certFile, //The DocDB cert
-        useUnifiedTopology: true,
-        useNewUrlParser: true,
-      }
-    : {
-        useUnifiedTopology: true,
-        useNewUrlParser: true,
-      },
+  "mongodb://root:odricjunmongoepzcVtEZ39ZvawlM251997@taxiconnect.cluster-cpbspzhidysi.us-east-1.docdb.amazonaws.com:27017/?ssl=true&ssl_ca_certs=rds-combined-ca-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false",
+  {
+    tlsCAFile: certFile, //The DocDB cert
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+  },
 function (err, clientMongo) {
-  if (err) throw err;
+  if (err) {console.log(err)};
   console.log("Connected to MongoDB")
 
-  const dbMongo = clientMongo.db(dbName);
+  const dbMongo = clientMongo.db("Taxiconnect");
   const collectionPassengers_profiles = dbMongo.collection(
     "passengers_profiles"
   );

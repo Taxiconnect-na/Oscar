@@ -1527,17 +1527,12 @@ function getCancelledRidesDriverEvent(
 
 
 MongoClient.connect(
-    uri,
-    /production/i.test(process.env.EVIRONMENT)
-        ? {
-            tlsCAFile: certFile, //The DocDB cert
-            useUnifiedTopology: true,
-            useNewUrlParser: true,
-        }
-        : {
-            useUnifiedTopology: true,
-            useNewUrlParser: true,
-        },
+    "mongodb://root:odricjunmongoepzcVtEZ39ZvawlM251997@taxiconnect.cluster-cpbspzhidysi.us-east-1.docdb.amazonaws.com:27017/?ssl=true&ssl_ca_certs=rds-combined-ca-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred&retryWrites=false",
+  {
+    tlsCAFile: certFile, //The DocDB cert
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+  },
     function (err, clientMongo) {
     if (err) {console.log(err)}
     console.log("Successful connection to Database")
