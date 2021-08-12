@@ -1209,7 +1209,7 @@ function getCancelledDeliveries(collectionCancelledRides, collectionPassengers, 
 
 
 MongoClient.connect(
-  process.env.URL_MONGODB,
+  uri,
   /production/i.test(process.env.EVIRONMENT)
     ? {
         tlsCAFile: certFile, //The DocDB cert

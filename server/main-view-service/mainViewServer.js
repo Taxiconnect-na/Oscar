@@ -2369,7 +2369,7 @@ function todayRideDeliveryInProgress(collectionRidesDeliveryData, resolve) {
 
 // All APIs : 
 MongoClient.connect(
-  process.env.URL_MONGODB,
+  uri,
   /production/i.test(process.env.EVIRONMENT)
     ? {
         tlsCAFile: certFile, //The DocDB cert
@@ -2682,8 +2682,8 @@ function (err, clientMongo) {
 
 
 
-app.get("/main-view-server-test", (req, res) => {
-  res.status(200).json({success: true, message: "main view server up and running!"})
+app.get("/test", (req, res) => {
+  res.status(200).json({hasSucceeded: true, message: "main view server up and running!"})
 })
 
 

@@ -78,10 +78,6 @@ const clientMongo = new MongoClient(uri, {
     useNewUrlParser: true
 }); */
 
-// For testing purpose:
-app.get("/ready", (req, res) => {
-    res.send({ message: "All is good at Ploting server", ready: true})
-})
 
 
 Array.prototype.groupBy = function(field){
@@ -1374,9 +1370,9 @@ MongoClient.connect(
     
 })
 
-app.get("/plot-sever-test", (req, res) => {
+app.get("/test", (req, res) => {
 
-    res.status(200).json({ success: true, message: "plot server up and running!"})
+    res.status(200).json({ hasSucceeded: true, message: "plot server up and running!"})
 })
 
 
