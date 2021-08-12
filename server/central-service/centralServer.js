@@ -38,7 +38,8 @@ const bodyParser = require('body-parser');
 const io = socketIo(server, { cors: {
     //origin: "https://taxiconnectnanetwork.com",
     //! New AWS server:
-    origin: "http://13.56.37.251", 
+    //origin: "http://13.56.37.251",
+    origin: "http://54.88.251.169" ,
     //origin: "http://localhost",
     //origin: "http://192.168.8.151",
     //origin: "https://taxiconnectna.com",
