@@ -3,18 +3,8 @@ import { BrowserRouter as Router, Link } from "react-router-dom"; // Keep Router
 import "react-pro-sidebar/dist/css/styles.css";
 import "./sidebar.scss";
 import logotaxiconnect from "../../logo_white.png";
-import {
-  FaChartBar,
-  FaThList,
-  FaRegRegistered,
-  FaCarSide,
-  FaRegHandPointRight,
-} from "react-icons/fa";
-import { MdBusiness } from "react-icons/md";
-import { BsFillTrashFill } from "react-icons/bs";
 import React, { useState } from "react";
-import { AiFillAppstore, AiFillSignal } from "react-icons/ai";
-import { GiTakeMyMoney } from "react-icons/gi";
+import { AiFillAppstore, AiFillSignal, AiFillInfoCircle } from "react-icons/ai";
 import {
   ImUserPlus,
   ImMap,
@@ -140,6 +130,14 @@ function Sidebar() {
           <Link className="menuText" to="/referrals">
             <ImShare2 style={iconStyle} />
             <span className="menuText">Referrals</span>
+          </Link>
+        </MenuItem>
+        <MenuItem className="menuTextVersionNo">
+          <Link>
+            <AiFillInfoCircle style={iconStyle} />
+            <span className="menuTextVersionNo">
+              {String(process.env.REACT_APP_ENVIRONMENT)}
+            </span>
           </Link>
         </MenuItem>
       </Menu>

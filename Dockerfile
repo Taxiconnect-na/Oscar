@@ -1,17 +1,32 @@
 FROM node:latest
 
-WORKDIR /app
-COPY . .
+ADD . /app/
+WORKDIR /app/server
+RUN rm .env
+#Production
+# RUN mv .env_live .env
+#Development
+RUN mv .env_dev .env
+
+#Change .env for the apps
+WORKDIR /app/client/Internal-Dashboards
+#Production
+# RUN mv .env_live .env
+#Development
+RUN mv .env_dev .env
+
+
+WORKDIR /app/
+#Download the certificate for DocumentDb Connection!
+RUN wget https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem
+RUN chmod 400 rds-combined-ca-bundle.pem
 
 RUN npm install yarn -g --force
 RUN yarn global add pm2
 RUN yarn global add pm2-logrotate
 RUN pm2 set pm2-logrotate:max_size 50Mb
-RUN cd ./server/drivers-service && yarn install
-RUN cd ./server/main-view-service && yarn install
-RUN cd ./server/passengers-service && yarn install
-RUN cd ./client/adminui && yarn install
-RUN cd ./client/partnerui && yarn install
+RUN yarn install
+RUN cd ./client/Internal-Dashboards && yarn install
 
 EXPOSE 10014
 EXPOSE 10011
