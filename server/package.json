@@ -1,0 +1,8 @@
+{
+  "name": "Oscar",
+  "version": "2",
+  "description": "Admininstation dashboards",
+  "main": "index.js",
+  "author": "Dominique Kanyik",
+  "license": "MIT"
+}
