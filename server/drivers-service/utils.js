@@ -22,8 +22,8 @@ function updateEntry(collection, query, newValues, resolve) {
   collection
     .updateOne(query, { $set: newValues })
     .then((result) => {
-      logger.info(result.result);
-      if (result.result.nModified != 0) {
+      logger.error(result);
+      if (result.matchedCount != 0) {
         logger.info(" ONE DOCUMENT UPDATED");
         resolve({ success: "one document updated" });
       } else {

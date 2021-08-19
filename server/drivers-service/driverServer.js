@@ -76,8 +76,6 @@ const s3 = new AWS.S3({
  * * Hard coded keys
  */
 //! Criver Buckets to be changed (dev/production)B
-//const BUCKET_NAME_DRIVER = "drivers-central-beta-aws"  //For development
-const BUCKET_NAME_DRIVER = "drivers-central-aws"; //For production
 const s3 = new AWS.S3({
   accessKeyId: "AKIAXVMLF7SBTB2WU72Z",
   secretAccessKey: "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",
@@ -852,8 +850,7 @@ function uploadFile(
   logger.info("UPLOADING FILE TO AWS S3 BUCKET");
   // Setting up S3 upload parameters
   const params = {
-    Bucket: `${BUCKET_NAME_DRIVER}/${subdir}`,
-    //Key: `${ driverFingerPrint }-${ paperCategory}` + "."+ fileObject.name.split('.') [fileObject.name.split('.').length - 1], // File name to be "saved as" @s3 bucket
+    Bucket: `${process.env.BUCKET_NAME_DRIVER}/${subdir}`,
     Key: `${driverFingerPrint}-${paperCategory}` + fileName,
     Body: fileObject, // File data of the file object (actual object)
   };

@@ -1066,6 +1066,10 @@ io.on("connection", (socket) => {
  * *=============================================
  */
 
+app.get("/", (req, res) => {
+  res.send("Central server running");
+});
+
 // *Updates basic information about the driver, excluding files
 app.post("/update-driver-info", async (req, res) => {
   //document to be updated

@@ -836,10 +836,6 @@ export default function DriverDataUpdate({ location }) {
 
   return (
     <div className="template">
-      <div className="sidebar">
-        <Sidebar />
-      </div>
-
       <div className="main-content">
         <div id="profile-driver">
           <h2 style={{ display: "grid", placeItems: "center", padding: "2%" }}>
