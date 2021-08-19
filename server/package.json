@@ -6,7 +6,6 @@
   "author": "Dominique Kanyik",
   "license": "MIT",
   "dependencies": {
-    "appmetrics-dash": "^5.3.0",
     "aws-sdk": "^2.971.0",
     "axios": "^0.21.1",
     "cors": "^2.8.5",
