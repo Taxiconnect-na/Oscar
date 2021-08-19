@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /home/ubuntu/Internal-administration-dashboard/
+    destination: /home/ubuntu/Oscar/
 file_exists_behavior: OVERWRITE
 hooks:
   ApplicationStop:
