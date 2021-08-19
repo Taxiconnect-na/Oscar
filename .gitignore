@@ -1,4 +1,7 @@
 */node_modules/*
+**/node_modules
+node_modules
+node_modules/**
 server/central-service/node_modules
 server/drivers-service/node_modules
 server/main-view-service/node_modules

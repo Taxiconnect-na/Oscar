@@ -45,19 +45,16 @@ module.exports = {
       },
     },
 
-    // {
-    //   name: "Main UI Dashboard",
-    //   script: "cd ./client/adminui && npm -- start",
-    //   autorestart: true,
-    //   watch: true,
-    //   max_memory_restart: "1G",
-    //   env: {
-    //     NODE_ENV: "development",
-    //   },
-    //   env_production: {
-    //     NODE_ENV: "production",
-    //   },
-    // },
+    {
+      name: "Main UI Dashboard",
+      script: "cd ./client/Internal-Dashboards && yarn install && yarn start",
+      autorestart: true,
+      watch: true,
+      max_memory_restart: "1G",
+      env: {
+        NODE_ENV: "production",
+      },
+    },
 
     {
       name: "Graphs service",
