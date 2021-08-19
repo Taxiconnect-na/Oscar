@@ -104,9 +104,6 @@ export default function DriverCommission() {
   return (
     <div>
       <div className="template">
-        <div className="sidebar">
-          <Sidebar />
-        </div>
         <div className="main-content">
           <h1 style={{ display: "grid", placeItems: "center", margin: "2%" }}>
             {" "}

@@ -70,9 +70,6 @@ export default function CancelledDeliveries() {
 
   return (
     <div className="template">
-      <div className="sidebar">
-        <Sidebar />
-      </div>
       <div className="main-content">
         <h1 style={style.header}> CANCELLED DELIVERIES </h1>
 

@@ -18,39 +18,41 @@
     "left-column right-column";
     gap: 10px;
 } */
+.main-content {
+  overflow: auto;
+}
 #top {
-    width: 100%;
-    text-align: center;
-    color: cornsilk;
-    padding: 12px;
+  width: 100%;
+  text-align: center;
+  color: cornsilk;
+  padding: 12px;
 }
 #title {
-    width: 100%;
-    text-align: center;
-    color: cornsilk;
+  width: 100%;
+  text-align: center;
+  color: cornsilk;
 }
 .content-overview {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
-.content-overview  div {
-    background-color: rgba(177, 167, 167, 0.527);
-    text-align: center;
-    border-radius: 4px;
-    width: 40%;
-    align-content: center;
-    margin: 20px;
+.content-overview div {
+  background-color: rgba(177, 167, 167, 0.527);
+  text-align: center;
+  border-radius: 4px;
+  width: 40%;
+  align-content: center;
+  margin: 20px;
 }
 
 h5 {
-    font-style: italic;
-
+  font-style: italic;
 }
 
 table {
-    table-layout: fixed;
-    width: 100%;
-    font-size: 13px;
+  table-layout: fixed;
+  width: 100%;
+  font-size: 13px;
 }

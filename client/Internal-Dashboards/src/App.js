@@ -1,43 +1,41 @@
-import React, { useState } from 'react'
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom"
+import React, { useState } from "react";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 //Import components
-import Sidebar from "./components/sidebar/sidebar"
-import Overview from "./components/overview/overview"
-import DriverRegistration from "./components/driverRegistration/driverRegistration"
-import RideOverview from "./components/rideOverview/rideOverview"
-import DeliveryOverview from "./components/deliveryOverview/deliveryOverview"
-import DriverList from "./components/driversList/driverList"
-import PassengerList from "./components/passengersList/passengerList"
-import CashPaymentDriver from './components/cashPaymentDriver/cashPaymentDriver'
-import socket from "./components/socket"
-import Loader from "./components/Loader/Loader"
-import ErrorPage from "./components/errorPage/ErrorPage"
-import SuccessPage from "./components/successPage/SuccessPage"
-import CancelledRides from "./components/cancelledRides/CancelledRides"
-import CancelledRidesDrivers from "./components/cancelledRides/CancelledRidesDrivers"
-import Graph from "./components/Graphs/Graph"
-import RideCounts from "./components/visualize/RideCounts"
-import DataVisualizerRoutesList from "./components/DataVisualizerRoutesList/DataVisualizerRoutesList"
+import Sidebar from "./components/sidebar/sidebar";
+import Overview from "./components/overview/overview";
+import DriverRegistration from "./components/driverRegistration/driverRegistration";
+import RideOverview from "./components/rideOverview/rideOverview";
+import DeliveryOverview from "./components/deliveryOverview/deliveryOverview";
+import DriverList from "./components/driversList/driverList";
+import PassengerList from "./components/passengersList/passengerList";
+import CashPaymentDriver from "./components/cashPaymentDriver/cashPaymentDriver";
+import socket from "./components/socket";
+import Loader from "./components/Loader/Loader";
+import ErrorPage from "./components/errorPage/ErrorPage";
+import SuccessPage from "./components/successPage/SuccessPage";
+import CancelledRides from "./components/cancelledRides/CancelledRides";
+import CancelledRidesDrivers from "./components/cancelledRides/CancelledRidesDrivers";
+import Graph from "./components/Graphs/Graph";
+import RideCounts from "./components/visualize/RideCounts";
+import DataVisualizerRoutesList from "./components/DataVisualizerRoutesList/DataVisualizerRoutesList";
 //import LoginButton from "./components/LoginButton"
 //import LogoutButton from "./components/LogoutButton"
 //import Profile from "./components/Profile"
-import "./App.css"
-import logotaxiconnect from "./logotaxiconnect.png"
-import { VscLoading } from "react-icons/vsc"
-import CancelledDeliveries from './components/cancelledRides/CancelledDeliveries'
-import GrossSales from './components/visualize/GrossSales'
-import Revenues from './components/visualize/Revenues'
-import ConnectTypes from './components/visualize/ConnectTypes'
-import PaymentMethods from './components/visualize/PaymentMethods'
-import MonthlyDataDetailed from './components/visualize/MonthlyDataDetailed'
-import DriverDataUpdate from './components/driverRegistration/driverDataUpdate'
-import DriverCommission from './components/driverCommission/driverCommission'
-import DriverCommissionInsert from './components/driverCommission/driverCommissionInsert'
-import Referrals from "./components/referrals/Referrals"
-import DriverRegistrationReferred from "./components/driverRegistration/driverRegistrationReferred"
-
-
+import "./App.css";
+import logotaxiconnect from "./logotaxiconnect.png";
+import { VscLoading } from "react-icons/vsc";
+import CancelledDeliveries from "./components/cancelledRides/CancelledDeliveries";
+import GrossSales from "./components/visualize/GrossSales";
+import Revenues from "./components/visualize/Revenues";
+import ConnectTypes from "./components/visualize/ConnectTypes";
+import PaymentMethods from "./components/visualize/PaymentMethods";
+import MonthlyDataDetailed from "./components/visualize/MonthlyDataDetailed";
+import DriverDataUpdate from "./components/driverRegistration/driverDataUpdate";
+import DriverCommission from "./components/driverCommission/driverCommission";
+import DriverCommissionInsert from "./components/driverCommission/driverCommissionInsert";
+import Referrals from "./components/referrals/Referrals";
+import DriverRegistrationReferred from "./components/driverRegistration/driverRegistrationReferred";
 
 function useLocalStorage(key, initialValue) {
   // State to store our value
@@ -76,41 +74,36 @@ function useLocalStorage(key, initialValue) {
 }
 /**
  * @function App : Main function
- * @returns: All routes 
+ * @returns: All routes
  */
 
 function App() {
-
-   //Initialize state variables
-   let [name, setName] = useState(null)
-   let [email, setEmail] = useState(null)
-   let [password, setPassword] = useState(null)
+  //Initialize state variables
+  let [name, setName] = useState(null);
+  let [email, setEmail] = useState(null);
+  let [password, setPassword] = useState(null);
   //! Authentication variable
-   // Use LocalStorage to preserve authentication state
+  // Use LocalStorage to preserve authentication state
   /*let [authenticated, setAuthentication] = useLocalStorage(
     "authenticated",
     false
   )*/
-  let [authenticated, setAuthentication] = useState(true)
-
-
-
+  let [authenticated, setAuthentication] = useState(true);
 
   // Loading state variable
-  let [loading, setLoading] = useState(false)
+  let [loading, setLoading] = useState(false);
 
   const [details, setDetails] = useLocalStorage("details", {
     name: "",
     email: "",
     password: "",
-  })
-  const [error, setError] = useState("")
-
+  });
+  const [error, setError] = useState("");
 
   const submitHandler = (e) => {
     e.preventDefault();
     // Set loading variable true
-    setLoading(true)
+    setLoading(true);
     //Authenticate user:
     socket.emit("authenticate-internal-admin", {
       name: details.name,
@@ -126,12 +119,11 @@ function App() {
         setEmail(details.email);
         setPassword(details.password);
         // Set loading variable true
-        setLoading(false)
-
+        setLoading(false);
       } else {
         setError("No match found");
         // Set loading variable true
-        setLoading(false)
+        setLoading(false);
       }
     });
   };
@@ -140,14 +132,13 @@ function App() {
     setAuthentication(false);
     setError("");
     setDetails({ name: "", email: "", password: "" });
-
   };
 
   // styles:
   const form_style = {
     width: "50%",
     margin: "auto",
-    padding: "3%"
+    padding: "3%",
   };
   const topTextStyle = {
     fontFamily: "UberMoveTextMedium",
@@ -165,9 +156,8 @@ function App() {
     paddingBottom: 10,
   };
 
-
   // ---------------------------------------------------
-  
+
   /*if (isLoading) return <div style={loadingStyle}> Authenticating...</div>
 
   // If not authenticated, return the login page/button
@@ -202,31 +192,38 @@ function App() {
   // Returned content:
   if (!authenticated) {
     // render the loader if waiting for authentication response
-    if(loading) {
-
-      return(
-
+    if (loading) {
+      return (
         <div className="uploading">
-                    
-        <VscLoading style={{width: 120, height: 120, marginTop:"5%", backgroundColor:"#16a0db"}} className="rotate"/>
-        <img src={logotaxiconnect} alt="Loading..." style={{ width: "15%"}} />
-        
+          <VscLoading
+            style={{
+              width: 120,
+              height: 120,
+              marginTop: "5%",
+              backgroundColor: "#16a0db",
+            }}
+            className="rotate"
+          />
+          <img
+            src={logotaxiconnect}
+            alt="Loading..."
+            style={{ width: "15%" }}
+          />
         </div>
-      )
+      );
     }
 
     return (
-      <div style={{ width: "100%"}}>
+      <div style={{ width: "100%" }}>
         <div className="my-form">
           <form onSubmit={submitHandler} style={form_style}>
             <div className="form-inner">
-             
               <h2
                 style={{
                   marginLeft: "19%",
                   fontFamily: "MoveMedium",
                   marginBottom: "10%",
-                  paddingBottom: "3%"
+                  paddingBottom: "3%",
                 }}
               >
                 TaxiConnect Administration
@@ -316,65 +313,106 @@ function App() {
   } else if (authenticated) {
     return (
       <>
-        <div >
-          
-          <div>
-            <div style= {{float:"none", height:"1%", marginTop: "2px",backgroundColor: "#03162e"}}>
-              <button className="btn btn-primary btn-sm" type="submit" onClick={Logout} style={{ fontFamily: "MoveMedium", fontSize: 15, height:"29px" }}>
-                        Logout
-              </button>
+        <div>
+          <div className="mainParentNode">
+            <div className="sidebar">
+              <Sidebar />
+              <div
+                style={{
+                  float: "none",
+                  height: "1%",
+                  marginTop: "2px",
+                  backgroundColor: "#03162e",
+                }}
+              >
+                <button
+                  className="btn btn-primary btn-sm"
+                  type="submit"
+                  onClick={Logout}
+                  style={{
+                    fontFamily: "MoveMedium",
+                    fontSize: 15,
+                    height: "29px",
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
             </div>
-
-            <Router>
+            <div className="globalDisplayContent">
               <Switch>
-
                 <Route path="/" exact component={Overview} />
 
                 {/*<Route path="/" exact component={RideOverview} />*/}
-                <Route path="/driver-registration"  component={DriverRegistration} />
-                <Route path="/driver-registration-from-referral" component={DriverRegistrationReferred} />
-                <Route path= "/trip-overview/rides" component={RideOverview} />
-                <Route path ="/trip-overview/deliveries" component={DeliveryOverview} />
+                <Route
+                  path="/driver-registration"
+                  component={DriverRegistration}
+                />
+                <Route
+                  path="/driver-registration-from-referral"
+                  component={DriverRegistrationReferred}
+                />
+                <Route path="/trip-overview/rides" component={RideOverview} />
+                <Route
+                  path="/trip-overview/deliveries"
+                  component={DeliveryOverview}
+                />
                 <Route path="/drivers" component={DriverList} />
-                <Route path="/cancelled-rides-ByPassengers" component={CancelledRides} />
-                <Route path="/cancelled-rides-ByDrivers" component={CancelledRidesDrivers} />
-                <Route path="/cancelled-deliveries" component={CancelledDeliveries} />
+                <Route
+                  path="/cancelled-rides-ByPassengers"
+                  component={CancelledRides}
+                />
+                <Route
+                  path="/cancelled-rides-ByDrivers"
+                  component={CancelledRidesDrivers}
+                />
+                <Route
+                  path="/cancelled-deliveries"
+                  component={CancelledDeliveries}
+                />
                 <Route path="/drivers-update" component={DriverDataUpdate} />
 
-                <Route path="/passengers" component={PassengerList} /> 
+                <Route path="/passengers" component={PassengerList} />
 
-                 
                 <Route path="/driver-payment" component={CashPaymentDriver} />
                 <Route path="/loadertest" component={Loader} />
                 <Route path="/action/success" component={SuccessPage} />
                 <Route path="/action/error" component={ErrorPage} />
-                
+
                 <Route path="/graph" component={Graph} />
 
                 <Route path="/visualize" component={DataVisualizerRoutesList} />
-                <Route path="/visualize-ride-counts" component ={RideCounts} />
-                <Route path="/visualize-gross-sales" component ={GrossSales} />
-                <Route path="/visualize-revenues" component ={Revenues} />
-                <Route path="/visualize-connect-types" component ={ConnectTypes} />
-                <Route path="/visualize-payment-methods" component ={PaymentMethods} />
-                <Route path="/monthly-data-detailed" component={MonthlyDataDetailed} />
-                 
-                
+                <Route path="/visualize-ride-counts" component={RideCounts} />
+                <Route path="/visualize-gross-sales" component={GrossSales} />
+                <Route path="/visualize-revenues" component={Revenues} />
+                <Route
+                  path="/visualize-connect-types"
+                  component={ConnectTypes}
+                />
+                <Route
+                  path="/visualize-payment-methods"
+                  component={PaymentMethods}
+                />
+                <Route
+                  path="/monthly-data-detailed"
+                  component={MonthlyDataDetailed}
+                />
+
                 <Route path="/driver-commission" component={DriverCommission} />
-                <Route path="/driver-commission-payment" component={DriverCommissionInsert} /> 
+                <Route
+                  path="/driver-commission-payment"
+                  component={DriverCommissionInsert}
+                />
 
                 {/* REFERRALS PATH  */}
                 <Route path="/referrals" component={Referrals} />
-                
               </Switch>
-            </Router>
+            </div>
           </div>
         </div>
-        
-    </>
-    )
+      </>
+    );
   }
 }
 
 export default App;
-

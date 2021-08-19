@@ -241,9 +241,6 @@ const DriverRegistration = () => {
   return (
     <div>
       <div className="wrapper">
-        <div className="left-column">
-          <Sidebar />
-        </div>
         <div className="right-column">
           <Fragment>
             <h1

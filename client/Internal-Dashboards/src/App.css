@@ -1,26 +1,72 @@
-.main-content {
-    height: 100%;
-    width: 100%;
+@font-face {
+  font-family: "MoveBold";
+  src: local("MoveBold"), url(./fonts/MoveBold.otf);
+}
+@font-face {
+  font-family: "MoveMedium";
+  src: local("MoveMedium"), url(./fonts/MoveMedium.otf);
+}
+@font-face {
+  font-family: "MoveRegular";
+  src: local("MoveRegular"), url(./fonts/MoveRegular.ttf);
+}
+@font-face {
+  font-family: "MoveLight";
+  src: local("MoveLight"), url(./fonts/MoveLight.ttf);
+}
+@font-face {
+  font-family: "MoveTextBold";
+  src: local("MoveTextBold"), url(./fonts/UberMoveTextBold.otf);
+}
+@font-face {
+  font-family: "MoveTextMedium";
+  src: local("UberMoveTextMedium"), url(./fonts/UberMoveTextMedium.otf);
+}
+@font-face {
+  font-family: "MoveTextRegular";
+  src: local("UberMoveTextRegular"), url(./fonts/UberMoveTextRegular.otf);
+}
+@font-face {
+  font-family: "MoveTextLight";
+  src: local("UberMoveTextLight"), url(./fonts/UberMoveTextLight.otf);
 }
 
+.main-content {
+  height: 100%;
+  width: 100%;
+  font-family: "MoveTextRegular", sans-serif;
+}
 
 .template {
-    display: grid;
-    grid-template-columns: 15% 1fr;
-    grid-template-rows: 1fr;
-    grid-template-areas: 
-    "sidebar main-content main-content ";
+  display: inline;
+  flex-direction: row;
+  font-family: "MoveTextRegular", sans-serif;
+}
+
+.globalDisplayContent {
+  display: inline;
+  width: 100%;
+  font-family: "MoveTextRegular", sans-serif;
+  /* background-color: brown; */
+}
+
+.mainParentNode {
+  display: flex;
+  flex-direction: row;
+  font-family: "MoveTextRegular", sans-serif;
+  height: 100vh;
+  /* overflow: hidden; */
 }
 
 .rotate {
-    animation: rotation 1.3s infinite linear;
-  }
-  
+  animation: rotation 1.3s infinite linear;
+}
+
 @keyframes rotation {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(359deg);
-    }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
 }

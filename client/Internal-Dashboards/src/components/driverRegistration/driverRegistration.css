@@ -1,74 +1,75 @@
 .literal-info {
-    grid-area: literal-info;
-    padding: 3px;
+  grid-area: literal-info;
+  padding: 3px;
 }
 .files-info-bank {
-    grid-area: files-info-bank;
-    padding: 3px;
+  grid-area: files-info-bank;
+  padding: 3px;
 }
 .submit-registration {
-    grid-area: submit-registration;
-    margin-bottom: 20px;
-    margin-left: 300px;
-    margin-right: 300px;
+  grid-area: submit-registration;
+  margin-bottom: 20px;
+  margin-left: 300px;
+  margin-right: 300px;
 }
 .car-data {
-    grid-area: car-data;
-    margin-top: 10px;
-    width: auto;
-    margin: auto;
+  grid-area: car-data;
+  margin-top: 10px;
+  width: auto;
+  margin: auto;
+}
+
+.right-column {
 }
 
 #wrapper {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto;
-    grid-template-areas: 
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto;
+  grid-template-areas:
     "literal-info files-info-bank "
     "car-data car-data"
     "submit-registration submit-registration";
-    gap: 40px;
+  gap: 40px;
 }
 
 .my-input-field {
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    border-width: thin;
-    font-size: larger;
-    margin-bottom: 2%;
-
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-width: thin;
+  font-size: larger;
+  margin-bottom: 2%;
 }
 
-input[type=text]:focus {
-    border-width: thin;
-    background-color: rgb(122, 134, 148);
-    border-style: hidden;
+input[type="text"]:focus {
+  border-width: thin;
+  background-color: rgb(122, 134, 148);
+  border-style: hidden;
 }
-
 
 img {
-    width: 410px;
-    height: 290px;
-    border-radius: 25%;
+  width: 410px;
+  height: 290px;
+  border-radius: 25%;
 }
 
 .profile-info-driver {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-evenly;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
 }
 
 #profile-driver {
-    color: rgb(3, 2, 24);
-    font-weight: 700;
-    background-color: whitesmoke;
-    padding: 3%;
+  color: rgb(3, 2, 24);
+  font-weight: 700;
+  background-color: whitesmoke;
+  padding: 3%;
 }
 
 .uploading-info-anime {
-    font-size: small;
-    margin-left: 25%;
-    font-family: sans-serif;
+  font-size: small;
+  margin-left: 25%;
+  font-family: sans-serif;
 }

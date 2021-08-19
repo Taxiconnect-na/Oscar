@@ -72,13 +72,7 @@ function Overview() {
 
   return (
     <div className="template">
-      <div className="sidebar">
-        <Sidebar />
-      </div>
       <div style={{ backgroundColor: "#03162e" }} className="main-content">
-        {/*<div className="left-column">
-                <Sidebar />
-    </div> */}
         <div>
           <div id="top">
             <h1>SUMMARY</h1>

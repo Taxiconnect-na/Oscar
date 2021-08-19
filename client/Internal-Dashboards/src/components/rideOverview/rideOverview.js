@@ -727,12 +727,8 @@ function RideOverview() {
 
   return (
     <div className="template">
-      <div className="sidebar">
-        <Sidebar />
-      </div>
-
-      <div className="main-content">
-        <div className="ride-overview" style={{ backgroundColor: "#03162e" }}>
+      <div>
+        <div style={{ backgroundColor: "#03162e" }}>
           <h1 style={title_style}> RIDES OVERVIEW</h1>
           <hr
             style={{

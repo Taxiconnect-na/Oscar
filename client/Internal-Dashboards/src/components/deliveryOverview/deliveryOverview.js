@@ -414,11 +414,8 @@ function DeliveryOverview() {
 
   return (
     <div>
-      <div className="wrapper">
-        <div className="left-column">
-          <Sidebar />
-        </div>
-        <div className="right-column">
+      <div>
+        <div>
           <h1 style={title_style}> Deliveries Overview </h1>
           <div style={{ marginLeft: 200, padding: 10 }}>
             <button

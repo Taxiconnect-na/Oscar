@@ -56,10 +56,7 @@ export default function CashPaymentDriver() {
 
   return (
     <div>
-      <div className="wrapper">
-        <div className="left-column">
-          <Sidebar />
-        </div>
+      <div>
         <div className="right-column">
           <Fragment>
             <div className="right-column">

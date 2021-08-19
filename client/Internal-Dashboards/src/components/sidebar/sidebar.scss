@@ -1,16 +1,71 @@
-.sidebar {
-    height: 220vh;
-    display: block;
-    top: 0;
-    left: 0;
-    overflow-x: hidden;
-
+@font-face {
+  font-family: "MoveBold";
+  src: local("MoveBold"), url(../../fonts/MoveBold.otf);
 }
- 
-$sidebar-bg-color: linear-gradient(#213a57, #000000, #213a57 ) ;
-$submenu-bg-color: linear-gradient(#1b233a, #201e2e, #1b233a)  ;
-$sidebar-width: 130%;
-$sidebar-height: 100%;
-$sidebar-position: fixed;
+@font-face {
+  font-family: "MoveMedium";
+  src: local("MoveMedium"), url(../../fonts/MoveMedium.otf);
+}
+@font-face {
+  font-family: "MoveRegular";
+  src: local("MoveRegular"), url(../../fonts/MoveRegular.ttf);
+}
+@font-face {
+  font-family: "MoveLight";
+  src: local("MoveLight"), url(../../fonts/MoveLight.ttf);
+}
+@font-face {
+  font-family: "MoveTextBold";
+  src: local("MoveTextBold"), url(../../fonts/UberMoveTextBold.otf);
+}
+@font-face {
+  font-family: "MoveTextMedium";
+  src: local("UberMoveTextMedium"), url(../../fonts/UberMoveTextMedium.otf);
+}
+@font-face {
+  font-family: "MoveTextRegular";
+  src: local("UberMoveTextRegular"), url(../../fonts/UberMoveTextRegular.otf);
+}
+@font-face {
+  font-family: "MoveTextLight";
+  src: local("UberMoveTextLight"), url(../../fonts/UberMoveTextLight.otf);
+}
 
-@import '~react-pro-sidebar/dist/scss/styles.scss';
+.menuText {
+  font-family: "MoveTextMedium", sans-serif;
+  color: #fff;
+}
+
+.sidebar {
+  height: 100%;
+  display: inline-block;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  width: 25%;
+}
+
+.menuItemSideBar {
+  margin-bottom: 5%;
+}
+
+.logoContainer {
+  width: 80px;
+  height: 70px;
+  margin-left: 25px;
+  text-align: left;
+  margin-bottom: 15%;
+}
+
+.logoTrue {
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 0;
+}
+
+$sidebar-bg-color: #000;
+$sidebar-width: 100%;
+
+@import "~react-pro-sidebar/dist/scss/styles.scss";

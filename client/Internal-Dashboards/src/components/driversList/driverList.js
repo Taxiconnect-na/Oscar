@@ -107,9 +107,6 @@ function DriverList() {
   return (
     <div>
       <div className="template">
-        <div className="sidebar">
-          <Sidebar />
-        </div>
         <div className="main-content">
           <h1 style={title_style}>Registered drivers</h1>
           <hr></hr>

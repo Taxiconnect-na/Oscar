@@ -64,10 +64,6 @@ export default function Revenues() {
 
   return (
     <div className="template">
-      <div className="sidebar">
-        <Sidebar />
-      </div>
-
       <div className="main-content" id="ride-counts">
         <h1
           className="plot-main-title"

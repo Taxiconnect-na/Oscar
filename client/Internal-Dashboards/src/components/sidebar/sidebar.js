@@ -1,56 +1,150 @@
-import { ProSidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
-import { BrowserRouter as Router, Link } from 'react-router-dom'  // Keep Router though not used in code
-import 'react-pro-sidebar/dist/css/styles.css';
-import './sidebar.scss'
-import logotaxiconnect from '../../logotaxiconnect.png'
-import { FaChartBar, FaThList, FaRegRegistered, FaCarSide, FaRegHandPointRight } from 'react-icons/fa'
-import { MdBusiness } from 'react-icons/md'
-import { BsFillTrashFill } from "react-icons/bs"
-import React, { useState } from 'react'
-import { AiFillSignal } from "react-icons/ai"
-import { GiTakeMyMoney } from "react-icons/gi"
+import { ProSidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
+import { BrowserRouter as Router, Link } from "react-router-dom"; // Keep Router though not used in code
+import "react-pro-sidebar/dist/css/styles.css";
+import "./sidebar.scss";
+import logotaxiconnect from "../../logo_white.png";
+import {
+  FaChartBar,
+  FaThList,
+  FaRegRegistered,
+  FaCarSide,
+  FaRegHandPointRight,
+} from "react-icons/fa";
+import { MdBusiness } from "react-icons/md";
+import { BsFillTrashFill } from "react-icons/bs";
+import React, { useState } from "react";
+import { AiFillAppstore, AiFillSignal } from "react-icons/ai";
+import { GiTakeMyMoney } from "react-icons/gi";
+import {
+  ImUserPlus,
+  ImMap,
+  ImBlocked,
+  ImUserCheck,
+  ImUsers,
+  ImPower,
+  ImEarth,
+  ImPieChart,
+  ImShare2,
+} from "react-icons/im";
 
 function Sidebar() {
-    let [over, setOver] = useState(false)
-    const iconStyle = {
-         width: 35,
-         height: 20
-    }
+  let [over, setOver] = useState(false);
+  const iconStyle = {
+    width: 35,
+    height: 20,
+    position: "relative",
+    bottom: "2px",
+    color: "#fff",
+  };
 
-   
-    return(
-        <div className="sidebar">
-            <ProSidebar>
-                <Menu iconShape="square">
-                    <img src={logotaxiconnect} alt="TaxiConnect" style={{ height: 79, width: 140, marginLeft:30, marginBottom: 50}}/>
-                    <MenuItem><Link to="/"><FaChartBar style={iconStyle}/>Summary</Link></MenuItem> 
-                    <MenuItem><Link to="/driver-registration"><FaRegRegistered style={iconStyle} />Register Driver</Link></MenuItem>
-                    
-                    <SubMenu title="Trip Overview" style = {{marginLeft: 10}}>
-                    <FaCarSide style={iconStyle} />
-                        <SubMenu title="Windhoek" >
-                            <MenuItem><Link to="/trip-overview/rides">Rides</Link></MenuItem>
-                            <MenuItem><Link to="/trip-overview/deliveries">Deliveries</Link></MenuItem>
-                        </SubMenu>
-                        <SubMenu title="Swakopmund">
-                            <MenuItem>Not Available</MenuItem>
-                        </SubMenu>
-                    </SubMenu>
-                    <SubMenu title="Cancelled Trips" style = {{marginLeft: 10}}>
-                        <MenuItem><Link to="/cancelled-rides-ByPassengers">Rides(User)</Link></MenuItem>
-                        <MenuItem><Link to="/cancelled-rides-ByDrivers">Rides(Driver)</Link></MenuItem>
-                        <MenuItem><Link to="/cancelled-deliveries">Deliveries</Link></MenuItem>
-                    </SubMenu>
-                    <MenuItem><Link to="/drivers"><FaThList style={iconStyle} />Drivers</Link></MenuItem>
-                    <MenuItem><Link to="/passengers"><FaThList style={iconStyle} />Users </Link></MenuItem>
-                    <MenuItem><Link to="/driver-payment"><MdBusiness style={iconStyle} />Make payment </Link></MenuItem>
-                    <MenuItem><Link to="/visualize"><AiFillSignal style={iconStyle} />Visualize </Link></MenuItem>
-                    <MenuItem><Link to="/driver-commission"><GiTakeMyMoney style={iconStyle} />Commissions</Link></MenuItem>
-                    <MenuItem><Link to="/referrals"><FaRegHandPointRight style={iconStyle}/>Referrals</Link></MenuItem>
-                </Menu>
-            </ProSidebar>;
+  return (
+    <ProSidebar>
+      <Menu iconShape="square">
+        <div className="logoContainer">
+          <img src={logotaxiconnect} alt="TaxiConnect" className="logoTrue" />
         </div>
-    )
-} 
+        <MenuItem className="menuItemSideBar">
+          <Link to="/">
+            <AiFillAppstore style={iconStyle} />
+            <span className="menuText">Summary</span>
+          </Link>
+        </MenuItem>
+        <MenuItem className="menuItemSideBar">
+          <Link to="/driver-registration">
+            <ImUserPlus style={iconStyle} />
+            <span className="menuText">Register Driver</span>
+          </Link>
+        </MenuItem>
 
-export default Sidebar
+        <SubMenu
+          className="menuText menuItemSideBar"
+          title={
+            <>
+              <ImEarth style={iconStyle} />
+              Trip Overview
+            </>
+          }
+        >
+          <SubMenu title="Windhoek">
+            <MenuItem>
+              <Link to="/trip-overview/rides">
+                <span className="menuText">Rides</span>
+              </Link>
+            </MenuItem>
+            <MenuItem>
+              <Link to="/trip-overview/deliveries">
+                <span className="menuText">Deliveries</span>
+              </Link>
+            </MenuItem>
+          </SubMenu>
+          <SubMenu title="Swakopmund">
+            <MenuItem className="menuText">Not Available</MenuItem>
+          </SubMenu>
+        </SubMenu>
+        <SubMenu
+          className="menuText menuItemSideBar"
+          title={
+            <>
+              <ImBlocked style={iconStyle} />
+              Cancelled trips
+            </>
+          }
+        >
+          <MenuItem>
+            <Link to="/cancelled-rides-ByPassengers">
+              <span className="menuText">Riders</span>
+            </Link>
+          </MenuItem>
+          <MenuItem>
+            <Link to="/cancelled-rides-ByDrivers">
+              <span className="menuText">Drivers</span>
+            </Link>
+          </MenuItem>
+          <MenuItem>
+            <Link to="/cancelled-deliveries">
+              <span className="menuText">Deliveries</span>
+            </Link>
+          </MenuItem>
+        </SubMenu>
+        <MenuItem className="menuItemSideBar">
+          <Link to="/drivers">
+            <ImUserCheck style={iconStyle} />
+            <span className="menuText">Drivers</span>
+          </Link>
+        </MenuItem>
+        <MenuItem className="menuItemSideBar">
+          <Link className="menuText" to="/passengers">
+            <ImUsers style={iconStyle} />
+            <span className="menuText">Users </span>
+          </Link>
+        </MenuItem>
+        <MenuItem className="menuItemSideBar">
+          <Link className="menuText" to="/driver-payment">
+            <ImPower style={iconStyle} />
+            <span className="menuText">Make payment </span>
+          </Link>
+        </MenuItem>
+        <MenuItem className="menuItemSideBar">
+          <Link className="menuText" to="/visualize">
+            <AiFillSignal style={iconStyle} />
+            <span className="menuText">Visualize </span>
+          </Link>
+        </MenuItem>
+        <MenuItem className="menuItemSideBar">
+          <Link className="menuText" to="/driver-commission">
+            <ImPieChart style={iconStyle} />
+            <span className="menuText">Commissions</span>
+          </Link>
+        </MenuItem>
+        <MenuItem className="menuItemSideBar">
+          <Link className="menuText" to="/referrals">
+            <ImShare2 style={iconStyle} />
+            <span className="menuText">Referrals</span>
+          </Link>
+        </MenuItem>
+      </Menu>
+    </ProSidebar>
+  );
+}
+
+export default Sidebar;

@@ -25,12 +25,10 @@ export default function Visualize() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      ("counting @visualizations.... ");
       // Ride counts
       socket.on("get-rides-count-vis-feedback", (data) => {
         if (data !== undefined && data != null) {
           //Update cancelledRides
-          data;
           setSuccessfulRides(data);
         }
       });
@@ -40,7 +38,6 @@ export default function Visualize() {
       socket.on("get-rides-grossSales-vis-feedback", (data) => {
         if (data !== undefined && data != null) {
           //Update cancelledRides
-          data;
           setMonthlyGrossSales(data);
         }
       });
@@ -50,7 +47,6 @@ export default function Visualize() {
       socket.on("get-rides-revenues-vis-feedback", (data) => {
         if (data !== undefined && data != null) {
           //Update cancelledRides
-          data;
           setMonthlyRevenues(data);
         }
       });
@@ -60,7 +56,6 @@ export default function Visualize() {
       socket.on("get-monthly-connect-type-vis-feedback", (data) => {
         if (data !== undefined && data != null) {
           //Update cancelledRides
-          data;
           setMonthlyConnectType(data);
         }
       });
@@ -70,7 +65,6 @@ export default function Visualize() {
       socket.on("get-monthly-payment-method-count-vis-feedback", (data) => {
         if (data !== undefined && data != null) {
           //Update cancelledRides
-          data;
           setMonthlyPaymentMethod(data);
         }
       });
@@ -89,7 +83,6 @@ export default function Visualize() {
     socket.on("get-rides-count-vis-feedback", (data) => {
       if (data !== undefined && data != null) {
         //Update cancelledRides
-        data;
         setSuccessfulRides(data);
       }
     });
@@ -99,7 +92,6 @@ export default function Visualize() {
     socket.on("get-rides-grossSales-vis-feedback", (data) => {
       if (data !== undefined && data != null) {
         //Update cancelledRides
-        data;
         setMonthlyGrossSales(data);
       }
     });
@@ -109,7 +101,6 @@ export default function Visualize() {
     socket.on("get-rides-revenues-vis-feedback", (data) => {
       if (data !== undefined && data != null) {
         //Update cancelledRides
-        data;
         setMonthlyRevenues(data);
       }
     });
@@ -119,7 +110,6 @@ export default function Visualize() {
     socket.on("get-monthly-connect-type-vis-feedback", (data) => {
       if (data !== undefined && data != null) {
         //Update cancelledRides
-        data;
         setMonthlyConnectType(data);
       }
     });
@@ -129,7 +119,6 @@ export default function Visualize() {
     socket.on("get-monthly-payment-method-count-vis-feedback", (data) => {
       if (data !== undefined && data != null) {
         //Update cancelledRides
-        data;
         setMonthlyPaymentMethod(data);
       }
     });
@@ -144,10 +133,6 @@ export default function Visualize() {
 
   return (
     <div className="template">
-      <div className="sidebar">
-        <Sidebar />
-      </div>
-
       <div className="main-content">
         <h1 style={{ display: "grid", placeItems: "center", padding: "2%" }}>
           {" "}

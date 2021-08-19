@@ -69,10 +69,7 @@ export default function CancelledRides() {
   };
 
   return (
-    <div className="template">
-      <div className="sidebar">
-        <Sidebar />
-      </div>
+    <div>
       <div className="main-content">
         <h1 style={style.header}> CANCELLED RIDES BY PASSENGERS </h1>
 

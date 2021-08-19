@@ -83,11 +83,8 @@ function PassengerList() {
   //console.log(passengers)
   return (
     <div>
-      <div className="wrapper">
-        <div className="left-column">
-          <Sidebar />
-        </div>
-        <div className="right-column">
+      <div>
+        <div>
           <h2 style={title_style}>Registered Users</h2>
           <hr></hr>
           <div id="container-driver">

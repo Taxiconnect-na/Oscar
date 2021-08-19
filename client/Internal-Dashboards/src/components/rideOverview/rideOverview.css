@@ -1,60 +1,58 @@
 .ride-options {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    margin-left: 25%;
-    margin-right: 25%;
-    padding-top: 2%;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 25%;
+  margin-right: 25%;
+  padding-top: 2%;
 }
-
 
 table {
-    table-layout: fixed;
-    width: 100%;
-    font-size: 13px;
+  table-layout: fixed;
+  width: 100%;
+  font-size: 13px;
 }
 
-
 #iner-table {
-    width: 100%;
+  width: 100%;
 }
 
 #container {
-    display: flex;
-    flex-wrap: wrap;
-    width: 800px;
-    margin-left: 180px;
+  display: flex;
+  flex-wrap: wrap;
+  /* width: 800px; */
+  margin-left: 180px;
 }
 
 #container > div {
-    color: blue;
-    margin-top: 5px;
-    padding: 5px;
-    width: 250px;
-    font-size: 15px;
-    background-color: white;
+  color: blue;
+  margin-top: 5px;
+  padding: 5px;
+  width: 250px;
+  font-size: 15px;
+  background-color: white;
 }
 
 #container-low {
-    display: flex;
-    flex-wrap:nowrap;
-    width: 90%;
-    align-items: center;
-    margin: auto;
+  display: flex;
+  flex-wrap: nowrap;
+  width: 90%;
+  align-items: center;
+  margin: auto;
 }
 
 #container-low > div {
-    color: white;
-    margin-top: 5px;
-    padding: 5px;
-    width: 30%;
-    font-size: 15px;
-    background-color: rgb(12, 75, 15);
+  color: white;
+  margin-top: 5px;
+  padding: 5px;
+  width: 30%;
+  font-size: 15px;
+  background-color: rgb(12, 75, 15);
 }
 
-.action-buttons button{
-    display: inline-flex;
-    text-align: center;
+.action-buttons button {
+  display: inline-flex;
+  text-align: center;
 }
