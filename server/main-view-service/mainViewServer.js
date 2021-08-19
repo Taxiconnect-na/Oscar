@@ -4,6 +4,8 @@ require("dotenv").config({ path: __dirname + "/./../.env" });
 const fs = require("fs");
 const certFile = fs.readFileSync(String(process.env.CERT_FILE));
 
+const { logger } = require("../LogService");
+
 const express = require("express");
 const app = express();
 const helmet = require("helmet");
@@ -38,7 +40,7 @@ var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
 //! Error handling redis Error
 redisCluster.on("error", function (er) {
   console.trace("Main view server connection to redis failed ");
-  console.error(er.stack);
+  logger.error(er.stack);
 });
 
 const http = require("http");
@@ -102,15 +104,15 @@ function GetTotal(collectionName, query, resolve) {
         fare_array.push(Number(ride["fare"]));
       });
       total_fare = Sum(fare_array);
-      //console.log(`Total fare: ${total_fare}`)
+      //logger.info(`Total fare: ${total_fare}`)
       //total rides
       total_rides = result.length;
       totalObject = { total_fare, total_rides };
       resolve(totalObject);
-      //console.log(`total rides: ${total_rides}`)
+      //logger.info(`total rides: ${total_rides}`)
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
     });
 }
 
@@ -126,7 +128,7 @@ function GetDailyRegistered(collectionName, resolve) {
       totalRegisteredToday.totalRegisteredToday = result.length;
       resolve(totalRegisteredToday);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => logger.info(err));
 }
 
 function GetCashWalletCollection(collectionName, resolve) {
@@ -157,7 +159,7 @@ function GetCashWalletCollection(collectionName, resolve) {
 
       resolve(CashWalletObject);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => logger.info(err));
 }
 
 /**
@@ -180,8 +182,8 @@ function activelyGet_allThe_stats(
   redisCluster.get("statistics-cache", (err, reply) => {
     // Get Data from db and save it in cache if there's an error
     if (err) {
-      console.log("Error occured");
-      console.log(err);
+      logger.info("Error occured");
+      logger.info(err);
 
       let finalObject = new Object();
       new Promise((res) => {
@@ -192,14 +194,14 @@ function activelyGet_allThe_stats(
         );
       })
         .then((result) => {
-          //console.log(result);
+          //logger.info(result);
           new Promise((res) => {
             GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
           })
             .then((result2) => {
-              //console.log(result2);
+              //logger.info(result2);
               Fullcollect = { result, result2 };
-              console.log(`Final: ${Fullcollect}`);
+              logger.info(`Final: ${Fullcollect}`);
               //let finalObject = new Object()
 
               let startOfToday = new Date();
@@ -216,9 +218,9 @@ function activelyGet_allThe_stats(
                 );
               })
                 .then((result3) => {
-                  console.log(result3);
+                  logger.info(result3);
 
-                  console.log(finalObject);
+                  logger.info(finalObject);
                   new Promise((res) => {
                     GetTotal(
                       collectionRidesDeliveryDataCancelled,
@@ -232,7 +234,7 @@ function activelyGet_allThe_stats(
                     );
                   })
                     .then((result4) => {
-                      console.log(result4);
+                      logger.info(result4);
 
                       Promise.all([
                         new Promise((res) => {
@@ -275,7 +277,7 @@ function activelyGet_allThe_stats(
                           finalObject.totalWallet = dataCashWallet.totalWallet;
 
                           //Done
-                          console.log(finalObject);
+                          logger.info(finalObject);
 
                           //? Cache final object:
                           redisCluster.setex(
@@ -289,7 +291,7 @@ function activelyGet_allThe_stats(
                           resolve(finalObject);
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           //! Return an error response
                           resolve({
                             response: "error",
@@ -298,7 +300,7 @@ function activelyGet_allThe_stats(
                         });
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       //! Return an error response
                       resolve({
                         response: "error",
@@ -307,26 +309,26 @@ function activelyGet_allThe_stats(
                     });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   //! Return an error response
                   resolve({ response: "error", flag: "Invalid_params_maybe" });
                 });
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               //! Return an error response
               resolve({ response: "error", flag: "Invalid_params_maybe" });
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           //! Return an error response
           resolve({ response: "error", flag: "Invalid_params_maybe" });
         });
     } else if (reply) {
       // Resolve reply first and then update cache if result is not null
       if (reply !== null) {
-        //console.log("Statistics cache found: ", reply)
+        //logger.info("Statistics cache found: ", reply)
 
         resolve(JSON.parse(reply));
 
@@ -341,14 +343,14 @@ function activelyGet_allThe_stats(
             );
           })
             .then((result) => {
-              console.log(result);
+              logger.info(result);
               new Promise((res) => {
                 GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
               })
                 .then((result2) => {
-                  console.log(result2);
+                  logger.info(result2);
                   Fullcollect = { result, result2 };
-                  console.log(`Final: ${Fullcollect}`);
+                  logger.info(`Final: ${Fullcollect}`);
                   //let finalObject = new Object()
 
                   let startOfToday = new Date();
@@ -365,9 +367,9 @@ function activelyGet_allThe_stats(
                     );
                   })
                     .then((result3) => {
-                      console.log(result3);
+                      logger.info(result3);
 
-                      console.log(finalObject);
+                      logger.info(finalObject);
                       new Promise((res) => {
                         GetTotal(
                           collectionRidesDeliveryDataCancelled,
@@ -381,7 +383,7 @@ function activelyGet_allThe_stats(
                         );
                       })
                         .then((result4) => {
-                          console.log(result4);
+                          logger.info(result4);
 
                           Promise.all([
                             new Promise((res) => {
@@ -432,7 +434,7 @@ function activelyGet_allThe_stats(
                                 dataCashWallet.totalWallet;
 
                               //Done
-                              //console.log(finalObject);
+                              //logger.info(finalObject);
 
                               //? Cache final object:
                               redisCluster.setex(
@@ -445,7 +447,7 @@ function activelyGet_allThe_stats(
                               //! Do not resolve the main object with the successfull request
                             })
                             .catch((error) => {
-                              console.log(error);
+                              logger.info(error);
                               //! Return an error response
                               resolve({
                                 response: "error",
@@ -454,7 +456,7 @@ function activelyGet_allThe_stats(
                             });
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           //! Return an error response
                           resolve({
                             response: "error",
@@ -463,7 +465,7 @@ function activelyGet_allThe_stats(
                         });
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       //! Return an error response
                       resolve({
                         response: "error",
@@ -472,29 +474,29 @@ function activelyGet_allThe_stats(
                     });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   //! Return an error response
                   resolve({ response: "error", flag: "Invalid_params_maybe" });
                 });
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               //! Return an error response
               resolve({ response: "error", flag: "Invalid_params_maybe" });
             });
         })
           .then((result) => {
-            console.log("Stats cash updated");
+            logger.info("Stats cash updated");
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             resolve({
               response: "error",
               flag: "Failed to update cache @background",
             });
           });
       } else {
-        console.log("NO cash found, requesting from db...");
+        logger.info("NO cash found, requesting from db...");
 
         let finalObject = new Object();
         new Promise((res) => {
@@ -505,14 +507,14 @@ function activelyGet_allThe_stats(
           );
         })
           .then((result) => {
-            console.log(result);
+            logger.info(result);
             new Promise((res) => {
               GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
             })
               .then((result2) => {
-                //console.log(result2);
+                //logger.info(result2);
                 Fullcollect = { result, result2 };
-                //console.log(`Final: ${Fullcollect}`);
+                //logger.info(`Final: ${Fullcollect}`);
                 //let finalObject = new Object()
 
                 let startOfToday = new Date();
@@ -529,9 +531,9 @@ function activelyGet_allThe_stats(
                   );
                 })
                   .then((result3) => {
-                    //console.log(result3);
+                    //logger.info(result3);
 
-                    //console.log(finalObject);
+                    //logger.info(finalObject);
                     new Promise((res) => {
                       GetTotal(
                         collectionRidesDeliveryDataCancelled,
@@ -545,7 +547,7 @@ function activelyGet_allThe_stats(
                       );
                     })
                       .then((result4) => {
-                        //console.log(result4);
+                        //logger.info(result4);
 
                         Promise.all([
                           new Promise((res) => {
@@ -591,7 +593,7 @@ function activelyGet_allThe_stats(
                               dataCashWallet.totalWallet;
 
                             //Done
-                            //console.log(finalObject);
+                            //logger.info(finalObject);
 
                             //? Cache final object:
                             redisCluster.setex(
@@ -605,7 +607,7 @@ function activelyGet_allThe_stats(
                             resolve(finalObject);
                           })
                           .catch((error) => {
-                            console.log(error);
+                            logger.info(error);
                             //! Return an error response
                             resolve({
                               response: "error",
@@ -614,7 +616,7 @@ function activelyGet_allThe_stats(
                           });
                       })
                       .catch((error) => {
-                        console.log(error);
+                        logger.info(error);
                         //! Return an error response
                         resolve({
                           response: "error",
@@ -623,7 +625,7 @@ function activelyGet_allThe_stats(
                       });
                   })
                   .catch((error) => {
-                    console.log(error);
+                    logger.info(error);
                     //! Return an error response
                     resolve({
                       response: "error",
@@ -632,19 +634,19 @@ function activelyGet_allThe_stats(
                   });
               })
               .catch((error) => {
-                console.log(error);
+                logger.info(error);
                 //! Return an error response
                 resolve({ response: "error", flag: "Invalid_params_maybe" });
               });
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             //! Return an error response
             resolve({ response: "error", flag: "Invalid_params_maybe" });
           });
       }
     } else {
-      console.log("Error occured");
+      logger.info("Error occured");
 
       let finalObject = new Object();
       new Promise((res) => {
@@ -655,14 +657,14 @@ function activelyGet_allThe_stats(
         );
       })
         .then((result) => {
-          console.log(result);
+          logger.info(result);
           new Promise((res) => {
             GetTotal(collectionRidesDeliveryDataCancelled, {}, res);
           })
             .then((result2) => {
-              //console.log(result2);
+              //logger.info(result2);
               Fullcollect = { result, result2 };
-              console.log(`Final: ${Fullcollect}`);
+              logger.info(`Final: ${Fullcollect}`);
               //let finalObject = new Object()
 
               let startOfToday = new Date();
@@ -679,9 +681,9 @@ function activelyGet_allThe_stats(
                 );
               })
                 .then((result3) => {
-                  //console.log(result3);
+                  //logger.info(result3);
 
-                  console.log(finalObject);
+                  logger.info(finalObject);
                   new Promise((res) => {
                     GetTotal(
                       collectionRidesDeliveryDataCancelled,
@@ -695,7 +697,7 @@ function activelyGet_allThe_stats(
                     );
                   })
                     .then((result4) => {
-                      //console.log(result4);
+                      //logger.info(result4);
 
                       Promise.all([
                         new Promise((res) => {
@@ -738,7 +740,7 @@ function activelyGet_allThe_stats(
                           finalObject.totalWallet = dataCashWallet.totalWallet;
 
                           //Done
-                          console.log(finalObject);
+                          logger.info(finalObject);
 
                           //? Cache final object:
                           redisCluster.setex(
@@ -752,7 +754,7 @@ function activelyGet_allThe_stats(
                           resolve(finalObject);
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           //! Return an error response
                           resolve({
                             response: "error",
@@ -761,7 +763,7 @@ function activelyGet_allThe_stats(
                         });
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       //! Return an error response
                       resolve({
                         response: "error",
@@ -770,19 +772,19 @@ function activelyGet_allThe_stats(
                     });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   //! Return an error response
                   resolve({ response: "error", flag: "Invalid_params_maybe" });
                 });
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               //! Return an error response
               resolve({ response: "error", flag: "Invalid_params_maybe" });
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           //! Return an error response
           resolve({ response: "error", flag: "Invalid_params_maybe" });
         });
@@ -804,8 +806,8 @@ function getRideOverview(
 ) {
   // Attempt to get data from cache first, if fail, get from mongodb
   redisCluster.get("rideOverview-cache", (err, reply) => {
-    console.log("looking for data in redis...");
-    //console.log("Found ride cache: ", reply)
+    logger.info("looking for data in redis...");
+    //logger.info("Found ride cache: ", reply)
 
     if (err) {
       // Get directly from mongodb
@@ -816,7 +818,7 @@ function getRideOverview(
         .toArray()
         .then((result) => {
           // Initialize the list of all trips
-          //console.log(result)
+          //logger.info(result)
           let alltrips = result.map((trip) => {
             return new Promise((res0) => {
               // Get the following for each trip
@@ -837,7 +839,7 @@ function getRideOverview(
               const amount = trip.fare;
               const destinations = trip.destinationData;
               const origin = trip.pickup_location_infos.suburb;
-              //console.log(trip.client_id)
+              //logger.info(trip.client_id)
               // Request for corresponding passenger
               query = {
                 user_fingerprint: trip.client_id,
@@ -928,29 +930,29 @@ function getRideOverview(
                       }
                     },
                     (error) => {
-                      console.log(error);
+                      logger.info(error);
                     }
                   );
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                 });
             });
           });
           // Get all added objects from res0
           Promise.all(alltrips).then(
             (result) => {
-              console.log(
+              logger.info(
                 `No cache found with error, ${result.length} rides found`
               );
               resolve(result);
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
             }
           );
         })
-        .catch((err) => console.log(err));
+        .catch((err) => logger.info(err));
     } else if (reply) {
       if (reply !== null) {
         // return found cash
@@ -958,7 +960,7 @@ function getRideOverview(
 
         // !! Update cash in background
         new Promise((cashupdate) => {
-          console.log("Updating ride-overview...");
+          logger.info("Updating ride-overview...");
           collectionRidesDeliveryData
             .find({ ride_mode: "RIDE" })
             .sort({ date_requested: -1 })
@@ -966,7 +968,7 @@ function getRideOverview(
             .toArray()
             .then((result) => {
               // Initialize the list of all trips
-              //console.log(result)
+              //logger.info(result)
               let alltrips = result.map((trip) => {
                 return new Promise((res0) => {
                   // Get the following for each trip
@@ -987,7 +989,7 @@ function getRideOverview(
                   const amount = trip.fare;
                   const destinations = trip.destinationData;
                   const origin = trip.pickup_location_infos.suburb;
-                  //console.log(trip.client_id)
+                  //logger.info(trip.client_id)
                   // Request for corresponding passenger
                   query = {
                     user_fingerprint: trip.client_id,
@@ -1078,19 +1080,19 @@ function getRideOverview(
                           }
                         },
                         (error) => {
-                          console.log(error);
+                          logger.info(error);
                         }
                       );
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                     });
                 });
               });
               // Get all added objects from res0
               Promise.all(alltrips).then(
                 (result) => {
-                  console.log(`${result.length} rides found`);
+                  logger.info(`${result.length} rides found`);
                   // Cash
                   redisCluster.setex(
                     "rideOverview-cache",
@@ -1099,20 +1101,20 @@ function getRideOverview(
                     redis.print
                   );
                   //!! No return : !resolve(result)
-                  console.log("update of ride-overview completed");
+                  logger.info("update of ride-overview completed");
                 },
                 (error) => {
-                  console.log(error);
+                  logger.info(error);
                 }
               );
             })
-            .catch((err) => console.log(err));
+            .catch((err) => logger.info(err));
         })
           .then((result) => {
-            console.log("cash returned");
+            logger.info("cash returned");
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
           });
       } else {
         collectionRidesDeliveryData
@@ -1122,7 +1124,7 @@ function getRideOverview(
           .toArray()
           .then((result) => {
             // Initialize the list of all trips
-            //console.log(result)
+            //logger.info(result)
             let alltrips = result.map((trip) => {
               return new Promise((res0) => {
                 // Get the following for each trip
@@ -1143,7 +1145,7 @@ function getRideOverview(
                 const amount = trip.fare;
                 const destinations = trip.destinationData;
                 const origin = trip.pickup_location_infos.suburb;
-                //console.log(trip.client_id)
+                //logger.info(trip.client_id)
                 // Request for corresponding passenger
                 query = {
                   user_fingerprint: trip.client_id,
@@ -1234,19 +1236,19 @@ function getRideOverview(
                         }
                       },
                       (error) => {
-                        console.log(error);
+                        logger.info(error);
                       }
                     );
                   })
                   .catch((error) => {
-                    console.log(error);
+                    logger.info(error);
                   });
               });
             });
             // Get all added objects from res0
             Promise.all(alltrips).then(
               (result) => {
-                console.log(`${result.length} rides found`);
+                logger.info(`${result.length} rides found`);
                 redisCluster.setex(
                   "rideOverview-cache",
                   600000,
@@ -1256,11 +1258,11 @@ function getRideOverview(
                 resolve(result);
               },
               (error) => {
-                console.log(error);
+                logger.info(error);
               }
             );
           })
-          .catch((err) => console.log(err));
+          .catch((err) => logger.info(err));
       }
     } else {
       // Get directly from mongodb
@@ -1271,7 +1273,7 @@ function getRideOverview(
         .toArray()
         .then((result) => {
           // Initialize the list of all trips
-          //console.log(result)
+          //logger.info(result)
           let alltrips = result.map((trip) => {
             return new Promise((res0) => {
               // Get the following for each trip
@@ -1292,7 +1294,7 @@ function getRideOverview(
               const amount = trip.fare;
               const destinations = trip.destinationData;
               const origin = trip.pickup_location_infos.suburb;
-              //console.log(trip.client_id)
+              //logger.info(trip.client_id)
               // Request for corresponding passenger
               query = {
                 user_fingerprint: trip.client_id,
@@ -1383,20 +1385,20 @@ function getRideOverview(
                       }
                     },
                     (error) => {
-                      console.log(error);
+                      logger.info(error);
                     }
                   );
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                 });
             });
           });
           // Get all added objects from res0
           Promise.all(alltrips).then(
             (result) => {
-              console.log("No cache found...");
-              console.log(`${result.length} rides found`);
+              logger.info("No cache found...");
+              logger.info(`${result.length} rides found`);
               redisCluster.setex(
                 "rideOverview-cache",
                 600000,
@@ -1406,11 +1408,11 @@ function getRideOverview(
               resolve(result);
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
             }
           );
         })
-        .catch((err) => console.log(err));
+        .catch((err) => logger.info(err));
     }
   });
 }
@@ -1423,8 +1425,8 @@ function getDeliveryOverview(
 ) {
   // Getting data from redis cache or mongodb otherwise
   redisCluster.get("deliveryOverview-cache", (err, reply) => {
-    console.log("searching for delivery-overview cache...");
-    console.log("Found deliveries in cache: ", reply);
+    logger.info("searching for delivery-overview cache...");
+    logger.info("Found deliveries in cache: ", reply);
 
     // Get from database if error
     if (err) {
@@ -1433,7 +1435,7 @@ function getDeliveryOverview(
         .toArray()
         .then((result) => {
           // Initialize the list of all trips
-          //console.log(result)
+          //logger.info(result)
           let alltrips = result.map((trip) => {
             return new Promise((res0) => {
               // Get the following for each trip
@@ -1457,7 +1459,7 @@ function getDeliveryOverview(
               const destinations = trip.destinationData;
 
               const origin = trip.pickup_location_infos.location_name;
-              //console.log(trip.client_id)
+              //logger.info(trip.client_id)
               // Request for corresponding passenger
               query = {
                 user_fingerprint: trip.client_id,
@@ -1554,11 +1556,11 @@ function getDeliveryOverview(
                       }
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                     });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                 });
             });
           });
@@ -1571,15 +1573,15 @@ function getDeliveryOverview(
                 JSON.stringify(result),
                 redis.print
               );
-              console.log(`${result.length}Deliveries found`);
+              logger.info(`${result.length}Deliveries found`);
               resolve(result);
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
             }
           );
         })
-        .catch((err) => console.log(err));
+        .catch((err) => logger.info(err));
     } else if (reply) {
       if (reply !== null) {
         // return the cached data
@@ -1592,7 +1594,7 @@ function getDeliveryOverview(
             .toArray()
             .then((result) => {
               // Initialize the list of all trips
-              //console.log(result)
+              //logger.info(result)
               let alltrips = result.map((trip) => {
                 return new Promise((res0) => {
                   // Get the following for each trip
@@ -1617,7 +1619,7 @@ function getDeliveryOverview(
                   const destinations = trip.destinationData;
 
                   const origin = trip.pickup_location_infos.location_name;
-                  //console.log(trip.client_id)
+                  //logger.info(trip.client_id)
                   // Request for corresponding passenger
                   query = {
                     user_fingerprint: trip.client_id,
@@ -1715,37 +1717,37 @@ function getDeliveryOverview(
                           }
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                         });
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                     });
                 });
               });
               // Get all added objects from res0
               Promise.all(alltrips).then(
                 (result) => {
-                  console.log(`${result.length}Deliveries found`);
+                  logger.info(`${result.length}Deliveries found`);
                   //!! DO NOT RETURN : !resolve(result), rather cache updated value
                   redisCluster.set(
                     "deliveryOverview-cache",
                     JSON.stringify(result)
                   );
-                  console.log("delivery-overview updated in background...");
+                  logger.info("delivery-overview updated in background...");
                 },
                 (error) => {
-                  console.log(error);
+                  logger.info(error);
                 }
               );
             })
-            .catch((err) => console.log(err));
+            .catch((err) => logger.info(err));
         })
           .then((cache) => {
-            console.log("caching delivery-overview completed");
+            logger.info("caching delivery-overview completed");
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             resolve({ error: "something went wrong while updating cache" });
           });
       } else {
@@ -1754,7 +1756,7 @@ function getDeliveryOverview(
           .toArray()
           .then((result) => {
             // Initialize the list of all trips
-            //console.log(result)
+            //logger.info(result)
             let alltrips = result.map((trip) => {
               return new Promise((res0) => {
                 // Get the following for each trip
@@ -1779,7 +1781,7 @@ function getDeliveryOverview(
                 const destinations = trip.destinationData;
 
                 const origin = trip.pickup_location_infos.location_name;
-                //console.log(trip.client_id)
+                //logger.info(trip.client_id)
                 // Request for corresponding passenger
                 query = {
                   user_fingerprint: trip.client_id,
@@ -1877,11 +1879,11 @@ function getDeliveryOverview(
                         }
                       })
                       .catch((error) => {
-                        console.log(error);
+                        logger.info(error);
                       });
                   })
                   .catch((error) => {
-                    console.log(error);
+                    logger.info(error);
                   });
               });
             });
@@ -1892,15 +1894,15 @@ function getDeliveryOverview(
                   "deliveryOverview-cache",
                   JSON.stringify(result)
                 );
-                console.log(`${result.length}Deliveries found`);
+                logger.info(`${result.length}Deliveries found`);
                 resolve(result);
               },
               (error) => {
-                console.log(error);
+                logger.info(error);
               }
             );
           })
-          .catch((err) => console.log(err));
+          .catch((err) => logger.info(err));
       }
     } else {
       collectionRidesDeliveryData
@@ -1908,7 +1910,7 @@ function getDeliveryOverview(
         .toArray()
         .then((result) => {
           // Initialize the list of all trips
-          //console.log(result)
+          //logger.info(result)
           let alltrips = result.map((trip) => {
             return new Promise((res0) => {
               // Get the following for each trip
@@ -1932,7 +1934,7 @@ function getDeliveryOverview(
               const destinations = trip.destinationData;
 
               const origin = trip.pickup_location_infos.location_name;
-              //console.log(trip.client_id)
+              //logger.info(trip.client_id)
               // Request for corresponding passenger
               query = {
                 user_fingerprint: trip.client_id,
@@ -2030,11 +2032,11 @@ function getDeliveryOverview(
                       }
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                     });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                 });
             });
           });
@@ -2046,15 +2048,15 @@ function getDeliveryOverview(
                 JSON.stringify(result),
                 redis.print
               );
-              console.log(`${result.length}Deliveries found`);
+              logger.info(`${result.length}Deliveries found`);
               resolve(result);
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
             }
           );
         })
-        .catch((err) => console.log(err));
+        .catch((err) => logger.info(err));
     }
   });
 }
@@ -2210,19 +2212,19 @@ function getDeliveryProviderInfo(
                           outcome(Individual_driver);
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                         });
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                     });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                 });
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
             });
         });
       });
@@ -2242,18 +2244,18 @@ function getDeliveryProviderInfo(
               resolve(driverAll);
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               resolve({ response: "error", flag: "Invalid_params_maybe" });
             });
         },
         (error) => {
-          console.log(error);
+          logger.info(error);
           resolve({ response: "error", flag: "Invalid_params_maybe" });
         }
       );
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({ response: "error", flag: "Invalid_params_maybe" });
     });
 }
@@ -2289,7 +2291,7 @@ function getOwners(ownersCollection, resolve) {
           resolve(result);
         },
         (error) => {
-          console.log(error);
+          logger.info(error);
           resolve({ response: "error", flag: "Wrong parameters maybe" });
         }
       );
@@ -2312,7 +2314,7 @@ function userExists(provider, email, password, providers, resolve) {
 }
 /*
 * Testing the function 
-console.log(userExists("deliveryGuy", "delivery@guy","12345678",[
+logger.info(userExists("deliveryGuy", "delivery@guy","12345678",[
   {
     name: "ebikesForAfrica",
     email: "ebikes@africa",
@@ -2353,7 +2355,7 @@ function getAdminUsers(adminUsersCollection, resolve) {
           resolve(result);
         },
         (error) => {
-          console.log(error);
+          logger.info(error);
           resolve({ error: "error", flag: "Wrong parameters maybe" });
         }
       );
@@ -2392,16 +2394,16 @@ function updateEntry(collection, query, newValues, resolve) {
   collection
     .updateOne(query, newValues)
     .then((result) => {
-      console.log(result.result.nModified);
+      logger.info(result.result.nModified);
       if (result.result.nModified != 0) {
         resolve({ success: "one document updated" });
       } else {
-        console.log(result);
+        logger.info(result);
         resolve({ error: "The document was not updated" });
       }
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({ error: "The document was not updated" });
     });
 }
@@ -2419,7 +2421,7 @@ function CancellTrip(collectionDestination, collectionOrigin, query, resolve) {
   collectionOrigin
     .findOne(query)
     .then((data) => {
-      console.log(data.request_fp);
+      logger.info(data.request_fp);
       //create global event
       let eventObject = {};
       // Move it to global events
@@ -2428,45 +2430,45 @@ function CancellTrip(collectionDestination, collectionOrigin, query, resolve) {
         .then((result) => {
           // If successfully inserted, proceed to delete the document from the origin
           if (result.result.n === 1) {
-            console.log("New cancelled trip inserted");
+            logger.info("New cancelled trip inserted");
             // Deleting the object
             collectionOrigin
               .deleteOne(query)
               .then((outcome) => {
-                console.log(outcome.result);
+                logger.info(outcome.result);
 
                 if (outcome.result.n === 1) {
                   // If successful deletion of document
-                  console.log("successful deletion of trip");
+                  logger.info("successful deletion of trip");
                   resolve({ success: true, error: false });
                 } else if (outcome.result.n === 0) {
                   // If no document was deleted
-                  console.log(
+                  logger.info(
                     "the ride could not be deleted, maybe no longer exist"
                   );
                   resolve({ success: false, error: false });
                 }
               })
               .catch((error) => {
-                console.log(error);
+                logger.info(error);
                 resolve({ success: false, error: true });
               });
           } else {
-            console.log("Failed to insert the object");
+            logger.info("Failed to insert the object");
             resolve({ success: false, error: true });
           }
         })
         .catch((error) => {
-          console.log(
+          logger.info(
             "An error occured, could not insert the object into cancelled rides, maybe duplicate found"
           );
-          console.log(error);
+          logger.info(error);
           resolve({ success: false, error: true });
         });
     })
     .catch((error) => {
-      console.log("An error occured, could not find the object");
-      console.log(error);
+      logger.info("An error occured, could not find the object");
+      logger.info(error);
       resolve({ success: false, error: true });
     });
 }
@@ -2498,17 +2500,17 @@ function todayRideDeliveryInProgress(collectionRidesDeliveryData, resolve) {
           });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           resolve({ error: "Failed to get deliveries in progress" });
         });
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({ error: "Failed to get rides in progress" });
     });
 }
 
-console.log(process.env.EVIRONMENT);
+logger.info(process.env.EVIRONMENT);
 // All APIs :
 MongoClient.connect(
   process.env.URL_MONGODB,
@@ -2524,9 +2526,9 @@ MongoClient.connect(
       },
   function (err, clientMongo) {
     if (err) {
-      console.log(err);
+      logger.info(err);
     }
-    console.log("Connected to MongoDB");
+    logger.info("Connected to MongoDB");
 
     const dbMongo = clientMongo.db("Taxiconnect");
     const collectionPassengers_profiles = dbMongo.collection(
@@ -2546,7 +2548,7 @@ MongoClient.connect(
     app
       .get("/", (req, res) => {
         //!DO NOT SEND AN ANSWER FROM THE ROOT PATH
-        console.log("All is good at main view server");
+        logger.info("All is good at main view server");
       })
       .use(express.json())
       .use(express.urlencoded({ extended: true }));
@@ -2561,7 +2563,7 @@ MongoClient.connect(
      * @param: some params that this API is expecting...
      */
     app.get("/statistics", (req, res) => {
-      console.log("Statistics API called!");
+      logger.info("Statistics API called!");
       new Promise((res) => {
         activelyGet_allThe_stats(
           collectionRidesDeliveryData,
@@ -2572,11 +2574,11 @@ MongoClient.connect(
         );
       }).then(
         (result) => {
-          //console.log(result);
+          //logger.info(result);
           res.send(result);
         },
         (error) => {
-          console.log(error);
+          logger.info(error);
           res.send({ response: "error", flag: "Invalid_params_maybe" });
         }
       );
@@ -2587,7 +2589,7 @@ MongoClient.connect(
      * !except cancelled rides
      */
     app.get("/ride-overview", (req, res) => {
-      console.log("Ride overview API called!!");
+      logger.info("Ride overview API called!!");
       new Promise((res) => {
         getRideOverview(
           collectionRidesDeliveryData,
@@ -2597,11 +2599,11 @@ MongoClient.connect(
         );
       }).then(
         (result) => {
-          console.log(result);
+          logger.info(result);
           res.send(result);
         },
         (error) => {
-          console.log(error);
+          logger.info(error);
           res.send({
             response: "error",
             flag: "Something went wrong, could be Invalid parameters",
@@ -2616,16 +2618,16 @@ MongoClient.connect(
       })
         .then((data) => {
           if (data.error) {
-            console.log(data);
+            logger.info(data);
             res.send({
               error: "Failed to get rides and deliveries in progress",
             });
           }
-          console.log(data);
+          logger.info(data);
           res.send(data);
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res.send({
             error: "Failed to get rides and deliveries in progress @API level",
           });
@@ -2636,8 +2638,8 @@ MongoClient.connect(
      * Input is the id of the ride request_fp (commes as "id" )
      */
     app.post("/set-ride-confirmed", (req, res) => {
-      console.log(" SET RIDE CONFIRMED API CALLED");
-      console.log(
+      logger.info(" SET RIDE CONFIRMED API CALLED");
+      logger.info(
         "----- Updating Ride State (Setting complete) ..... IN PROGRESS.......-----------"
       );
       // Convert the received id of the ride to an ObjectID to be identified @MongoDB _id
@@ -2646,7 +2648,7 @@ MongoClient.connect(
     let newValues = {$set: {"ride_state_vars.isRideCompleted_riderSide" :true, 
                              isArrivedToDestination: true,
                              "ride_state_vars.isRideCompleted_driverSide": true}} */
-      console.log(`request fingerprint: ${req.body.request_fp}`);
+      logger.info(`request fingerprint: ${req.body.request_fp}`);
       new Promise((res) => {
         //Call updating function
         updateEntry(
@@ -2663,7 +2665,7 @@ MongoClient.connect(
         );
       })
         .then((result) => {
-          console.log(result);
+          logger.info(result);
           if (result.success) {
             res.status(200).send({ success: "Successful update" });
           } else if (result.error) {
@@ -2674,7 +2676,7 @@ MongoClient.connect(
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res.send({ error: " Something went wrong while updating the entry" });
         });
     });
@@ -2684,7 +2686,7 @@ MongoClient.connect(
      */
 
     app.post("/cancell-trip", (req, res) => {
-      console.log("TRIP CANCELLATION API CALLED...");
+      logger.info("TRIP CANCELLATION API CALLED...");
 
       new Promise((res) => {
         CancellTrip(
@@ -2695,19 +2697,19 @@ MongoClient.connect(
         );
       })
         .then((outcome) => {
-          console.log(outcome);
+          logger.info(outcome);
           if (outcome.success) {
-            console.log("SUCCESSFUL CANCELLATION");
+            logger.info("SUCCESSFUL CANCELLATION");
             // Send back successful response object
             res.send({ success: true, error: false });
           } else if (outcome.error) {
-            console.log("FAILED TO CANCELL RIDE");
+            logger.info("FAILED TO CANCELL RIDE");
             // send back error response object
             res.send({ success: false, error: true });
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res.send({ success: false, error: true });
         });
     });
@@ -2716,7 +2718,7 @@ MongoClient.connect(
      * API responsible of getting all deliveries data
      */
     app.get("/delivery-overview", (req, res) => {
-      console.log("Delivery overview API called delivery!!");
+      logger.info("Delivery overview API called delivery!!");
 
       new Promise((res) => {
         getDeliveryOverview(
@@ -2727,11 +2729,11 @@ MongoClient.connect(
         );
       }).then(
         (result) => {
-          console.log(result);
+          logger.info(result);
           res.send(result);
         },
         (error) => {
-          console.log(error);
+          logger.info(error);
           res.status(500).send({
             response: "error",
             flag: "Something went wrong, could be Invalid parameters",
@@ -2763,7 +2765,7 @@ MongoClient.connect(
               response.send({ authenticated: authentication_response });
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
               response
                 .status(500)
                 .send({ message: "error", flag: "Maybe Invalid parameters" });
@@ -2771,7 +2773,7 @@ MongoClient.connect(
           );
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           response.status(500).send({
             message: "error",
             flag: "Maybe Invalid parameters of owners",
@@ -2788,7 +2790,7 @@ MongoClient.connect(
       // Get the received parameter
       let providerName = req.params.provider;
 
-      console.log(`Delivery provider API called by: ${providerName}`);
+      logger.info(`Delivery provider API called by: ${providerName}`);
 
       new Promise((res) => {
         getDeliveryProviderInfo(
@@ -2802,10 +2804,10 @@ MongoClient.connect(
           let deliveryInfo = result;
 
           response.send(deliveryInfo);
-          console.log(result);
+          logger.info(result);
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           response.send({
             response: "error",
             flag: "Something went wrong, could be Invalid parameters",
@@ -2838,14 +2840,14 @@ MongoClient.connect(
               response.send({ authenticated: authentication_response });
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
               //response.status(500).send({message: "error", flag: "Maybe Invalid parameters"})
               response.send({ authenticated: authentication_response });
             }
           );
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           response.status(500).send({
             message: "error",
             flag: "Maybe Invalid parameters of owners",
@@ -2879,10 +2881,10 @@ var elapUserMS = secNSec2ms(elapUsage.user)
 var elapSystMS = secNSec2ms(elapUsage.system)
 var cpuPercent = Math.round(100 * (elapUserMS + elapSystMS) / elapTimeMS)
 
-console.log('elapsed time ms:  ', elapTimeMS)
-console.log('elapsed user ms:  ', elapUserMS)
-console.log('elapsed system ms:', elapSystMS)
-console.log('cpu percent:      ', cpuPercent)
+logger.info('elapsed time ms:  ', elapTimeMS)
+logger.info('elapsed user ms:  ', elapUserMS)
+logger.info('elapsed system ms:', elapSystMS)
+logger.info('cpu percent:      ', cpuPercent)
 
 function secNSec2ms (secNSec) {
   if (Array.isArray(secNSec)) { 
@@ -2893,5 +2895,5 @@ function secNSec2ms (secNSec) {
  */
 
 server.listen(PORT, () => {
-  console.log(`Main view server up and running at port ${PORT}`);
+  logger.info(`Main view server up and running at port ${PORT}`);
 });

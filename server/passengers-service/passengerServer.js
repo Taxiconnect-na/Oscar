@@ -1,6 +1,7 @@
 require("newrelic");
 const path = require("path");
 require("dotenv").config({ path: __dirname + "/./../.env" });
+const { logger } = require("../LogService");
 
 const express = require("express");
 const app = express();
@@ -38,7 +39,7 @@ var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
 //! Error handling redis Error
 redisCluster.on("error", function (er) {
   console.trace("Passenger server connection to redis ");
-  console.error(er.stack);
+  logger.error(er.stack);
 });
 
 const http = require("http");
@@ -98,7 +99,7 @@ function getPassengersInfo(
 ) {
   //getAsync("passengers-cache").then( (reply) => {
   redisCluster.get("passengers-cash", (err, reply) => {
-    console.log("looking for data...");
+    logger.info("looking for data...");
     if (err) {
       // Connect to db and fetch:
       IndividualsCollection.find({})
@@ -140,7 +141,7 @@ function getPassengersInfo(
                   outcome(Individual_info);
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                 });
             });
           });
@@ -155,20 +156,20 @@ function getPassengersInfo(
               resolve(result);
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
               resolve({ response: "error", flag: "Invalid_params_maybe" });
             }
           );
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
         });
     } else if (reply) {
       if (reply !== null) {
         // Resolve reply
         resolve(JSON.parse(reply));
         //!! Update cash but do not resolve anything:
-        console.log("updating passengers cache...");
+        logger.info("updating passengers cache...");
         new Promise((cashUpdateRes) => {
           // Connect to db, do the operation and save result in redis:
           IndividualsCollection.find({})
@@ -210,7 +211,7 @@ function getPassengersInfo(
                       outcome(Individual_info);
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                     });
                 });
               });
@@ -224,23 +225,23 @@ function getPassengersInfo(
                     JSON.stringify(result),
                     redis.print
                   );
-                  console.log("UPDATING cash in progress....");
+                  logger.info("UPDATING cash in progress....");
                 },
                 (error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({ response: "error", flag: "Invalid_params_maybe" });
                 }
               );
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
             });
         }).then(
           (result) => {
-            console.log("Updating passengers cache complete...");
+            logger.info("Updating passengers cache complete...");
           },
           (error) => {
-            console.log(error);
+            logger.info(error);
             resolve({ error: "something went wrong" });
           }
         );
@@ -286,7 +287,7 @@ function getPassengersInfo(
                     outcome(Individual_info);
                   })
                   .catch((error) => {
-                    console.log(error);
+                    logger.info(error);
                   });
               });
             });
@@ -301,18 +302,18 @@ function getPassengersInfo(
                 // save in cache
               },
               (error) => {
-                console.log(error);
+                logger.info(error);
                 resolve({ response: "error", flag: "Invalid_params_maybe" });
               }
             );
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
           });
       }
     } else {
       // Connect to db and fetch
-      console.log("No cache...getting passengers data from db");
+      logger.info("No cache...getting passengers data from db");
       IndividualsCollection.find({})
         .limit(10)
         .toArray()
@@ -352,7 +353,7 @@ function getPassengersInfo(
                   outcome(Individual_info);
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                 });
             });
           });
@@ -367,13 +368,13 @@ function getPassengersInfo(
               // save in cache
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
               resolve({ response: "error", flag: "Invalid_params_maybe" });
             }
           );
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
         });
     }
   });
@@ -396,10 +397,10 @@ function getCancelledRidesPassenger(
 ) {
   // Attempt to get data from cache first
   redisCluster.get("cancelledRides-cache", (err, reply) => {
-    console.log("looking for data in redis...");
+    logger.info("looking for data in redis...");
 
     if (err) {
-      console.log(err);
+      logger.info(err);
       // Function to get data directly from Mongo
       collectionCancelledRides
         .find({ ride_mode: "RIDE" })
@@ -460,7 +461,7 @@ function getCancelledRidesPassenger(
                         });
                       })
                       .catch((error) => {
-                        console.log(error);
+                        logger.info(error);
                         resolve({
                           error: "something went wrong @Driver collection",
                         });
@@ -486,7 +487,7 @@ function getCancelledRidesPassenger(
                   }
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({
                     error: "something went wrong@passengerCollection",
                   });
@@ -496,7 +497,7 @@ function getCancelledRidesPassenger(
           // Get all resulting cancelled rides
           Promise.all(allCancelled).then(
             (result) => {
-              console.log("No cash was found for cancelled rides");
+              logger.info("No cash was found for cancelled rides");
               redisCluster.setex(
                 "cancelledRides-cache",
                 600000,
@@ -506,13 +507,13 @@ function getCancelledRidesPassenger(
               resolve(result);
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
               resolve({ error: "Did not manage to get all promises" });
             }
           );
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
         });
     } else if (reply) {
       if (reply !== null) {
@@ -583,7 +584,7 @@ function getCancelledRidesPassenger(
                             });
                           })
                           .catch((error) => {
-                            console.log(error);
+                            logger.info(error);
                             resolve({
                               error: "something went wrong @Driver collection",
                             });
@@ -609,7 +610,7 @@ function getCancelledRidesPassenger(
                       }
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       resolve({
                         error: "something went wrong@passengerCollection",
                       });
@@ -619,7 +620,7 @@ function getCancelledRidesPassenger(
               // Get all resulting cancelled rides
               Promise.all(allCancelled).then(
                 (result) => {
-                  console.log("No cash was found for cancelled rides");
+                  logger.info("No cash was found for cancelled rides");
                   redisCluster.setex(
                     "cancelledRides-cache",
                     600000,
@@ -629,7 +630,7 @@ function getCancelledRidesPassenger(
                   //! No resolve
                 },
                 (error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({ error: "Did not manage to get all promises" });
                 }
               );
@@ -698,7 +699,7 @@ function getCancelledRidesPassenger(
                           });
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           resolve({
                             error: "something went wrong @Driver collection",
                           });
@@ -724,7 +725,7 @@ function getCancelledRidesPassenger(
                     }
                   })
                   .catch((error) => {
-                    console.log(error);
+                    logger.info(error);
                     resolve({
                       error: "something went wrong@passengerCollection",
                     });
@@ -734,7 +735,7 @@ function getCancelledRidesPassenger(
             // Get all resulting cancelled rides
             Promise.all(allCancelled).then(
               (result) => {
-                console.log("No cash was found for cancelled rides");
+                logger.info("No cash was found for cancelled rides");
                 redisCluster.setex(
                   "cancelledRides-cache",
                   600000,
@@ -744,13 +745,13 @@ function getCancelledRidesPassenger(
                 resolve(result);
               },
               (error) => {
-                console.log(error);
+                logger.info(error);
                 resolve({ error: "Did not manage to get all promises" });
               }
             );
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
           });
       }
     } else {
@@ -814,7 +815,7 @@ function getCancelledRidesPassenger(
                         });
                       })
                       .catch((error) => {
-                        console.log(error);
+                        logger.info(error);
                         resolve({
                           error: "something went wrong @Driver collection",
                         });
@@ -840,7 +841,7 @@ function getCancelledRidesPassenger(
                   }
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({
                     error: "something went wrong@passengerCollection",
                   });
@@ -850,7 +851,7 @@ function getCancelledRidesPassenger(
           // Get all resulting cancelled rides
           Promise.all(allCancelled).then(
             (result) => {
-              console.log("No cash was found for cancelled rides");
+              logger.info("No cash was found for cancelled rides");
               redisCluster.setex(
                 "cancelledRides-cache",
                 600000,
@@ -860,13 +861,13 @@ function getCancelledRidesPassenger(
               resolve(result);
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
               resolve({ error: "Did not manage to get all promises" });
             }
           );
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
         });
     }
   });
@@ -884,10 +885,10 @@ function getCancelledDeliveries(
 ) {
   // Attempt to get data from cache first
   redisCluster.get("cancelledDeliveries-cache", (err, reply) => {
-    console.log("looking for data in redis...");
+    logger.info("looking for data in redis...");
 
     if (err) {
-      console.log(err);
+      logger.info(err);
       // Function to get data directly from Mongo
       collectionCancelledRides
         .find({ ride_mode: "DELIVERY" })
@@ -948,7 +949,7 @@ function getCancelledDeliveries(
                         });
                       })
                       .catch((error) => {
-                        console.log(error);
+                        logger.info(error);
                         resolve({
                           error: "something went wrong @Driver collection",
                         });
@@ -974,7 +975,7 @@ function getCancelledDeliveries(
                   }
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({
                     error: "something went wrong@passengerCollection",
                   });
@@ -984,7 +985,7 @@ function getCancelledDeliveries(
           // Get all resulting cancelled rides
           Promise.all(allCancelled).then(
             (result) => {
-              console.log("No cash was found for cancelled rides");
+              logger.info("No cash was found for cancelled rides");
               redisCluster.setex(
                 "cancelledDeliveries-cache",
                 600000,
@@ -994,13 +995,13 @@ function getCancelledDeliveries(
               resolve(result);
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
               resolve({ error: "Did not manage to get all promises" });
             }
           );
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
         });
     } else if (reply) {
       if (reply !== null) {
@@ -1071,7 +1072,7 @@ function getCancelledDeliveries(
                             });
                           })
                           .catch((error) => {
-                            console.log(error);
+                            logger.info(error);
                             resolve({
                               error: "something went wrong @Driver collection",
                             });
@@ -1097,7 +1098,7 @@ function getCancelledDeliveries(
                       }
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       resolve({
                         error: "something went wrong@passengerCollection",
                       });
@@ -1107,7 +1108,7 @@ function getCancelledDeliveries(
               // Get all resulting cancelled rides
               Promise.all(allCancelled).then(
                 (result) => {
-                  console.log("No cash was found for cancelled rides");
+                  logger.info("No cash was found for cancelled rides");
                   redisCluster.setex(
                     "cancelledDeliveries-cache",
                     600000,
@@ -1117,7 +1118,7 @@ function getCancelledDeliveries(
                   //! No resolve
                 },
                 (error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({ error: "Did not manage to get all promises" });
                 }
               );
@@ -1186,7 +1187,7 @@ function getCancelledDeliveries(
                           });
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           resolve({
                             error: "something went wrong @Driver collection",
                           });
@@ -1212,7 +1213,7 @@ function getCancelledDeliveries(
                     }
                   })
                   .catch((error) => {
-                    console.log(error);
+                    logger.info(error);
                     resolve({
                       error: "something went wrong@passengerCollection",
                     });
@@ -1222,11 +1223,11 @@ function getCancelledDeliveries(
             // Get all resulting cancelled rides
             Promise.all(allCancelled).then(
               (result) => {
-                console.log("No cash was found for cancelled rides");
+                logger.info("No cash was found for cancelled rides");
                 resolve(result);
               },
               (error) => {
-                console.log(error);
+                logger.info(error);
                 redisCluster.setex(
                   "cancelledDeliveries-cache",
                   600000,
@@ -1238,7 +1239,7 @@ function getCancelledDeliveries(
             );
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
           });
       }
     } else {
@@ -1302,7 +1303,7 @@ function getCancelledDeliveries(
                         });
                       })
                       .catch((error) => {
-                        console.log(error);
+                        logger.info(error);
                         resolve({
                           error: "something went wrong @Driver collection",
                         });
@@ -1328,7 +1329,7 @@ function getCancelledDeliveries(
                   }
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({
                     error: "something went wrong@passengerCollection",
                   });
@@ -1338,7 +1339,7 @@ function getCancelledDeliveries(
           // Get all resulting cancelled rides
           Promise.all(allCancelled).then(
             (result) => {
-              console.log("No cash was found for cancelled rides");
+              logger.info("No cash was found for cancelled rides");
               redisCluster.setex(
                 "cancelledDeliveries-cache",
                 600000,
@@ -1348,13 +1349,13 @@ function getCancelledDeliveries(
               resolve(result);
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
               resolve({ error: "Did not manage to get all promises" });
             }
           );
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
         });
     }
   });
@@ -1374,9 +1375,9 @@ MongoClient.connect(
       },
   function (err, clientMongo) {
     if (err) {
-      console.log(`Error occured: ${err}`);
+      logger.info(`Error occured: ${err}`);
     } else {
-      console.log("Successful connection to Database");
+      logger.info("Successful connection to Database");
 
       const dbMongo = clientMongo.db(dbName);
       const collectionPassengers_profiles = dbMongo.collection(
@@ -1404,12 +1405,12 @@ MongoClient.connect(
         })
           .then((result) => {
             let passengerList = result;
-            console.log("Passenger's Data API called");
-            console.log(`Number of passengers returned: ${result.length}`);
+            logger.info("Passenger's Data API called");
+            logger.info(`Number of passengers returned: ${result.length}`);
             response.json(passengerList);
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             response.json({
               error:
                 "something went wrong. Maybe no connection or wrong parameters",
@@ -1430,12 +1431,12 @@ MongoClient.connect(
             if (data.error) {
               res.send({ error: "could not get cancelled rides" });
             } else {
-              console.log("No error, returning cancelled rides by passenger");
+              logger.info("No error, returning cancelled rides by passenger");
               res.send(data);
             }
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             res.send({
               error: true,
               flag: "Error occured @cancelled-ride-passenger API level",
@@ -1456,14 +1457,14 @@ MongoClient.connect(
             if (data.error) {
               res.send({ error: "could not get cancelled deliveries" });
             } else {
-              console.log(
+              logger.info(
                 "No error, returning cancelled deliveries by passenger"
               );
               res.send(data);
             }
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             res.send({
               error: true,
               flag: "Error occured @cancelled-deliveries-passenger API level",
@@ -1481,5 +1482,5 @@ app.get("/test", (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Passenger server up and running @ port ${PORT}`);
+  logger.info(`Passenger server up and running @ port ${PORT}`);
 });

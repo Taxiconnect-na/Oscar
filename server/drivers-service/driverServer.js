@@ -1,6 +1,7 @@
 require("newrelic");
 const path = require("path");
 require("dotenv").config({ path: __dirname + "/./../.env" });
+const { logger } = require("../LogService");
 const express = require("express");
 const fileUpload = require("express-fileupload");
 const app = express();
@@ -10,11 +11,6 @@ const fs = require("fs");
 const certFile = fs.readFileSync(String(process.env.CERT_FILE));
 const http = require("http");
 const server = http.createServer(app);
-
-const winston = require("winston");
-const logger = winston.createLogger({
-  transports: [new winston.transports.Console()],
-});
 
 const axios = require("axios");
 const helmet = require("helmet");
@@ -157,13 +153,13 @@ function GetCashWallet(arrayData, resolve) {
  */
 
 function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
-  console.log("Runnnig getDriverinfo() function");
+  logger.info("Runnnig getDriverinfo() function");
 
   redisCluster.get("drivers-list", (err, reply) => {
-    console.log("Inside the client.get function");
+    logger.info("Inside the client.get function");
     if (err) {
-      console.log("ERROR FOUND AT REDIS DRIVERS LIST");
-      console.log(err);
+      logger.info("ERROR FOUND AT REDIS DRIVERS LIST");
+      logger.info(err);
       //*Direct request to database, Then save in redis the output
       DriversCollection.find({})
         .toArray()
@@ -246,7 +242,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                               outcome(Individual_driver);
                             })
                             .catch((error) => {
-                              console.log(error);
+                              logger.info(error);
                               resolve({
                                 response: "error",
                                 flag: "Invalid_params_maybe",
@@ -254,7 +250,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                             });
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           resolve({
                             response: "error",
                             flag: "Invalid_params_maybe",
@@ -262,7 +258,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                         });
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       resolve({
                         response: "error",
                         flag: "Invalid_params_maybe",
@@ -270,7 +266,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                     });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({ response: "error", flag: "Invalid_params_maybe" });
                 });
             });
@@ -285,20 +281,20 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
               resolve(result);
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
               resolve({ response: "error", flag: "Invalid_params_maybe" });
             }
           );
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
         });
     } else if (reply) {
       if (reply !== null) {
         //* Resolve found result
         resolve(JSON.parse(reply));
         //!! Update cash but do not resolve anything:
-        console.log("updating driver list cache...");
+        logger.info("updating driver list cache...");
         //*Update result @background in redis from Mongo with a new Promise
         new Promise((unreturned) => {
           DriversCollection.find({})
@@ -382,7 +378,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                                   outcome(Individual_driver);
                                 })
                                 .catch((error) => {
-                                  console.log(error);
+                                  logger.info(error);
                                   resolve({
                                     response: "error",
                                     flag: "Invalid_params_maybe",
@@ -390,7 +386,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                                 });
                             })
                             .catch((error) => {
-                              console.log(error);
+                              logger.info(error);
                               resolve({
                                 response: "error",
                                 flag: "Invalid_params_maybe",
@@ -398,7 +394,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                             });
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           resolve({
                             response: "error",
                             flag: "Invalid_params_maybe",
@@ -406,7 +402,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                         });
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       resolve({
                         response: "error",
                         flag: "Invalid_params_maybe",
@@ -424,17 +420,17 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                   //resolve(result)
                 },
                 (error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({ response: "error", flag: "Invalid_params_maybe" });
                 }
               );
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
             });
         });
       } else {
-        console.log("NO CACHE FOUND FOR DRIVERS LIST");
+        logger.info("NO CACHE FOUND FOR DRIVERS LIST");
         //* Direct request to Mongo, Then save result
         DriversCollection.find({})
           .toArray()
@@ -517,7 +513,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                                 outcome(Individual_driver);
                               })
                               .catch((error) => {
-                                console.log(error);
+                                logger.info(error);
                                 resolve({
                                   response: "error",
                                   flag: "Invalid_params_maybe",
@@ -525,7 +521,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                               });
                           })
                           .catch((error) => {
-                            console.log(error);
+                            logger.info(error);
                             resolve({
                               response: "error",
                               flag: "Invalid_params_maybe",
@@ -533,7 +529,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                           });
                       })
                       .catch((error) => {
-                        console.log(error);
+                        logger.info(error);
                         resolve({
                           response: "error",
                           flag: "Invalid_params_maybe",
@@ -541,7 +537,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                       });
                   })
                   .catch((error) => {
-                    console.log(error);
+                    logger.info(error);
                     resolve({
                       response: "error",
                       flag: "Invalid_params_maybe",
@@ -559,13 +555,13 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                 resolve(result);
               },
               (error) => {
-                console.log(error);
+                logger.info(error);
                 resolve({ response: "error", flag: "Invalid_params_maybe" });
               }
             );
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
           });
       }
     } else {
@@ -651,7 +647,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                               outcome(Individual_driver);
                             })
                             .catch((error) => {
-                              console.log(error);
+                              logger.info(error);
                               resolve({
                                 response: "error",
                                 flag: "Invalid_params_maybe",
@@ -659,7 +655,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                             });
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           resolve({
                             response: "error",
                             flag: "Invalid_params_maybe",
@@ -667,7 +663,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                         });
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       resolve({
                         response: "error",
                         flag: "Invalid_params_maybe",
@@ -675,7 +671,7 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
                     });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({ response: "error", flag: "Invalid_params_maybe" });
                 });
             });
@@ -690,13 +686,13 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
               resolve(result);
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
               resolve({ response: "error", flag: "Invalid_params_maybe" });
             }
           );
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
         });
     }
   });
@@ -713,7 +709,7 @@ function GenerateUnique(paymentNumbersList, resolve) {
     randomGen = Math.floor(Math.random() * 1000000 + 1);
 
     if (paymentNumbersList.includes(randomGen)) {
-      console.log(`********************** ${random} is taken *************`);
+      logger.info(`********************** ${random} is taken *************`);
       GenerateUnique(array, resolve);
     } else {
       resolve(randomGen);
@@ -745,30 +741,30 @@ function CreatePaymentNumber(collectionDrivers_profiles, resolve) {
 
       Promise.all(driversNumber)
         .then((result) => {
-          console.log("Getting payment numbers...");
+          logger.info("Getting payment numbers...");
 
           new Promise((res) => {
             GenerateUnique(result, res);
           }).then(
             (generated) => {
-              console.log(`Generated number: ${generated}`);
+              logger.info(`Generated number: ${generated}`);
               // return the generated number as a string
               resolve(generated.toString());
             },
             (error) => {
-              console.log(error);
+              logger.info(error);
               resolve({ message: "error occured during generation" });
             }
           );
           //resolve(result)
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           resolve({ message: "error occured before generation" });
         });
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({ message: "error occured in createPaymentNUmber func" });
     });
 }
@@ -825,7 +821,7 @@ function InsertcashPayment(
             );
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             resolve({ error: "Seems like wrong parameters @db query" });
           });
       } else {
@@ -833,7 +829,7 @@ function InsertcashPayment(
       }
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({ error: "Seems like wrong parameters" });
     });
 }
@@ -853,7 +849,7 @@ function uploadFile(
   fileName,
   resolve
 ) {
-  console.log("UPLOADING FILE TO AWS S3 BUCKET");
+  logger.info("UPLOADING FILE TO AWS S3 BUCKET");
   // Setting up S3 upload parameters
   const params = {
     Bucket: `${BUCKET_NAME_DRIVER}/${subdir}`,
@@ -865,10 +861,10 @@ function uploadFile(
   // Uploading files to the bucket
   s3.upload(params, function (err, data) {
     if (err) {
-      console.log(err);
+      logger.info(err);
       resolve({ error: "File upload to s3 bucket failed" });
     } else {
-      console.log(`${params.Key} successfully uploaded @ ${data.Location}`);
+      logger.info(`${params.Key} successfully uploaded @ ${data.Location}`);
       resolve({ success: "File upload to s3 bucket successful" });
     }
   });
@@ -885,7 +881,7 @@ function getCancelledRidesDriverEvent(
   logger.info(" Runnig getCancelledRidesDriverEvent function");
   redisCluster.get("cancelled-rides-by-driver", (err, reply) => {
     if (err) {
-      console.log(err);
+      logger.info(err);
       logger.info("An error occured at redis level");
       //*Direct request to database, Then save in redis the output
       collectionGlobalEvents
@@ -974,7 +970,7 @@ function getCancelledRidesDriverEvent(
                             });
                           })
                           .catch((error) => {
-                            console.log(error);
+                            logger.info(error);
                             resolve({
                               success: false,
                               error:
@@ -983,7 +979,7 @@ function getCancelledRidesDriverEvent(
                           });
                       })
                       .catch((error) => {
-                        console.log(error);
+                        logger.info(error);
                         resolve({
                           success: false,
                           error: "Failed @getAllCancelled rides function level",
@@ -1062,7 +1058,7 @@ function getCancelledRidesDriverEvent(
                                 });
                               })
                               .catch((error) => {
-                                console.log(error);
+                                logger.info(error);
                                 resolve({
                                   success: false,
                                   error:
@@ -1071,7 +1067,7 @@ function getCancelledRidesDriverEvent(
                               });
                           })
                           .catch((error) => {
-                            console.log(error);
+                            logger.info(error);
                             resolve({
                               success: false,
                               error:
@@ -1089,7 +1085,7 @@ function getCancelledRidesDriverEvent(
                   }
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({
                     success: false,
                     error: "Failed @getAllCancelled rides function level",
@@ -1218,7 +1214,7 @@ function getCancelledRidesDriverEvent(
                                 });
                               })
                               .catch((error) => {
-                                console.log(error);
+                                logger.info(error);
                                 resolve({
                                   success: false,
                                   error:
@@ -1227,7 +1223,7 @@ function getCancelledRidesDriverEvent(
                               });
                           })
                           .catch((error) => {
-                            console.log(error);
+                            logger.info(error);
                             resolve({
                               success: false,
                               error:
@@ -1309,7 +1305,7 @@ function getCancelledRidesDriverEvent(
                                     });
                                   })
                                   .catch((error) => {
-                                    console.log(error);
+                                    logger.info(error);
                                     resolve({
                                       success: false,
                                       error:
@@ -1318,7 +1314,7 @@ function getCancelledRidesDriverEvent(
                                   });
                               })
                               .catch((error) => {
-                                console.log(error);
+                                logger.info(error);
                                 resolve({
                                   success: false,
                                   error:
@@ -1337,7 +1333,7 @@ function getCancelledRidesDriverEvent(
                       }
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       resolve({
                         success: false,
                         error: "Failed @getAllCancelled rides function level",
@@ -1459,7 +1455,7 @@ function getCancelledRidesDriverEvent(
                               });
                             })
                             .catch((error) => {
-                              console.log(error);
+                              logger.info(error);
                               resolve({
                                 success: false,
                                 error:
@@ -1468,7 +1464,7 @@ function getCancelledRidesDriverEvent(
                             });
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           resolve({
                             success: false,
                             error:
@@ -1548,7 +1544,7 @@ function getCancelledRidesDriverEvent(
                                   });
                                 })
                                 .catch((error) => {
-                                  console.log(error);
+                                  logger.info(error);
                                   resolve({
                                     success: false,
                                     error:
@@ -1557,7 +1553,7 @@ function getCancelledRidesDriverEvent(
                                 });
                             })
                             .catch((error) => {
-                              console.log(error);
+                              logger.info(error);
                               resolve({
                                 success: false,
                                 error:
@@ -1576,7 +1572,7 @@ function getCancelledRidesDriverEvent(
                     }
                   })
                   .catch((error) => {
-                    console.log(error);
+                    logger.info(error);
                     resolve({
                       success: false,
                       error: "Failed @getAllCancelled rides function level",
@@ -1697,7 +1693,7 @@ function getCancelledRidesDriverEvent(
                             });
                           })
                           .catch((error) => {
-                            console.log(error);
+                            logger.info(error);
                             resolve({
                               success: false,
                               error:
@@ -1706,7 +1702,7 @@ function getCancelledRidesDriverEvent(
                           });
                       })
                       .catch((error) => {
-                        console.log(error);
+                        logger.info(error);
                         resolve({
                           success: false,
                           error: "Failed @getAllCancelled rides function level",
@@ -1785,7 +1781,7 @@ function getCancelledRidesDriverEvent(
                                 });
                               })
                               .catch((error) => {
-                                console.log(error);
+                                logger.info(error);
                                 resolve({
                                   success: false,
                                   error:
@@ -1794,7 +1790,7 @@ function getCancelledRidesDriverEvent(
                               });
                           })
                           .catch((error) => {
-                            console.log(error);
+                            logger.info(error);
                             resolve({
                               success: false,
                               error:
@@ -1812,7 +1808,7 @@ function getCancelledRidesDriverEvent(
                   }
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   resolve({
                     success: false,
                     error: "Failed @getAllCancelled rides function level",
@@ -1864,9 +1860,9 @@ MongoClient.connect(
       },
   function (err, clientMongo) {
     if (err) {
-      console.log(err);
+      logger.info(err);
     }
-    console.log("Successful connection to Database");
+    logger.info("Successful connection to Database");
 
     const dbMongo = clientMongo.db(process.env.DB_NAME);
     const collectionDrivers_profiles = dbMongo.collection("drivers_profiles");
@@ -1892,9 +1888,9 @@ MongoClient.connect(
     collectionDrivers_profiles.find({}).toArray()
     .then((result) => {
         driverDataList = result
-        console.log(driverDataList)
+        logger.info(driverDataList)
     }).catch((error) => {
-        console.log(error)
+        logger.info(error)
     }) */
 
     /**
@@ -1902,7 +1898,7 @@ MongoClient.connect(
      */
 
     app.get("/socket-test", (req, res) => {
-      console.log("Socket test API called at driver service ");
+      logger.info("Socket test API called at driver service ");
 
       res.json({ success: true, failure: false });
     });
@@ -1911,7 +1907,7 @@ MongoClient.connect(
      * API responsible to return drivers list
      */
     app.get("/driver-data", (req, res) => {
-      console.log("Driver's Data API called");
+      logger.info("Driver's Data API called");
       let response = res;
       new Promise((res) => {
         getDriversInfo(
@@ -1923,11 +1919,11 @@ MongoClient.connect(
         .then((result) => {
           let driverDataList = result;
 
-          //console.log(result)
+          //logger.info(result)
           response.json(driverDataList);
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           response.json({
             error:
               "something went wrong. Maybe no connection or wrong parameters",
@@ -1960,8 +1956,8 @@ MongoClient.connect(
           .then((result) => {
             // Verify returned object from InsertCashPayment
             if (!result.error) {
-              console.log("-------------DONE-----------------------");
-              console.log(result);
+              logger.info("-------------DONE-----------------------");
+              logger.info(result);
               res.json({ success: "SUCCESSFUL INSERTION" });
             } else {
               res
@@ -1970,7 +1966,7 @@ MongoClient.connect(
             }
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             res.status(500).send({ error: "Something went wrong" });
           });
       } else if (query_paymentNumber) {
@@ -1985,8 +1981,8 @@ MongoClient.connect(
         })
           .then((result) => {
             if (!result.error) {
-              console.log("-------------DONE-----------------------");
-              console.log(result);
+              logger.info("-------------DONE-----------------------");
+              logger.info(result);
               res.json({ success: "SUCCESSFUL INSERTION" });
             } else {
               res
@@ -1995,7 +1991,7 @@ MongoClient.connect(
             }
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             res.status(500).send({ error: "Something went wrong" });
           });
       } else {
@@ -2005,7 +2001,7 @@ MongoClient.connect(
 
     //* Driver Commission payment
     app.post("/driver-commission-payment", (req, res) => {
-      console.log("DRIVER-COMMISSION-PAYMENT API CALLED");
+      logger.info("DRIVER-COMMISSION-PAYMENT API CALLED");
 
       new Promise((res) => {
         utils.MakePaymentCommissionTCSubtracted(
@@ -2031,10 +2027,10 @@ MongoClient.connect(
                 `http:172.31.16.195:9696/getDrivers_walletInfosDeep?user_fingerprint=${req.body.driver_fingerprint}&transactionData=true&avoidCached_data=true`
               )
               .then((data) => {
-                console.log(data.data);
+                logger.info(data.data);
               })
               .catch((error) => {
-                console.log(error);
+                logger.info(error);
               });
           })
             .then((res) => {
@@ -2051,7 +2047,7 @@ MongoClient.connect(
             .send({ success: `Payment inserted of ${req.body.amount}` });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res
             .status(500)
             .send({ error: "Oops! something went wrong at server" });
@@ -2064,14 +2060,14 @@ MongoClient.connect(
             return res.status(400).json({ msg: 'No file uploaded'})
         }*/
 
-      //console.log(req.files)
-      console.log(
+      //logger.info(req.files)
+      logger.info(
         "------------------------------------------------------------"
       );
-      console.log(
+      logger.info(
         "------------------------------------------------------------"
       );
-      console.log(req.body);
+      logger.info(req.body);
       //! Files: (Temporarily removed)
       /*const profile_picture = req.files.profile_picture
         const driver_licence_doc = req.files.driver_licence_doc
@@ -2082,9 +2078,9 @@ MongoClient.connect(
         const taxi_picture = req.files.taxi_picture */
 
       if (req.body.delivery_provider.length === 0) {
-        console.log("No delivery provider");
+        logger.info("No delivery provider");
       } else {
-        console.log("Delivery provider present");
+        logger.info("Delivery provider present");
       }
 
       /*
@@ -2093,7 +2089,7 @@ MongoClient.connect(
         profile_picture.mv(path.join(__dirname,
             `./uploads/${profile_picture.name}`), err => {  //mv move method on file object
             if (err) {
-                console.error(err) 
+                logger.error(err) 
                 return res.status(500).send(err)
             } else {
                 savedFiles.driver_licence_doc = "Profile picture"
@@ -2103,7 +2099,7 @@ MongoClient.connect(
         driver_licence_doc.mv(path.join(__dirname,
             `./uploads/${driver_licence_doc.name}`), err => {  //mv move method on file object
             if (err) {
-                console.error(err) 
+                logger.error(err) 
                 return res.status(500).send(err)
             } else {
                 savedFiles.driver_licence_doc = "Driver licence"
@@ -2113,7 +2109,7 @@ MongoClient.connect(
         copy_id_paper.mv(path.join(__dirname,
             `./uploads/${copy_id_paper.name}`), err => {  //mv move method on file object
             if (err) {
-                console.error(err)
+                logger.error(err)
                 return res.status(500).send(err)
             } else {
                 savedFiles.copy_id_paper = "Copy ID paper"
@@ -2122,7 +2118,7 @@ MongoClient.connect(
         copy_white_paper.mv(path.join(__dirname,
             `./uploads/${copy_white_paper.name}`), err => {  //mv move method on file object
             if (err) {
-                console.error(err)
+                logger.error(err)
                 return res.status(500).send(err)
             } else {
                 savedFiles.copy_white_paper = "Copy white paper"
@@ -2131,7 +2127,7 @@ MongoClient.connect(
         copy_public_permit.mv(path.join(__dirname,
             `./uploads/${copy_public_permit.name}`), err => {  //mv move method on file object
             if (err) {
-                console.error(err)
+                logger.error(err)
                 return res.status(500).send(err)
             } else {
                 savedFiles.copy_public_permit = "Copy public permit"
@@ -2140,7 +2136,7 @@ MongoClient.connect(
         copy_blue_paper.mv(path.join(__dirname,
             `./uploads/${copy_blue_paper.name}`), err => {  //mv move method on file object
             if (err) {
-                console.error(err)
+                logger.error(err)
                 return res.status(500).send(err)
             } else {
                 savedFiles.copy_blue_paper = "Copy blue paper"
@@ -2149,7 +2145,7 @@ MongoClient.connect(
         taxi_picture.mv(path.join(__dirname,
             `./uploads/${taxi_picture.name}`), err => {  //mv move method on file object
             if (err) {
-                console.error(err)
+                logger.error(err)
                 return res.status(500).send(err)
             } else {
                 savedFiles.taxi_picture = "Taxi picture"
@@ -2276,11 +2272,11 @@ MongoClient.connect(
             driver,
             function (err, response) {
               if (err) {
-                console.log(err);
+                logger.info(err);
                 res.send({ error: "Something went wrong, wrong params maybe" });
               }
 
-              console.log(
+              logger.info(
                 "*************   New Driver Registered   ********************"
               );
               res.send({ success: "successful registration" });
@@ -2288,7 +2284,7 @@ MongoClient.connect(
           );
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res.send({ error: "Something went wrong, wrong params maybe" });
         });
     });
@@ -2298,7 +2294,7 @@ MongoClient.connect(
      */
 
     app.post("/update-driver-info", (req, res) => {
-      console.log("UPDATE DRIVER INFORMATION API CALLED");
+      logger.info("UPDATE DRIVER INFORMATION API CALLED");
 
       const driverFingerPrint = req.body.driverFingerPrint;
       const old_taxi_number = req.body.old_taxi_number;
@@ -2338,7 +2334,7 @@ MongoClient.connect(
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res.status(500).send({
             error: "Failed to update driver info data @database level",
           });
@@ -2398,14 +2394,14 @@ MongoClient.connect(
               }
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               res.status(500).send({
                 error: "The taxi picture file was not uploaded to s3 bucket",
               });
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res
             .status(500)
             .send({ error: "Failed to update data @promise level" });
@@ -2462,14 +2458,14 @@ MongoClient.connect(
               }
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               res.status(500).send({
                 error: "The profile picture file was not uploaded to s3 bucket",
               });
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res.status(500).send({
             error: "Failed to update data @promise level profile picture",
           });
@@ -2527,7 +2523,7 @@ MongoClient.connect(
               }
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               res.status(500).send({
                 error:
                   "The driver licence document file was not uploaded to s3 bucket",
@@ -2535,7 +2531,7 @@ MongoClient.connect(
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res.status(500).send({
             error: "Failed to update data @promise level driver licence",
           });
@@ -2592,7 +2588,7 @@ MongoClient.connect(
               }
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               res.status(500).send({
                 error:
                   "The ID paper document file was not uploaded to s3 bucket",
@@ -2600,7 +2596,7 @@ MongoClient.connect(
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res
             .status(500)
             .send({ error: "Failed to update data @promise level ID paper" });
@@ -2658,7 +2654,7 @@ MongoClient.connect(
               }
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               res.status(500).send({
                 error:
                   "The White paper document file was not uploaded to s3 bucket",
@@ -2666,7 +2662,7 @@ MongoClient.connect(
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res.status(500).send({
             error: "Failed to update data @promise level White paper",
           });
@@ -2724,7 +2720,7 @@ MongoClient.connect(
               }
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               res.status(500).send({
                 error:
                   "The Public permit document file was not uploaded to s3 bucket",
@@ -2732,7 +2728,7 @@ MongoClient.connect(
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res.status(500).send({
             error: "Failed to update data @promise level White paper",
           });
@@ -2790,7 +2786,7 @@ MongoClient.connect(
               }
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               res.status(500).send({
                 error:
                   "The Blue paper document file was not uploaded to s3 bucket",
@@ -2798,7 +2794,7 @@ MongoClient.connect(
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res
             .status(500)
             .send({ error: "Failed to update data @promise level Blue paper" });
@@ -2828,7 +2824,7 @@ MongoClient.connect(
           res.status(200).json({ success: true, data: result });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
         });
     });
 
@@ -2865,7 +2861,7 @@ MongoClient.connect(
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res
             .status(500)
             .send({ error: "Failed to suspend driver @database level" });
@@ -2901,7 +2897,7 @@ MongoClient.connect(
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           res
             .status(500)
             .send({ error: "Failed to unsuspend driver @database level" });
@@ -3089,7 +3085,7 @@ app.get("/test", (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Driver server up and running @ port ${PORT} `);
+  logger.info(`Driver server up and running @ port ${PORT} `);
 });
 
 /*

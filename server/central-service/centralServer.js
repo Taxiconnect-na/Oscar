@@ -1,6 +1,7 @@
 require("newrelic");
 const path = require("path");
 require("dotenv").config({ path: __dirname + "/./../.env" });
+const { logger } = require("../LogService");
 
 const express = require("express");
 const app = express();
@@ -110,16 +111,16 @@ function progressScheduledCompleted(arrayData, resolve) {
     let convertToday = new Date(startOfToday.setHours(0, 0, 0, 0))
       .addHours(2)
       .toISOString();
-    /*console.log(current.date_time)
-        console.log(startOfToday)
+    /*logger.info(current.date_time)
+        logger.info(startOfToday)
         
-        console.log(`today start: ${convertToday}`)
-        console.log(`received date: ${current.date_time}`) */
+        logger.info(`today start: ${convertToday}`)
+        logger.info(`received date: ${current.date_time}`) */
     let today = new Date(current.date_time) > new Date(convertToday);
-    console.log(`Date comparison result: ${today}`);
+    logger.info(`Date comparison result: ${today}`);
     return today && current.isArrivedToDestination;
   });
-  console.log(completed_today);
+  logger.info(completed_today);
 
   Promise.all([
     //let progressMoney = GetCashWallet(scheduled)
@@ -149,12 +150,12 @@ function progressScheduledCompleted(arrayData, resolve) {
       Object.scheduled = scheduled.length;
       Object.completed = completed.length;
       Object.completed_today = completed_today.length;
-      console.log("------------------------------");
-      //console.log(arrayData)
+      logger.info("------------------------------");
+      //logger.info(arrayData)
       resolve(Object);
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({
         response: "error",
         flag: "Possibly invalid input parameters",
@@ -170,7 +171,7 @@ function MyFormData(file_value, fingerprint, resolve) {
   formData.append("taxi_picture", file_value);
   formData.append("fingerprint", fingerprint);
 
-  console.log(formData);
+  logger.info(formData);
 
   resolve(formData);
 }
@@ -198,15 +199,15 @@ function rideIdForm(id, resolve) {
 
 io.on("connection", (socket) => {
   // Confirm a connection
-  console.log("New client connection");
+  logger.info("New client connection");
 
   // statistics event listener
   socket.on("statistics", function (data) {
-    console.log("event caught from client -> ", data);
+    logger.info("event caught from client -> ", data);
     axios
       .get(`${process.env.LOCAL_URL}:${process.env.STATS_ROOT}/statistics`)
       .then((feedback) => {
-        //console.log(feedback.data.totalFareSuccessful)
+        //logger.info(feedback.data.totalFareSuccessful)
 
         let statistics = {
           totalFareSuccessful: feedback.data.totalFareSuccessful,
@@ -223,27 +224,27 @@ io.on("connection", (socket) => {
           totalWallet: feedback.data.totalWallet,
         };
 
-        //console.log(statistics)
+        //logger.info(statistics)
 
         //response.json(statistics)
         socket.emit("statistics-response", statistics);
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
       });
   });
 
   // Get rides (in progress and completed)
   socket.on("getRideOverview", function (data) {
     if (data !== undefined && data != null) {
-      console.log(`getRideOverview emitted: ${data}`);
+      logger.info(`getRideOverview emitted: ${data}`);
       axios
         .get(`${process.env.LOCAL_URL}:${process.env.STATS_ROOT}/ride-overview`)
         .then((feedback) => {
           let rideOverview = feedback.data;
 
-          console.log("===================RIDES=============================");
-          //console.log(feedback.data)
+          logger.info("===================RIDES=============================");
+          //logger.info(feedback.data)
 
           socket.emit("getRideOverview-response", rideOverview);
 
@@ -252,15 +253,15 @@ io.on("connection", (socket) => {
             progressScheduledCompleted(feedback.data, res);
           })
             .then((future) => {
-              //console.log(future)
+              //logger.info(future)
               socket.emit("getRideOverview-response-scatter", future);
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
         });
     }
   });
@@ -268,13 +269,13 @@ io.on("connection", (socket) => {
   // Get rides and deliveries count for today
   socket.on("get-trips-in-progress-count", (data) => {
     if (data !== undefined && data != null) {
-      console.log("====== Getting trips in progress count======");
+      logger.info("====== Getting trips in progress count======");
       axios
         .get(
           `${process.env.LOCAL_URL}:${process.env.STATS_ROOT}/inprogress-ride-delivery-count-today`
         )
         .then((feedback) => {
-          console.log(feedback.data);
+          logger.info(feedback.data);
           socket.emit("get-trips-in-progress-count-feedback", {
             todayRidesProgressCount: feedback.data.ride_in_progress_count_today,
             todayDeliveryProgressCount:
@@ -282,7 +283,7 @@ io.on("connection", (socket) => {
           });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           socket.emit("get-trips-in-progress-count-feedback", { error: true });
         });
     }
@@ -291,14 +292,14 @@ io.on("connection", (socket) => {
   // Get Deliveries (in progress and completed)
   socket.on("getDeliveryOverview", function (data) {
     if (data !== undefined && data != null) {
-      console.log(`getDeliveryOverview emitted: ${data}`);
+      logger.info(`getDeliveryOverview emitted: ${data}`);
       axios
         .get(
           `${process.env.LOCAL_URL}:${process.env.STATS_ROOT}/delivery-overview`
         )
         .then((feedback) => {
           let deliveryOverview = feedback.data;
-          //console.log(feedback.data)
+          //logger.info(feedback.data)
 
           socket.emit("getDeliveryOverview-response", deliveryOverview);
 
@@ -307,15 +308,15 @@ io.on("connection", (socket) => {
             progressScheduledCompleted(feedback.data, res);
           })
             .then((future) => {
-              //console.log(future)
+              //logger.info(future)
               socket.emit("getDeliveryOverview-response-scatter", future);
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
         });
     }
   });
@@ -323,7 +324,7 @@ io.on("connection", (socket) => {
   // Get delivery provider's data
   socket.on("getPartnerData", function (data) {
     if (data !== undefined && data != null) {
-      console.log(`getPartnerData emitted with credentials: ${data}`);
+      logger.info(`getPartnerData emitted with credentials: ${data}`);
       try {
         axios
           .get(
@@ -331,7 +332,7 @@ io.on("connection", (socket) => {
           )
           .then(
             (feedback) => {
-              //console.log(feedback.data)
+              //logger.info(feedback.data)
 
               let partnerData = {
                 drivers: feedback.data.drivers_list,
@@ -343,12 +344,12 @@ io.on("connection", (socket) => {
               socket.emit("getPartnerData-response", partnerData);
             },
             (error) => {
-              console.log(`Exited with error code: ${error.response.status}`);
+              logger.info(`Exited with error code: ${error.response.status}`);
               socket.emit("getPartnerData-response", error.response.status);
             }
           );
       } catch (error) {
-        console.log(error);
+        logger.info(error);
       }
     }
   });
@@ -356,8 +357,8 @@ io.on("connection", (socket) => {
   // Authenticate owner:
   socket.on("authenticate", function (data) {
     if (data !== undefined && data !== null) {
-      console.log("Authenticating...");
-      //console.log(data)
+      logger.info("Authenticating...");
+      //logger.info(data)
 
       try {
         axios
@@ -366,16 +367,16 @@ io.on("connection", (socket) => {
             data
           )
           .then((feedback) => {
-            //console.log(feedback.data)
+            //logger.info(feedback.data)
 
             socket.emit("authenticate-response", feedback.data);
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             socket.emit("authenticate-response", feedback.data);
           });
       } catch (error) {
-        console.log(error);
+        logger.info(error);
         socket.emit("authenticate-response", feedback.data);
       }
     }
@@ -384,8 +385,8 @@ io.on("connection", (socket) => {
   // Authenticate admin user:
   socket.on("authenticate-internal-admin", function (data) {
     if (data !== undefined && data !== null) {
-      console.log("Authenticating admin user...");
-      //console.log(data)
+      logger.info("Authenticating admin user...");
+      //logger.info(data)
 
       try {
         axios
@@ -394,7 +395,7 @@ io.on("connection", (socket) => {
             data
           )
           .then((feedback) => {
-            console.log(feedback.data);
+            logger.info(feedback.data);
 
             socket.emit("authenticate-internal-admin-response", feedback.data);
           })
@@ -402,10 +403,10 @@ io.on("connection", (socket) => {
             socket.emit("authenticate-internal-admin-response", {
               error: true,
             });
-            console.log(error);
+            logger.info(error);
           });
       } catch (error) {
-        console.log(error);
+        logger.info(error);
         socket.emit("authenticate-internal-admin-response", { error: true });
       }
     }
@@ -419,8 +420,8 @@ io.on("connection", (socket) => {
 
   socket.on("registerDriver", function (data) {
     if (data !== undefined && data !== null) {
-      console.log(data);
-      console.log(
+      logger.info(data);
+      logger.info(
         "======================================================================"
       );
 
@@ -430,7 +431,7 @@ io.on("connection", (socket) => {
           data
         )
         .then((feedback) => {
-          console.log(feedback.data);
+          logger.info(feedback.data);
 
           // Return the server's response data to client (Gateway)
           let registration_response = new Object(feedback.data);
@@ -448,7 +449,7 @@ io.on("connection", (socket) => {
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           socket.emit("registerDriver-response", {
             success: false,
             failure: true,
@@ -459,17 +460,17 @@ io.on("connection", (socket) => {
 
   // upload file
   socket.on("upload-taxi-picture", function (data) {
-    console.log(data);
+    logger.info(data);
     try {
       if (data !== undefined && data !== null) {
-        console.log(
+        logger.info(
           "==========================================================================="
         );
-        console.log();
-        console.log(
+        logger.info();
+        logger.info(
           "==========================================================================="
         );
-        console.log(data);
+        logger.info(data);
 
         const my_object = {
           //taxi_picture: data.taxi_picture.toString("base64"),
@@ -478,7 +479,7 @@ io.on("connection", (socket) => {
           taxi_picture_name: data.taxi_picture_name,
         };
 
-        console.log(my_object);
+        logger.info(my_object);
 
         axios
           .post(
@@ -486,27 +487,27 @@ io.on("connection", (socket) => {
             my_object
           )
           .then((feedback) => {
-            console.log(feedback.data);
+            logger.info(feedback.data);
             // Return the server's response data to client
             if (feedback.data.success) {
-              console.log("successful file upload");
+              logger.info("successful file upload");
               socket.emit("upload-taxi-picture-response", { success: true });
             } else if (feedback.data.error) {
-              console.log("something went wrong during update of ride --");
+              logger.info("something went wrong during update of ride --");
               socket.emit("upload-taxi-picture-response", {
                 failure: "failed to upload files",
               });
             }
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             socket.emit("upload-taxi-picture-response", {
               failure: "failed to upload files",
             });
           });
       }
     } catch (error) {
-      console.log(error);
+      logger.info(error);
     }
 
     //! Handled undefined and null data below with else
@@ -515,7 +516,7 @@ io.on("connection", (socket) => {
   //Make Driver payment
   socket.on("makeDriverPayment", (data) => {
     if (data !== undefined && data !== null) {
-      console.log("Attempting to make payment...");
+      logger.info("Attempting to make payment...");
 
       new Promise((res) => {
         driverPaymentForm(
@@ -539,32 +540,32 @@ io.on("connection", (socket) => {
               }
             )
             .then((feedback) => {
-              console.log(feedback.data);
+              logger.info(feedback.data);
               // Return the server's response data to client
               socket.emit("makeDriverPayment-response", feedback.data);
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               socket.emit("makeDriverPayment-response", {
                 error: "An error occured while posting data",
               });
             });
         })
         .catch((error) => {
-          console.log(
+          logger.info(
             "********An error occured while attempting to make Driver payment @central****"
           );
           socket.emit("makeDriverPayment-response", {
             error: "An error occured while posting data",
           });
-          console.log(error);
+          logger.info(error);
         });
     }
   });
 
   // Get the driver list:
   socket.on("getDrivers", function (data) {
-    console.log(`getDriver event from client ${data}`);
+    logger.info(`getDriver event from client ${data}`);
     axios
       .get(`${process.env.LOCAL_URL}:${process.env.DRIVER_ROOT}/driver-data`)
       .then((feedback) => {
@@ -573,18 +574,18 @@ io.on("connection", (socket) => {
         socket.emit("getDrivers-response", driverList);
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
       });
   });
 
   socket.on("getDriversWithCommission", function (data) {
-    console.log(data);
+    logger.info(data);
 
     axios
       .get(`${process.env.LOCAL_URL}:${process.env.DRIVER_ROOT}/driver-data`)
       .then((feedback) => {
         let driverList = new Object(feedback.data);
-        console.log(
+        logger.info(
           `NUMBER OF DRIVERS FOUND FROM DRIVER API: ${driverList.length}`
         );
 
@@ -596,7 +597,7 @@ io.on("connection", (socket) => {
                 `http://172.31.16.195:9696/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`
               )
               .then((data) => {
-                console.log(data.data);
+                logger.info(data.data);
 
                 future({
                   name: driver.name,
@@ -617,7 +618,7 @@ io.on("connection", (socket) => {
                 });
               })
               .catch((error) => {
-                console.log(error);
+                logger.info(error);
                 socket.emit("getDriversWithCommission-response", {
                   error: "something went wrong 1",
                 });
@@ -641,14 +642,14 @@ io.on("connection", (socket) => {
             );
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             socket.emit("getDriversWithCommission-response", {
               error: "something went wrong 2",
             });
           });
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
         socket.emit("getDriversWithCommission-response", {
           error: "something went wrong 3",
         });
@@ -663,7 +664,7 @@ io.on("connection", (socket) => {
 
   // Get the passenger list
   socket.on("getPassengers", function (data) {
-    console.log("Requesting passengers: ", data);
+    logger.info("Requesting passengers: ", data);
     axios
       .get(
         `${process.env.LOCAL_URL}:${process.env.PASSENGER_ROOT}/passenger-data`
@@ -674,13 +675,13 @@ io.on("connection", (socket) => {
         socket.emit("getPassengers-feedback", passengerList);
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
       });
   });
 
   // Get cancelled rides by passenger
   socket.on("getCancelledRides-passenger", function (data) {
-    console.log("Requesting cancelled rides by passenger ");
+    logger.info("Requesting cancelled rides by passenger ");
     axios
       .get(
         `${process.env.LOCAL_URL}:${process.env.PASSENGER_ROOT}/cancelled-ride-passenger`
@@ -699,14 +700,14 @@ io.on("connection", (socket) => {
         }
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
         socket.emit("getCancelledRides-passenger-feedback", { error: true });
       });
   });
 
   // Get cancelled rides by driver
   socket.on("getCancelledRides-drivers", function (data) {
-    console.log("Requesting cancelled rides by passenger ");
+    logger.info("Requesting cancelled rides by passenger ");
     axios
       .get(
         `${process.env.LOCAL_URL}:${process.env.DRIVER_ROOT}/cancelled-rides-driver`
@@ -723,14 +724,14 @@ io.on("connection", (socket) => {
       })
       .catch((error) => {
         z;
-        console.log(error);
+        logger.info(error);
         socket.emit("getCancelledRides-drivers-feedback", { success: false });
       });
   });
 
   // Get cancelled deliveries by passenger
   socket.on("getCancelledDeliveries-passenger", function (data) {
-    console.log("Requesting cancelled rides by passenger ");
+    logger.info("Requesting cancelled rides by passenger ");
     axios
       .get(
         `${process.env.LOCAL_URL}:${process.env.PASSENGER_ROOT}/cancelled-deliveries-passenger`
@@ -751,7 +752,7 @@ io.on("connection", (socket) => {
         }
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
         socket.emit("getCancelledDeliveries-passenger-feedback", {
           error: true,
         });
@@ -760,13 +761,13 @@ io.on("connection", (socket) => {
 
   // Confirm ride
   socket.on("ConfirmRide", function (data) {
-    console.log(
+    logger.info(
       `***********************confirming ride with fingerprint: ${data.request_fp} ***********************`
     );
-    console.log(
+    logger.info(
       "********************************************************************************************"
     );
-    console.log(data);
+    logger.info(data);
     if (data !== undefined && data !== null) {
       axios
         .post(
@@ -774,18 +775,18 @@ io.on("connection", (socket) => {
           data
         )
         .then((feedback) => {
-          console.log(feedback.data);
+          logger.info(feedback.data);
           // Return the server's response data to client
           if (feedback.data.success) {
-            console.log("successful ride update");
+            logger.info("successful ride update");
             socket.emit("ConfirmRide-feedback", { success: true });
           } else if (feedback.data.error) {
-            console.log("something went wrong during update of ride --");
+            logger.info("something went wrong during update of ride --");
             socket.emit("ConfirmRide-feedback", { success: false });
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           socket.emit("ConfirmRide-feedback", { success: false });
         });
     }
@@ -800,18 +801,18 @@ io.on("connection", (socket) => {
           data
         )
         .then((feedback) => {
-          console.log(feedback.data);
+          logger.info(feedback.data);
           // Return the server's response data to client
           if (feedback.data.success) {
-            console.log("successful trip cancellation");
+            logger.info("successful trip cancellation");
             socket.emit("CancellTrip-feedback", { success: true });
           } else if (feedback.data.error) {
-            console.log("something went wrong while cancelling trip--");
+            logger.info("something went wrong while cancelling trip--");
             socket.emit("CancellTrip-feedback", { success: false });
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           socket.emit("CancellTrip-feedback", { success: false });
         });
     } else if (data !== undefined && data !== null) {
@@ -828,7 +829,7 @@ io.on("connection", (socket) => {
   // Socket getting rides visualisation data (monthly-counts)
   socket.on("get-rides-count-vis", (data) => {
     if (data !== undefined && data !== null) {
-      console.log("Attempting to get rides counts visualization data");
+      logger.info("Attempting to get rides counts visualization data");
 
       axios
         .get(
@@ -836,7 +837,7 @@ io.on("connection", (socket) => {
         )
         .then((feedback) => {
           let response = new Object(feedback.data);
-          console.log(response);
+          logger.info(response);
           if (response.error) {
             socket.emit("get-rides-count-vis-feedback", {
               error: true,
@@ -847,7 +848,7 @@ io.on("connection", (socket) => {
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           socket.emit("get-rides-count-vis-feedback", {
             error: true,
             empty: false,
@@ -859,7 +860,7 @@ io.on("connection", (socket) => {
   // Socket getting rides visualisation data (monthly-sales)
   socket.on("get-rides-grossSales-vis", (data) => {
     if (data !== undefined && data !== null) {
-      console.log("Attempting to get monthly gross sales visualization data");
+      logger.info("Attempting to get monthly gross sales visualization data");
 
       axios
         .get(
@@ -867,7 +868,7 @@ io.on("connection", (socket) => {
         )
         .then((feedback) => {
           let response = new Object(feedback.data);
-          console.log(response);
+          logger.info(response);
           if (response.error) {
             socket.emit("get-rides-grossSales-vis-feedback", {
               error: true,
@@ -878,7 +879,7 @@ io.on("connection", (socket) => {
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           socket.emit("get-rides-grossSales-vis-feedback", {
             error: true,
             empty: false,
@@ -890,7 +891,7 @@ io.on("connection", (socket) => {
   // Getting commission: total monthly commission fares
   socket.on("get-rides-revenues-vis", (data) => {
     if (data !== undefined && data !== null) {
-      console.log("Attempting to get monthly gross sales visualization data");
+      logger.info("Attempting to get monthly gross sales visualization data");
 
       axios
         .get(
@@ -898,7 +899,7 @@ io.on("connection", (socket) => {
         )
         .then((feedback) => {
           let response = new Object(feedback.data);
-          console.log(response);
+          logger.info(response);
           if (response.error) {
             socket.emit("get-rides-revenues-vis-feedback", {
               error: true,
@@ -909,7 +910,7 @@ io.on("connection", (socket) => {
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           socket.emit("get-rides-revenues-vis-feedback", {
             error: true,
             empty: false,
@@ -921,7 +922,7 @@ io.on("connection", (socket) => {
   // Get monthly connect type counts
   socket.on("get-monthly-connect-type-vis", (data) => {
     if (data !== undefined && data !== null) {
-      console.log("Attempting to get monthly gross sales visualization data");
+      logger.info("Attempting to get monthly gross sales visualization data");
 
       axios
         .get(
@@ -929,7 +930,7 @@ io.on("connection", (socket) => {
         )
         .then((feedback) => {
           let response = new Object(feedback.data);
-          console.log(response);
+          logger.info(response);
           if (response.error) {
             socket.emit("get-monthly-connect-type-vis-feedback", {
               error: true,
@@ -940,7 +941,7 @@ io.on("connection", (socket) => {
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           socket.emit("get-monthly-connect-type-vis-feedback", {
             error: true,
             empty: false,
@@ -952,7 +953,7 @@ io.on("connection", (socket) => {
   // Get monthly connect type counts
   socket.on("get-monthly-payment-method-count-vis", (data) => {
     if (data !== undefined && data !== null) {
-      console.log("Attempting to get monthly gross sales visualization data");
+      logger.info("Attempting to get monthly gross sales visualization data");
 
       axios
         .get(
@@ -960,7 +961,7 @@ io.on("connection", (socket) => {
         )
         .then((feedback) => {
           let response = new Object(feedback.data);
-          console.log(response);
+          logger.info(response);
           if (response.error) {
             socket.emit("get-monthly-payment-method-count-vis-feedback", {
               error: true,
@@ -974,7 +975,7 @@ io.on("connection", (socket) => {
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           socket.emit("get-monthly-payment-method-count-vis-feedback", {
             error: true,
             empty: false,
@@ -986,7 +987,7 @@ io.on("connection", (socket) => {
   // Get Detailed monthly rides
   socket.on("get-monthly-per-day-rides-data", (data) => {
     if (data !== undefined && data !== null) {
-      console.log(
+      logger.info(
         `Attempting to get detailed monthly per day rides data with ${data.year} ${data.monthNumber}`
       );
 
@@ -996,7 +997,7 @@ io.on("connection", (socket) => {
         )
         .then((feedback) => {
           let response = new Object(feedback.data);
-          console.log(response);
+          logger.info(response);
           if (response.error) {
             socket.emit("get-monthly-per-day-rides-data-feedback", {
               error: true,
@@ -1007,7 +1008,7 @@ io.on("connection", (socket) => {
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           socket.emit("get-monthly-per-day-rides-data-feedback", {
             error: true,
             empty: false,
@@ -1022,13 +1023,13 @@ io.on("connection", (socket) => {
   // Socket test event
   socket.on("socket-test", (data) => {
     if (data !== undefined && data !== null) {
-      console.log("socket test in progress");
+      logger.info("socket test in progress");
 
       axios
         .get(`${process.env.LOCAL_URL}:${process.env.DRIVER_ROOT}/socket-test`)
         .then((feedback) => {
           let response = new Object(feedback.data);
-          console.log(response);
+          logger.info(response);
           if (response.success) {
             setTimeout(() => {
               //socket.emit("socket-test-response", response)
@@ -1047,7 +1048,7 @@ io.on("connection", (socket) => {
           }
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           socket.emit("socket-test-response", {
             failure: true,
             success: false,
@@ -1088,7 +1089,7 @@ app.post("/update-driver-info", async (req, res) => {
     body: JSON.stringify(information),
   };
 
-  console.log(information);
+  logger.info(information);
 
   try {
     const data = await fetch(
@@ -1098,14 +1099,14 @@ app.post("/update-driver-info", async (req, res) => {
     const feedback = await data.json();
 
     if (feedback.success) {
-      console.log("successful file upload");
+      logger.info("successful file upload");
       res.send({ success: true });
     } else if (feedback.error) {
-      console.log("something went wrong during update of ride --");
+      logger.info("something went wrong during update of ride --");
       res.send({ failure: "failed to upload files" });
     }
   } catch (error) {
-    console.log(error);
+    logger.info(error);
     res.send({ failure: "failed to upload files" });
   }
 });
@@ -1126,7 +1127,7 @@ app.post("/file", (req, res) => {
     },
     body: JSON.stringify(my_object),
   };
-  console.log(my_object.fingerprint);
+  logger.info(my_object.fingerprint);
   // Send request to driver server:
   try {
     fetch(
@@ -1135,22 +1136,22 @@ app.post("/file", (req, res) => {
     )
       .then((response) => response.json())
       .then((feedback) => {
-        console.log(feedback);
+        logger.info(feedback);
         // Return the server's response data to client
         if (feedback.success) {
-          console.log("successful file upload");
+          logger.info("successful file upload");
           res.send({ success: true });
         } else if (feedback.error) {
-          console.log("something went wrong during update of ride --");
+          logger.info("something went wrong during update of ride --");
           res.send({ failure: "failed to upload files" });
         }
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
         res.send({ failure: "failed to upload files" });
       });
   } catch (error) {
-    console.log(error);
+    logger.info(error);
     res.send({ failure: "failed to upload files" });
   }
 });
@@ -1170,7 +1171,7 @@ app.post("/profile-picture", (req, res) => {
     },
     body: JSON.stringify(my_object),
   };
-  console.log(my_object.fingerprint);
+  logger.info(my_object.fingerprint);
   // Send request to driver server:
   try {
     fetch(
@@ -1179,22 +1180,22 @@ app.post("/profile-picture", (req, res) => {
     )
       .then((response) => response.json())
       .then((feedback) => {
-        console.log(feedback);
+        logger.info(feedback);
         // Return the server's response data to client
         if (feedback.success) {
-          console.log("successful file upload");
+          logger.info("successful file upload");
           res.send({ success: true });
         } else if (feedback.error) {
-          console.log("something went wrong during update of profile file --");
+          logger.info("something went wrong during update of profile file --");
           res.send({ failure: "failed to upload files" });
         }
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
         res.send({ failure: "failed to upload files" });
       });
   } catch (error) {
-    console.log(error);
+    logger.info(error);
     res.send({ failure: "failed to upload files" });
   }
 });
@@ -1213,7 +1214,7 @@ app.post("/driver-licence", (req, res) => {
     },
     body: JSON.stringify(my_object),
   };
-  console.log(my_object.fingerprint);
+  logger.info(my_object.fingerprint);
   // Send request to driver server:
   try {
     fetch(
@@ -1222,24 +1223,24 @@ app.post("/driver-licence", (req, res) => {
     )
       .then((response) => response.json())
       .then((feedback) => {
-        console.log(feedback);
+        logger.info(feedback);
         // Return the server's response data to client
         if (feedback.success) {
-          console.log("successful file upload");
+          logger.info("successful file upload");
           res.send({ success: true });
         } else if (feedback.error) {
-          console.log(
+          logger.info(
             "something went wrong during update of driver licence file --"
           );
           res.send({ failure: "failed to upload files" });
         }
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
         res.send({ failure: "failed to upload files" });
       });
   } catch (error) {
-    console.log(error);
+    logger.info(error);
     res.send({ failure: "failed to upload files" });
   }
 });
@@ -1258,7 +1259,7 @@ app.post("/id-paper", (req, res) => {
     },
     body: JSON.stringify(my_object),
   };
-  console.log(my_object);
+  logger.info(my_object);
   // Send request to driver server:
   try {
     fetch(
@@ -1267,24 +1268,24 @@ app.post("/id-paper", (req, res) => {
     )
       .then((response) => response.json())
       .then((feedback) => {
-        console.log(feedback);
+        logger.info(feedback);
         // Return the server's response data to client
         if (feedback.success) {
-          console.log("successful file upload");
+          logger.info("successful file upload");
           res.send({ success: true });
         } else if (feedback.error) {
-          console.log(
+          logger.info(
             "something went wrong during update of id paper file @driver-service--"
           );
           res.send({ failure: "failed to upload files" });
         }
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
         res.send({ failure: "failed to upload files" });
       });
   } catch (error) {
-    console.log(error);
+    logger.info(error);
     res.send({ failure: "failed to upload files" });
   }
 });
@@ -1303,7 +1304,7 @@ app.post("/white-paper", (req, res) => {
     },
     body: JSON.stringify(my_object),
   };
-  console.log(my_object.fingerprint);
+  logger.info(my_object.fingerprint);
   // Send request to driver server:
   try {
     fetch(
@@ -1312,24 +1313,24 @@ app.post("/white-paper", (req, res) => {
     )
       .then((response) => response.json())
       .then((feedback) => {
-        console.log(feedback);
+        logger.info(feedback);
         // Return the server's response data to client
         if (feedback.success) {
-          console.log("successful file upload");
+          logger.info("successful file upload");
           res.send({ success: true });
         } else if (feedback.error) {
-          console.log(
+          logger.info(
             "something went wrong during update of white paper file --"
           );
           res.send({ failure: "failed to upload files" });
         }
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
         res.send({ failure: "failed to upload files" });
       });
   } catch (error) {
-    console.log(error);
+    logger.info(error);
     res.send({ failure: "failed to upload files" });
   }
 });
@@ -1348,7 +1349,7 @@ app.post("/public-permit", (req, res) => {
     },
     body: JSON.stringify(my_object),
   };
-  console.log(my_object);
+  logger.info(my_object);
   // Send request to driver server:
   try {
     fetch(
@@ -1357,24 +1358,24 @@ app.post("/public-permit", (req, res) => {
     )
       .then((response) => response.json())
       .then((feedback) => {
-        console.log(feedback);
+        logger.info(feedback);
         // Return the server's response data to client
         if (feedback.success) {
-          console.log("successful file upload");
+          logger.info("successful file upload");
           res.send({ success: true });
         } else if (feedback.error) {
-          console.log(
+          logger.info(
             "something went wrong during update of public permit file --"
           );
           res.send({ failure: "failed to upload files" });
         }
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
         res.send({ failure: "failed to upload files" });
       });
   } catch (error) {
-    console.log(error);
+    logger.info(error);
     res.send({ failure: "failed to upload files" });
   }
 });
@@ -1393,7 +1394,7 @@ app.post("/blue-paper", (req, res) => {
     },
     body: JSON.stringify(my_object),
   };
-  console.log(my_object.fingerprint);
+  logger.info(my_object.fingerprint);
   // Send request to driver server:
   try {
     fetch(
@@ -1402,36 +1403,36 @@ app.post("/blue-paper", (req, res) => {
     )
       .then((response) => response.json())
       .then((feedback) => {
-        console.log(feedback);
+        logger.info(feedback);
         // Return the server's response data to client
         if (feedback.success) {
-          console.log("successful file upload");
+          logger.info("successful file upload");
           res.send({ success: true });
         } else if (feedback.error) {
-          console.log(
+          logger.info(
             "something went wrong during update of blue paper file --"
           );
           res.send({ failure: "failed to upload files" });
         }
       })
       .catch((error) => {
-        console.log(error);
+        logger.info(error);
         res.send({ failure: "failed to upload files" });
       });
   } catch (error) {
-    console.log(error);
+    logger.info(error);
     res.send({ failure: "failed to upload files" });
   }
 });
 
 app.post("/driver-commission-payment", (req, res) => {
-  console.log("DRIVER DATA COMMISION @CENTRAL");
+  logger.info("DRIVER DATA COMMISION @CENTRAL");
 
   const my_object = {
     driver_fingerprint: req.body.driver_fingerprint,
     amount: Number(req.body.amount),
   };
-  console.log(my_object);
+  logger.info(my_object);
   // Set post request parameters
   const options = {
     method: "POST",
@@ -1447,7 +1448,7 @@ app.post("/driver-commission-payment", (req, res) => {
   )
     .then((response) => response.json())
     .then((feedback) => {
-      console.log(feedback);
+      logger.info(feedback);
       if (feedback.error) {
         res.send({
           error: " Something went wrong @commission payment @central",
@@ -1458,7 +1459,7 @@ app.post("/driver-commission-payment", (req, res) => {
         .send({ success: "successful commission payment was made" });
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       res.send({ error: " Something went wrong @commission payment @central" });
     });
 });
@@ -1500,13 +1501,13 @@ function FilterYearRideTypePaymentMethod(
       return ride.transaction_nature === transaction_nature;
     });
 
-    console.log(filtered_rides.length);
+    logger.info(filtered_rides.length);
 
     let year2021_filtered = filtered_rides.filter((ride) => {
       return new Date(ride.rawDate_made).getFullYear().toString() === year;
     });
 
-    console.log(year2021_filtered.length);
+    logger.info(year2021_filtered.length);
 
     let payment_method_filtered = year2021_filtered.filter((ride) => {
       return ride.payment_method === payment_method;
@@ -1514,7 +1515,7 @@ function FilterYearRideTypePaymentMethod(
 
     resolve(payment_method_filtered);
   }).catch((error) => {
-    console.log(error);
+    logger.info(error);
     reject({ error: true });
   });
 }
@@ -1572,22 +1573,22 @@ function getMonthName(number) {
 
 app.post("/view-earnings", (req, res) => {
   //172.31.20.41
-  console.log(req.body.driverFingerPrint);
+  logger.info(req.body.driverFingerPrint);
   axios
     .get(
       `http://172.31.20.41:9696/getDrivers_walletInfosDeep?user_fingerprint=${req.body.driverFingerPrint}&transactionData=true`
     )
     //.then(response => response.json())
     .then((data) => {
-      console.log("Attempting ========>");
-      //console.log(data.data)
+      logger.info("Attempting ========>");
+      //logger.info(data.data)
       FilterYearRideTypePaymentMethod(
         data.data.transactions_data,
         "RIDE",
         "2021",
         "CASH"
       ).then((result) => {
-        //console.log(result.length)
+        //logger.info(result.length)
 
         let newObject = result.map((trans) => {
           return new Promise((resolve) => {
@@ -1596,7 +1597,7 @@ app.post("/view-earnings", (req, res) => {
               month: (new Date(trans.rawDate_made).getMonth() + 1).toString(),
             });
           }).catch((error) => {
-            console.log(error);
+            logger.info(error);
             //resolve({error: "somthing fishy"})
             res.send({ error: "could not process" });
           });
@@ -1604,12 +1605,12 @@ app.post("/view-earnings", (req, res) => {
 
         Promise.all(newObject)
           .then((result) => {
-            //console.log(result)
-            console.log("========================================");
+            //logger.info(result)
+            logger.info("========================================");
             let grouped = result.groupBy("month");
 
             let groupedArranged = grouped.map((category) => {
-              //console.log(category)
+              //logger.info(category)
 
               return new Promise((resolve) => {
                 // Compute sum of the groupList part
@@ -1627,7 +1628,7 @@ app.post("/view-earnings", (req, res) => {
 
             Promise.all(groupedArranged)
               .then((outcome1) => {
-                console.log(outcome1);
+                logger.info(outcome1);
                 let cashEarning = { cash: outcome1.reverse() };
                 //res.send(outcome)
                 //!!===================================================TO BE FACTORED AS FUNCTION
@@ -1637,10 +1638,10 @@ app.post("/view-earnings", (req, res) => {
                   "2021",
                   "WALLET"
                 ).then((result5) => {
-                  //console.log(result.length)
-                  console.log("=======================");
-                  console.log(result5);
-                  console.log("=======================");
+                  //logger.info(result.length)
+                  logger.info("=======================");
+                  logger.info(result5);
+                  logger.info("=======================");
                   let newObject2 = result5.map((trans2) => {
                     return new Promise((resolve) => {
                       resolve({
@@ -1650,7 +1651,7 @@ app.post("/view-earnings", (req, res) => {
                         ).toString(),
                       });
                     }).catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       //resolve({error: "somthing fishy"})
                       res.send({ error: "could not process" });
                     });
@@ -1658,12 +1659,12 @@ app.post("/view-earnings", (req, res) => {
 
                   Promise.all(newObject2)
                     .then((result2) => {
-                      //console.log(result)
-                      console.log("========================================");
+                      //logger.info(result)
+                      logger.info("========================================");
                       let grouped2 = result2.groupBy("month");
 
                       let groupedArranged2 = grouped2.map((category2) => {
-                        //console.log(category)
+                        //logger.info(category)
 
                         return new Promise((resolve) => {
                           // Compute sum of the groupList part
@@ -1686,12 +1687,12 @@ app.post("/view-earnings", (req, res) => {
                           res.send({ ...cashEarning, ...walletEarning });
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           res.send({ error: "could not process" });
                         });
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       res.send({ error: "could not process" });
                     });
                 });
@@ -1699,18 +1700,18 @@ app.post("/view-earnings", (req, res) => {
                 // !!============================================
               })
               .catch((error) => {
-                console.log(error);
+                logger.info(error);
                 res.send({ error: "could not process" });
               });
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             res.send({ error: "could not process" });
           });
       });
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
     });
 });
 
@@ -1719,7 +1720,7 @@ app.get("/test", (req, res) => {
 });
 
 server.listen(process.env.CENTRAL_PORT, () => {
-  console.log(
+  logger.info(
     `Central server up and running at port ${process.env.CENTRAL_PORT}!!`
   );
 });

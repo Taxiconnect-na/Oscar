@@ -1,6 +1,7 @@
 require("newrelic");
 const path = require("path");
 require("dotenv").config({ path: __dirname + "/./../.env" });
+const { logger } = require("../LogService");
 
 //* Import my modules
 const utils = require("./utils");
@@ -43,7 +44,7 @@ var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
 //! Error handling redis Error
 redisCluster.on("error", function (er) {
   console.trace("Plot server connection to redis failed ");
-  console.error(er.stack);
+  logger.error(er.stack);
 });
 
 const http = require("http");
@@ -139,14 +140,14 @@ function GeneralPlottingData(
   filteringQuery,
   fire
 ) {
-  console.log("General plotting data function running");
+  logger.info("General plotting data function running");
 
   redisCluster.get("general-plotting-data", (err, reply) => {
     if (err) {
-      console.log(
+      logger.info(
         " ERROR OCCURED @REDIS-CLIENT_GET, NO CACHE FOUND, Getting data from DB"
       );
-      console.log(err);
+      logger.info(err);
       //*Direct request to database, Then save in redis the output
       collectionRidesDeliveryData
         .find(filteringQuery)
@@ -185,15 +186,15 @@ function GeneralPlottingData(
                 ride_state: "successful",
               });
             }).catch((error) => {
-              console.log(error);
+              logger.info(error);
               fire({ error: "Failed to get general plotting data" });
             });
           });
           //Collect all promises and return final array of objects
           Promise.all(allObjects)
             .then((result1) => {
-              console.log(`General plotting data count: ${result1.length}`);
-              //console.log(result1)
+              logger.info(`General plotting data count: ${result1.length}`);
+              //logger.info(result1)
               //fire(result)
               collectionRidesDeliveryDataCancelled
                 .find({})
@@ -256,17 +257,17 @@ function GeneralPlottingData(
                         });
                       }
                     }).catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       fire({ error: "Failed to get general plotting data" });
                     });
                   });
                   //Collect all promises and return final array of objects
                   Promise.all(allObjectsCancelled)
                     .then((result2) => {
-                      console.log(
+                      logger.info(
                         `General plotting data count cancelled: ${result2.length}`
                       );
-                      // console.log(result2)
+                      // logger.info(result2)
                       //* Saving output into redis
                       redisCluster.setex(
                         "general-plotting-data",
@@ -278,28 +279,28 @@ function GeneralPlottingData(
                       fire(result1.concat(result2));
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       fire({ error: "Failed to get general plotting data" });
                     });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   fire({ error: "Failed to get general plotting data" });
                 });
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               fire({ error: "Failed to get general plotting data" });
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           fire({ error: "Failed to get general plotting data" });
         });
     } else if (reply) {
       if (reply !== null) {
-        console.log("FOUND GENERAL VISUALIZATION DATA @REDIS");
-        console.log(reply);
+        logger.info("FOUND GENERAL VISUALIZATION DATA @REDIS");
+        logger.info(reply);
         //* Resolve found result
         fire(JSON.parse(reply));
 
@@ -343,15 +344,15 @@ function GeneralPlottingData(
                     ride_state: "successful",
                   });
                 }).catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   fire({ error: "Failed to get general plotting data" });
                 });
               });
               //Collect all promises and return final array of objects
               Promise.all(allObjects)
                 .then((result1) => {
-                  console.log(`General plotting data count: ${result1.length}`);
-                  //console.log(result1)
+                  logger.info(`General plotting data count: ${result1.length}`);
+                  //logger.info(result1)
                   //fire(result)
                   collectionRidesDeliveryDataCancelled
                     .find({})
@@ -424,7 +425,7 @@ function GeneralPlottingData(
                             });
                           }
                         }).catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           fire({
                             error: "Failed to get general plotting data",
                           });
@@ -433,10 +434,10 @@ function GeneralPlottingData(
                       //Collect all promises and return final array of objects
                       Promise.all(allObjectsCancelled)
                         .then((result2) => {
-                          console.log(
+                          logger.info(
                             `General plotting data count cancelled: ${result2.length}`
                           );
-                          // console.log(result2)
+                          // logger.info(result2)
                           //* Saving output into redis
                           redisCluster.setex(
                             "general-plotting-data",
@@ -448,28 +449,28 @@ function GeneralPlottingData(
                           //! No return as cached had been returned fire(result1.concat(result2))
                         })
                         .catch((error) => {
-                          console.log(error);
+                          logger.info(error);
                           fire({
                             error: "Failed to get general plotting data",
                           });
                         });
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       fire({ error: "Failed to get general plotting data" });
                     });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   fire({ error: "Failed to get general plotting data" });
                 });
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               fire({ error: "Failed to get general plotting data" });
             });
         }).catch((error) => {
-          console.log(error);
+          logger.info(error);
           fire({
             error:
               "Failed to get general plotting data, error in background redis update",
@@ -478,7 +479,7 @@ function GeneralPlottingData(
       } else {
         //* Direct request to Mongo, Then save result
         //*Direct request to database, Then save in redis the output
-        console.log(" NULL REPLY RETURNED FROM REDIS");
+        logger.info(" NULL REPLY RETURNED FROM REDIS");
 
         collectionRidesDeliveryData
           .find(filteringQuery)
@@ -517,15 +518,15 @@ function GeneralPlottingData(
                   ride_state: "successful",
                 });
               }).catch((error) => {
-                console.log(error);
+                logger.info(error);
                 fire({ error: "Failed to get general plotting data" });
               });
             });
             //Collect all promises and return final array of objects
             Promise.all(allObjects)
               .then((result1) => {
-                console.log(`General plotting data count: ${result1.length}`);
-                //console.log(result1)
+                logger.info(`General plotting data count: ${result1.length}`);
+                //logger.info(result1)
                 //fire(result)
                 collectionRidesDeliveryDataCancelled
                   .find({})
@@ -588,17 +589,17 @@ function GeneralPlottingData(
                           });
                         }
                       }).catch((error) => {
-                        console.log(error);
+                        logger.info(error);
                         fire({ error: "Failed to get general plotting data" });
                       });
                     });
                     //Collect all promises and return final array of objects
                     Promise.all(allObjectsCancelled)
                       .then((result2) => {
-                        console.log(
+                        logger.info(
                           `General plotting data count cancelled: ${result2.length}`
                         );
-                        // console.log(result2)
+                        // logger.info(result2)
                         //* Saving output into redis
                         redisCluster.setex(
                           "general-plotting-data",
@@ -610,22 +611,22 @@ function GeneralPlottingData(
                         fire(result1.concat(result2));
                       })
                       .catch((error) => {
-                        console.log(error);
+                        logger.info(error);
                         fire({ error: "Failed to get general plotting data" });
                       });
                   })
                   .catch((error) => {
-                    console.log(error);
+                    logger.info(error);
                     fire({ error: "Failed to get general plotting data" });
                   });
               })
               .catch((error) => {
-                console.log(error);
+                logger.info(error);
                 fire({ error: "Failed to get general plotting data" });
               });
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             fire({ error: "Failed to get general plotting data" });
           });
       }
@@ -633,7 +634,7 @@ function GeneralPlottingData(
       //*Direct request to database, Then save in redis the output
 
       //*Direct request to database, Then save in redis the output
-      console.log(" NO CACHE FOUND AT REDIS");
+      logger.info(" NO CACHE FOUND AT REDIS");
 
       collectionRidesDeliveryData
         .find(filteringQuery)
@@ -672,15 +673,15 @@ function GeneralPlottingData(
                 ride_state: "successful",
               });
             }).catch((error) => {
-              console.log(error);
+              logger.info(error);
               fire({ error: "Failed to get general plotting data" });
             });
           });
           //Collect all promises and return final array of objects
           Promise.all(allObjects)
             .then((result1) => {
-              console.log(`General plotting data count: ${result1.length}`);
-              //console.log(result1)
+              logger.info(`General plotting data count: ${result1.length}`);
+              //logger.info(result1)
               //fire(result)
               collectionRidesDeliveryDataCancelled
                 .find({})
@@ -743,17 +744,17 @@ function GeneralPlottingData(
                         });
                       }
                     }).catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       fire({ error: "Failed to get general plotting data" });
                     });
                   });
                   //Collect all promises and return final array of objects
                   Promise.all(allObjectsCancelled)
                     .then((result2) => {
-                      console.log(
+                      logger.info(
                         `General plotting data count cancelled: ${result2.length}`
                       );
-                      // console.log(result2)
+                      // logger.info(result2)
                       //* Saving output into redis
                       redisCluster.setex(
                         "general-plotting-data",
@@ -765,22 +766,22 @@ function GeneralPlottingData(
                       fire(result1.concat(result2));
                     })
                     .catch((error) => {
-                      console.log(error);
+                      logger.info(error);
                       fire({ error: "Failed to get general plotting data" });
                     });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   fire({ error: "Failed to get general plotting data" });
                 });
             })
             .catch((error) => {
-              console.log(error);
+              logger.info(error);
               fire({ error: "Failed to get general plotting data" });
             });
         })
         .catch((error) => {
-          console.log(error);
+          logger.info(error);
           fire({ error: "Failed to get general plotting data" });
         });
     }
@@ -797,7 +798,7 @@ function GeneralPlottingData(
  */
 function MonthlyDataCount(dataToGroup, filteringYear, resolve) {
   let sorted = dataToGroup.groupBy("yearMonth");
-  //console.log(sorted)
+  //logger.info(sorted)
   let sortedList = sorted.map((category) => {
     //return a promise for each object to be added to the list
     return new Promise((output) => {
@@ -806,7 +807,7 @@ function MonthlyDataCount(dataToGroup, filteringYear, resolve) {
       // Initialise internal data Object
       let internalData = {};
       let internalList = success_cancelled_group.map((internalCategory) => {
-        //console.log(internalCategory)
+        //logger.info(internalCategory)
         return internalCategory;
       });
 
@@ -818,18 +819,18 @@ function MonthlyDataCount(dataToGroup, filteringYear, resolve) {
       );
 
       if (cancelledObjectInternal) {
-        console.log(`cancelled: ${cancelledObjectInternal.groupList.length}`);
+        logger.info(`cancelled: ${cancelledObjectInternal.groupList.length}`);
         internalData.cancelled = cancelledObjectInternal.groupList.length;
       } else if (!cancelledObjectInternal) {
-        console.log("no cancelled object here");
+        logger.info("no cancelled object here");
         internalData.cancelled = 0;
       }
 
       if (successfulObjectInternal) {
-        console.log(`successful: ${successfulObjectInternal.groupList.length}`);
+        logger.info(`successful: ${successfulObjectInternal.groupList.length}`);
         internalData.successful = successfulObjectInternal.groupList.length;
       } else if (!successfulObjectInternal) {
-        console.log("No successful object here");
+        logger.info("No successful object here");
         internalData.successful = 0;
       }
 
@@ -839,7 +840,7 @@ function MonthlyDataCount(dataToGroup, filteringYear, resolve) {
         cancelled: internalData.cancelled,
       });
     }).catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({ error: "Failed to return the monthly list of data" });
     });
   });
@@ -854,7 +855,7 @@ function MonthlyDataCount(dataToGroup, filteringYear, resolve) {
       resolve(yearFilteredArray);
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({ error: "Failed to return the monthly list of data" });
     });
 }
@@ -901,7 +902,7 @@ function SumFareFieldCommission(object, commissionPercentage) {
  */
 function MonthlyDataFare(dataToGroup, filteringYear, resolve) {
   let sorted = dataToGroup.groupBy("yearMonth");
-  //console.log(sorted)
+  //logger.info(sorted)
   let sortedList = sorted.map((category) => {
     //return a promise for each object to be added to the list
     return new Promise((output) => {
@@ -910,7 +911,7 @@ function MonthlyDataFare(dataToGroup, filteringYear, resolve) {
       // Initialise internal data Object
       let internalData = {};
       let internalList = success_cancelled_group.map((internalCategory) => {
-        //console.log(internalCategory)
+        //logger.info(internalCategory)
         return internalCategory;
       });
 
@@ -922,22 +923,22 @@ function MonthlyDataFare(dataToGroup, filteringYear, resolve) {
       );
 
       if (cancelledObjectInternal) {
-        console.log(`cancelled: ${cancelledObjectInternal.groupList.length}`);
+        logger.info(`cancelled: ${cancelledObjectInternal.groupList.length}`);
         internalData.cancelled = SumFareField(
           cancelledObjectInternal.groupList
         );
       } else if (!cancelledObjectInternal) {
-        console.log("no cancelled object here");
+        logger.info("no cancelled object here");
         internalData.cancelled = 0;
       }
 
       if (successfulObjectInternal) {
-        console.log(`successful: ${successfulObjectInternal.groupList.length}`);
+        logger.info(`successful: ${successfulObjectInternal.groupList.length}`);
         internalData.successful = SumFareField(
           successfulObjectInternal.groupList
         );
       } else if (!successfulObjectInternal) {
-        console.log("No successful object here");
+        logger.info("No successful object here");
         internalData.successful = 0;
       }
 
@@ -947,7 +948,7 @@ function MonthlyDataFare(dataToGroup, filteringYear, resolve) {
         cancelled: internalData.cancelled,
       });
     }).catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({ error: "Failed to return the monthly list of data" });
     });
   });
@@ -962,7 +963,7 @@ function MonthlyDataFare(dataToGroup, filteringYear, resolve) {
       resolve(yearFilteredArray);
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({ error: "Failed to return the monthly list of data" });
     });
 }
@@ -982,7 +983,7 @@ function MonthlyDataFareCommission(
   resolve
 ) {
   let sorted = dataToGroup.groupBy("yearMonth");
-  //console.log(sorted)
+  //logger.info(sorted)
   let sortedList = sorted.map((category) => {
     //return a promise for each object to be added to the list
     return new Promise((output) => {
@@ -991,7 +992,7 @@ function MonthlyDataFareCommission(
       // Initialise internal data Object
       let internalData = {};
       let internalList = success_cancelled_group.map((internalCategory) => {
-        //console.log(internalCategory)
+        //logger.info(internalCategory)
         return internalCategory;
       });
 
@@ -1003,24 +1004,24 @@ function MonthlyDataFareCommission(
       );
 
       if (cancelledObjectInternal) {
-        console.log(`cancelled: ${cancelledObjectInternal.groupList.length}`);
+        logger.info(`cancelled: ${cancelledObjectInternal.groupList.length}`);
         internalData.cancelled = SumFareFieldCommission(
           cancelledObjectInternal.groupList,
           commissionPercentage
         );
       } else if (!cancelledObjectInternal) {
-        console.log("no cancelled object here");
+        logger.info("no cancelled object here");
         internalData.cancelled = 0;
       }
 
       if (successfulObjectInternal) {
-        console.log(`successful: ${successfulObjectInternal.groupList.length}`);
+        logger.info(`successful: ${successfulObjectInternal.groupList.length}`);
         internalData.successful = SumFareFieldCommission(
           successfulObjectInternal.groupList,
           commissionPercentage
         );
       } else if (!successfulObjectInternal) {
-        console.log("No successful object here");
+        logger.info("No successful object here");
         internalData.successful = 0;
       }
 
@@ -1030,7 +1031,7 @@ function MonthlyDataFareCommission(
         cancelled: internalData.cancelled,
       });
     }).catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({ error: "Failed to return the monthly list of data" });
     });
   });
@@ -1045,7 +1046,7 @@ function MonthlyDataFareCommission(
       resolve(yearFilteredArray);
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({ error: "Failed to return the monthly list of data" });
     });
 }
@@ -1056,7 +1057,7 @@ function MonthlyDataFareCommission(
 
 function MonthlyDataCountConnectType(dataToGroup, filteringYear, resolve) {
   let sorted = dataToGroup.groupBy("yearMonth");
-  //console.log(sorted)
+  //logger.info(sorted)
   let sortedList = sorted.map((category) => {
     //return a promise for each object to be added to the list
     return new Promise((output) => {
@@ -1064,11 +1065,11 @@ function MonthlyDataCountConnectType(dataToGroup, filteringYear, resolve) {
       let connect_type_groups = category.groupList.groupBy("connect_type");
       let internalData = {};
       let internalList = connect_type_groups.map((internalCategory) => {
-        //console.log(internalCategory)
+        //logger.info(internalCategory)
         return internalCategory;
       });
-      //console.log(internalList.find((each) => each.field === "cancelled"))
-      //console.log(internalList.find((each) => each.field === "successful"))
+      //logger.info(internalList.find((each) => each.field === "cancelled"))
+      //logger.info(internalList.find((each) => each.field === "successful"))
 
       let connectMeObjectInternal = internalList.find(
         (each) => each.field === "ConnectMe"
@@ -1078,18 +1079,18 @@ function MonthlyDataCountConnectType(dataToGroup, filteringYear, resolve) {
       );
 
       if (connectMeObjectInternal) {
-        console.log(`connectMe: ${connectMeObjectInternal.groupList.length}`);
+        logger.info(`connectMe: ${connectMeObjectInternal.groupList.length}`);
         internalData.ConnectMe = connectMeObjectInternal.groupList.length;
       } else if (!connectMeObjectInternal) {
-        console.log("no connectMe object here");
+        logger.info("no connectMe object here");
         internalData.ConnectMe = 0;
       }
 
       if (connectUsObjectInternal) {
-        console.log(`connectUs: ${connectUsObjectInternal.groupList.length}`);
+        logger.info(`connectUs: ${connectUsObjectInternal.groupList.length}`);
         internalData.ConnectUs = connectUsObjectInternal.groupList.length;
       } else if (!connectUsObjectInternal) {
-        console.log("No successful object @ connect Us");
+        logger.info("No successful object @ connect Us");
         internalData.ConnectUs = 0;
       }
 
@@ -1099,7 +1100,7 @@ function MonthlyDataCountConnectType(dataToGroup, filteringYear, resolve) {
         ConnectUs: internalData.ConnectUs,
       });
     }).catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({
         error: "Failed to return the monthly list of data for connect Type",
       });
@@ -1116,7 +1117,7 @@ function MonthlyDataCountConnectType(dataToGroup, filteringYear, resolve) {
       resolve(yearFilteredArray);
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({
         error: "Failed to return the monthly list of data for connect Type",
       });
@@ -1136,7 +1137,7 @@ function MonthlyDataCountConnectType(dataToGroup, filteringYear, resolve) {
 
 function MonthlyDataCountPaymentMethod(dataToGroup, filteringYear, resolve) {
   let sorted = dataToGroup.groupBy("yearMonth");
-  //console.log(sorted)
+  //logger.info(sorted)
   let sortedList = sorted.map((category) => {
     //return a promise for each object to be added to the list
     return new Promise((output) => {
@@ -1144,11 +1145,11 @@ function MonthlyDataCountPaymentMethod(dataToGroup, filteringYear, resolve) {
       let payment_method_groups = category.groupList.groupBy("payment_method");
       let internalData = {};
       let internalList = payment_method_groups.map((internalCategory) => {
-        //console.log(internalCategory)
+        //logger.info(internalCategory)
         return internalCategory;
       });
-      //console.log(internalList.find((each) => each.field === "cancelled"))
-      //console.log(internalList.find((each) => each.field === "successful"))
+      //logger.info(internalList.find((each) => each.field === "cancelled"))
+      //logger.info(internalList.find((each) => each.field === "successful"))
 
       let CASHObjectInternal = internalList.find(
         (each) => each.field === "CASH"
@@ -1158,18 +1159,18 @@ function MonthlyDataCountPaymentMethod(dataToGroup, filteringYear, resolve) {
       );
 
       if (CASHObjectInternal) {
-        console.log(`connectMe: ${CASHObjectInternal.groupList.length}`);
+        logger.info(`connectMe: ${CASHObjectInternal.groupList.length}`);
         internalData.CASH = CASHObjectInternal.groupList.length;
       } else if (!CASHObjectInternal) {
-        console.log("No successful object @ CASH");
+        logger.info("No successful object @ CASH");
         internalData.CASH = 0;
       }
 
       if (WALLETObjectInternal) {
-        console.log(`Wallet: ${WALLETObjectInternal.groupList.length}`);
+        logger.info(`Wallet: ${WALLETObjectInternal.groupList.length}`);
         internalData.WALLET = WALLETObjectInternal.groupList.length;
       } else if (!WALLETObjectInternal) {
-        console.log("No successful object @ WALLET");
+        logger.info("No successful object @ WALLET");
         internalData.WALLET = 0;
       }
 
@@ -1179,7 +1180,7 @@ function MonthlyDataCountPaymentMethod(dataToGroup, filteringYear, resolve) {
         WALLET: internalData.WALLET,
       });
     }).catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({
         error: "Failed to return the monthly list of data for payment method",
       });
@@ -1196,7 +1197,7 @@ function MonthlyDataCountPaymentMethod(dataToGroup, filteringYear, resolve) {
       resolve(yearFilteredArray);
     })
     .catch((error) => {
-      console.log(error);
+      logger.info(error);
       resolve({
         error: "Failed to return the monthly list of data for PAYMENT METHOD",
       });
@@ -1217,9 +1218,9 @@ MongoClient.connect(
       },
   function (err, clientMongo) {
     if (err) {
-      console.log(`Error occured: ${err}`);
+      logger.info(`Error occured: ${err}`);
     } else {
-      console.log("Successful connection to Database @Plot-server");
+      logger.info("Successful connection to Database @Plot-server");
 
       const dbMongo = clientMongo.db(dbName);
       const collectionPassengers_profiles = dbMongo.collection(
@@ -1234,7 +1235,7 @@ MongoClient.connect(
       );
 
       app.get("/rides-plot-data/per-month-count/:year", (req, res) => {
-        console.log("VISUALIZER API Called");
+        logger.info("VISUALIZER API Called");
         // Filtering query
         const query = {
           ride_mode: "RIDE",
@@ -1252,7 +1253,7 @@ MongoClient.connect(
         })
           .then((result) => {
             if (result.error) {
-              console.log(" An error occured @GeneralPlottingData");
+              logger.info(" An error occured @GeneralPlottingData");
               res.send({
                 error:
                   "Failed to get rides monthly data @General Data format function level",
@@ -1261,13 +1262,13 @@ MongoClient.connect(
               new Promise((res) => {
                 MonthlyDataCount(result, req.params.year, res);
               }).then((monthly) => {
-                console.log(monthly);
+                logger.info(monthly);
                 res.send(monthly);
               });
             }
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             res.send({
               error:
                 "Failed to get rides monthly data, maybe verify your params",
@@ -1276,7 +1277,7 @@ MongoClient.connect(
       });
 
       app.get("/rides-plot-data/per-month-gross-sales/:year", (req, res) => {
-        console.log("VISUALIZER API Called (Gross Sales)");
+        logger.info("VISUALIZER API Called (Gross Sales)");
         // Filtering query
         const query = {
           ride_mode: "RIDE",
@@ -1294,7 +1295,7 @@ MongoClient.connect(
         })
           .then((result) => {
             if (result.error) {
-              console.log(" An error occured @GeneralPlottingData");
+              logger.info(" An error occured @GeneralPlottingData");
               res.send({
                 error:
                   "Failed to get rides monthly data @General Data format function level",
@@ -1304,11 +1305,11 @@ MongoClient.connect(
                 MonthlyDataFare(result, req.params.year, res);
               })
                 .then((monthly) => {
-                  console.log(monthly);
+                  logger.info(monthly);
                   res.send(monthly);
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   res.send({
                     error:
                       "Failed to get sales monthly data, maybe verify your params",
@@ -1317,7 +1318,7 @@ MongoClient.connect(
             }
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             res.send({
               error:
                 "Failed to get sales monthly data, maybe verify your params",
@@ -1326,7 +1327,7 @@ MongoClient.connect(
       });
 
       app.get("/rides-plot-data/per-month-revenues/:year", (req, res) => {
-        console.log("VISUALIZER API Called (Revenues)");
+        logger.info("VISUALIZER API Called (Revenues)");
         // Filtering query
         const query = {
           ride_mode: "RIDE",
@@ -1344,7 +1345,7 @@ MongoClient.connect(
         })
           .then((result) => {
             if (result.error) {
-              console.log(" An error occured @GeneralPlottingData");
+              logger.info(" An error occured @GeneralPlottingData");
               res.send({
                 error:
                   "Failed to get rides monthly data @General Data format function level",
@@ -1355,11 +1356,11 @@ MongoClient.connect(
                 MonthlyDataFareCommission(result, req.params.year, 10, res);
               })
                 .then((monthly) => {
-                  console.log(monthly);
+                  logger.info(monthly);
                   res.send(monthly);
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   res.send({
                     error:
                       "Failed to get sales monthly data, maybe verify your params",
@@ -1368,7 +1369,7 @@ MongoClient.connect(
             }
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             res.send({
               error:
                 "Failed to get sales monthly data, maybe verify your params",
@@ -1378,7 +1379,7 @@ MongoClient.connect(
 
       // Monthly Connect type counts ( Successfull and cancelled rides )
       app.get("/rides-plot-data/per-month-connect-type/:year", (req, res) => {
-        console.log("VISUALIZER API Called (Connect Type)");
+        logger.info("VISUALIZER API Called (Connect Type)");
         // Filtering query
         const query = {
           ride_mode: "RIDE",
@@ -1396,7 +1397,7 @@ MongoClient.connect(
         })
           .then((result) => {
             if (result.error) {
-              console.log(" An error occured @GeneralPlottingData");
+              logger.info(" An error occured @GeneralPlottingData");
               res.send({
                 error:
                   "Failed to get rides monthly data @General Data format function level",
@@ -1406,11 +1407,11 @@ MongoClient.connect(
                 MonthlyDataCountConnectType(result, req.params.year, res);
               })
                 .then((monthly) => {
-                  console.log(monthly);
+                  logger.info(monthly);
                   res.send(monthly);
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   res.send({
                     error:
                       "Failed to get monthly connect type data, maybe verify your params",
@@ -1419,7 +1420,7 @@ MongoClient.connect(
             }
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             res.send({
               error:
                 "Failed to get monthly connect type data, maybe verify your params",
@@ -1429,7 +1430,7 @@ MongoClient.connect(
 
       // Monthly Payment method counts ( Successfull and cancelled rides )
       app.get("/rides-plot-data/per-month-payment-method/:year", (req, res) => {
-        console.log("VISUALIZER API Called (Payment Method)");
+        logger.info("VISUALIZER API Called (Payment Method)");
         // Filtering query
         const query = {
           ride_mode: "RIDE",
@@ -1447,7 +1448,7 @@ MongoClient.connect(
         })
           .then((result) => {
             if (result.error) {
-              console.log(" An error occured @GeneralPlottingData");
+              logger.info(" An error occured @GeneralPlottingData");
               res.send({
                 error:
                   "Failed to get rides monthly data @General Data format function level",
@@ -1457,11 +1458,11 @@ MongoClient.connect(
                 MonthlyDataCountPaymentMethod(result, req.params.year, res);
               })
                 .then((monthly) => {
-                  console.log(monthly);
+                  logger.info(monthly);
                   res.send(monthly);
                 })
                 .catch((error) => {
-                  console.log(error);
+                  logger.info(error);
                   res.send({
                     error:
                       "Failed to get monthly payment method data, maybe verify your params",
@@ -1470,7 +1471,7 @@ MongoClient.connect(
             }
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             res.send({
               error:
                 "Failed to get monthly payment method data, maybe verify your params",
@@ -1485,7 +1486,7 @@ MongoClient.connect(
        */
 
       app.get("/ridesDetails/:year/:monthNumber", (req, res) => {
-        console.log("RIDES DETAILEDS API CALLED");
+        logger.info("RIDES DETAILEDS API CALLED");
         //new Promise((result) => {
 
         // Filtering query
@@ -1505,7 +1506,7 @@ MongoClient.connect(
         })
           .then((result) => {
             if (result.error) {
-              console.log(" An error occured @GeneralPlottingData");
+              logger.info(" An error occured @GeneralPlottingData");
               res
                 .status(500)
                 .send({ error: "Failed to get GeneralPlotting Data" });
@@ -1521,14 +1522,14 @@ MongoClient.connect(
                     res.status(201).send(monthData);
                   })
                   .catch((error) => {
-                    console.log(error);
+                    logger.info(error);
                     res.status(500).send({
                       error:
                         "Failed to process getting Rides Monthly Detailed Data 1!",
                     });
                   });
               } catch (error) {
-                console.log(error);
+                logger.info(error);
                 res.status(500).send({
                   error:
                     "Failed to process getting Rides Monthly Detailed Data 2!",
@@ -1537,7 +1538,7 @@ MongoClient.connect(
             }
           })
           .catch((error) => {
-            console.log(error);
+            logger.info(error);
             res.status(500).send({
               error: "Failed to process getting Rides Monthly Detailed data",
             });
@@ -1555,5 +1556,5 @@ app.get("/test", (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Plot server up and running @ port ${PORT}`);
+  logger.info(`Plot server up and running @ port ${PORT}`);
 });
