@@ -240,8 +240,8 @@ const DriverRegistration = () => {
 
   return (
     <div>
-      <div className="wrapper">
-        <div className="right-column">
+      <div>
+        <div>
           <Fragment>
             <h1
               style={{
