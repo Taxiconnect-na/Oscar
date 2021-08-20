@@ -47,7 +47,7 @@ module.exports = {
 
     {
       name: "Main UI Dashboard",
-      script: "cd ./client/Internal-Dashboards && npm start",
+      script: "cd ./client/Internal-Dashboards && serve -p 10301 -s build",
       autorestart: true,
       watch: false,
       max_memory_restart: "1G",

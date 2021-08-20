@@ -27,7 +27,7 @@ RUN yarn global add pm2
 RUN yarn global add pm2-logrotate
 RUN pm2 set pm2-logrotate:max_size 50Mb
 RUN cd ./server && yarn install
-RUN cd ./client/Internal-Dashboards && yarn install
+RUN cd ./client/Internal-Dashboards && yarn install && yarn global add serve
 
 EXPOSE 10014
 EXPOSE 10011
