@@ -4,17 +4,17 @@ ADD . /app/
 WORKDIR /app/server
 RUN rm .env
 #Production
-# RUN mv .env_live .env
+RUN mv .env_live .env
 #Development
-RUN mv .env_dev .env
+# RUN mv .env_dev .env
 
 #Change .env for the apps
 WORKDIR /app/client/Internal-Dashboards
 RUN rm .env
 #Production
-# RUN mv .env_live .env
+RUN mv .env_live .env
 #Development
-RUN mv .env_dev .env
+# RUN mv .env_dev .env
 
 
 WORKDIR /app/
