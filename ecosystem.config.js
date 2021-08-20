@@ -47,7 +47,7 @@ module.exports = {
 
     {
       name: "Main UI Dashboard",
-      script: "cd ./client/Internal-Dashboards && yarn install && yarn start",
+      script: "cd ./client/Internal-Dashboards && npm start",
       autorestart: true,
       watch: false,
       max_memory_restart: "1G",
