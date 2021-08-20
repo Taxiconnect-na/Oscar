@@ -35,6 +35,7 @@ EXPOSE 10010
 EXPOSE 10012
 EXPOSE 10300
 EXPOSE 10305
+EXPOSE 10301
 
 
 CMD [ "pm2-runtime", "ecosystem.config.js" ]

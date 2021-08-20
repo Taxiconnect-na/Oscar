@@ -10,6 +10,7 @@ services:
       - "10012:10012"
       - "10300:10300"
       - "10305:10305"
+      - "10301:10301"
     restart: always
     environment:
       - INSTANCE_PRIVATE_IP=${INSTANCE_PRIVATE_IP}
