@@ -1,7 +1,7 @@
 
 name: CI/CD Pipeline
 on:
-  push: #was: pull_request:
+  push:
     branches: [ master ]
 
 jobs:
