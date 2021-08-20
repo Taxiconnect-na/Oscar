@@ -1,7 +1,7 @@
 version: "3"
 services:
   admin-server:
-    image: taxiconnect/general_administration:1.6
+    image: .
     stdin_open: true
     ports:
       - "10014:10014"
@@ -11,3 +11,6 @@ services:
       - "10300:10300"
       - "10305:10305"
     restart: always
+    environment:
+      - INSTANCE_PRIVATE_IP=${INSTANCE_PRIVATE_IP}
+      - INSTANCE_PUBLIC_IP=${INSTANCE_PUBLIC_IP}

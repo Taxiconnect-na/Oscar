@@ -25,7 +25,7 @@ RUN npm install yarn -g --force
 RUN yarn global add pm2
 RUN yarn global add pm2-logrotate
 RUN pm2 set pm2-logrotate:max_size 50Mb
-RUN yarn install
+RUN cd ./server && yarn install
 RUN cd ./client/Internal-Dashboards && yarn install
 
 EXPOSE 10014
