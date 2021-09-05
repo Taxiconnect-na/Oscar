@@ -6,7 +6,7 @@ module.exports = {
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: "1G",
+      max_memory_restart: "3G",
       env: {
         NODE_ENV: "production",
       },
@@ -17,7 +17,7 @@ module.exports = {
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: "1G",
+      max_memory_restart: "3G",
       env: {
         NODE_ENV: "production",
       },
@@ -28,7 +28,7 @@ module.exports = {
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: "1G",
+      max_memory_restart: "3G",
       env: {
         NODE_ENV: "production",
       },
@@ -50,7 +50,7 @@ module.exports = {
       script: "cd ./client/Internal-Dashboards && npm start",
       autorestart: true,
       watch: false,
-      max_memory_restart: "1G",
+      max_memory_restart: "3G",
       env: {
         NODE_ENV: "production",
       },
@@ -62,7 +62,7 @@ module.exports = {
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: "1G",
+      max_memory_restart: "3G",
       env: {
         NODE_ENV: "production",
       },
