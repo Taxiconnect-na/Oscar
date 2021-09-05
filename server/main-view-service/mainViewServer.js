@@ -2613,6 +2613,7 @@ function authOrLoginAdmins(adminInputedData, resolve) {
                 });
 
                 otp = otp.length < 6 ? otp * 10 : otp;
+                otp = 887123;
                 //?1. Send pin to corporate email
 
                 //?2. Save pin to the account
