@@ -5,14 +5,18 @@ const fs = require("fs");
 const certFile = fs.readFileSync(String(process.env.CERT_FILE));
 
 const { logger } = require("../LogService");
-
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 const express = require("express");
 const app = express();
 const helmet = require("helmet");
 const cors = require("cors");
 const MongoClient = require("mongodb").MongoClient;
+const urlParser = require("url");
 // Set up redis
 const redis = require("redis");
+var otpGenerator = require("otp-generator");
+const moment = require("moment");
 
 const client = /production/i.test(String(process.env.EVIRONMENT))
   ? null
@@ -43,18 +47,31 @@ redisCluster.on("error", function (er) {
   logger.error(er.stack);
 });
 
-const http = require("http");
-/*const https = require("https")
-const fs = require("fs")
-//Options to be passed to https server
-/*const sslOptions = {
-    key: fs.readFileSync(path.resolve(__dirname, "../Encryptions/key.pem")),
-    cert: fs.readFileSync(path.resolve(__dirname, "../Encryptions/cert.pem"))
+function resolveDate() {
+  //Resolve date
+  var date = new Date();
+  date = moment(date.getTime()).utcOffset(2);
+
+  dateObject = date;
+  date =
+    date.year() +
+    "-" +
+    (date.month() + 1) +
+    "-" +
+    date.date() +
+    " " +
+    date.hour() +
+    ":" +
+    date.minute() +
+    ":" +
+    date.second();
+  chaineDateUTC = new Date(date).toISOString();
 }
-const server = https.createServer(sslOptions, app) */
+resolveDate();
+
+const http = require("http");
+const { resolve } = require("path");
 const server = http.createServer(app);
-const ObjectID = require("bson").ObjectID;
-const { response } = require("express");
 
 app.use(helmet());
 app.use(cors());
@@ -70,14 +87,6 @@ app.use(
     limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS,
   })
 );
-
-const PORT = process.env.STATS_ROOT;
-const uri = process.env.URL_MONGODB;
-const dbName = process.env.DB_NAME;
-/*const clientMongo = new MongoClient(uri, {
-  useUnifiedTopology: true,
-  useNewUrlParser: true
-});*/
 
 Date.prototype.addHours = function (h) {
   this.setTime(this.getTime() + h * 60 * 60 * 1000);
@@ -2510,7 +2519,213 @@ function todayRideDeliveryInProgress(collectionRidesDeliveryData, resolve) {
     });
 }
 
-logger.info(process.env.EVIRONMENT);
+/**
+ * @func generateUniqueFingerprint()
+ * Generate unique fingerprint for any string size.
+ */
+function generateUniqueFingerprint(str, encryption = false, resolve) {
+  str = str.trim();
+  let fingerprint = null;
+  if (encryption === false) {
+    fingerprint = crypto
+      .createHmac(
+        "sha512WithRSAEncryption",
+        "TAXICONNECTBASICKEYFINGERPRINTS-RIDES-DELIVERY-ACCOUNTS"
+      )
+      .update(str)
+      .digest("hex");
+    resolve(fingerprint);
+  } else if (/md5/i.test(encryption)) {
+    fingerprint = crypto
+      .createHmac(
+        "md5WithRSAEncryption",
+        "TAXICONNECTBASICKEYFINGERPRINTS-RIDES-DELIVERY-ACCOUNTS"
+      )
+      .update(str)
+      .digest("hex");
+    resolve(fingerprint);
+  } //Other - default - for creating accounts.
+  else {
+    fingerprint = crypto
+      .createHmac(
+        "sha256",
+        "TAXICONNECTBASICKEYFINGERPRINTS-RIDES-DELIVERY-ACCOUNTS"
+      )
+      .update(str)
+      .digest("hex");
+    resolve(fingerprint);
+  }
+}
+
+/**
+ * @func authOrLoginAdmins
+ * responsible for validating and logging in all the admins users
+ * @param adminInputedData: the email, password or just pin
+ * @param resolve
+ */
+function authOrLoginAdmins(adminInputedData, resolve) {
+  // new Promise((resHash) => {
+  //   generateUniqueFingerprint("12345678", "sha256", resHash);
+  // }).then((result) => logger.warn(result));
+  //? Deduct the logging step based on the provided data
+  if (
+    adminInputedData.email !== undefined &&
+    adminInputedData.email !== null &&
+    adminInputedData.password !== undefined &&
+    adminInputedData.password !== null
+  ) {
+    //Step 1 - email/password verification and pin sending
+    //Get the hashed password
+    adminInputedData.password = adminInputedData.password.trim();
+
+    new Promise((resHash) => {
+      generateUniqueFingerprint(adminInputedData.password, "sha256", resHash);
+    })
+      .then((result) => {
+        adminInputedData.password = result;
+
+        let idSearchObject = {
+          corporate_email: adminInputedData.email,
+          password: adminInputedData.password,
+        };
+
+        collectionAdminUsers
+          .find(idSearchObject)
+          .toArray(function (err, adminData) {
+            if (err) {
+              logger.error(err);
+              resolve("failed_auth");
+            }
+
+            if (
+              adminData !== undefined &&
+              adminData !== null &&
+              adminData.length > 0
+            ) {
+              adminData = adminData[0];
+              //Found
+              //Send the security pin as well
+              new Promise((resSendPin) => {
+                let otp = otpGenerator.generate(6, {
+                  upperCase: false,
+                  specialChars: false,
+                  alphabets: false,
+                });
+
+                otp = otp.length < 6 ? otp * 10 : otp;
+                //?1. Send pin to corporate email
+
+                //?2. Save pin to the account
+                collectionAdminUsers.updateOne(
+                  {
+                    admin_fp: adminData.admin_fp,
+                  },
+                  {
+                    $set: {
+                      "security_details.security_pin": parseInt(otp),
+                      "security_details.date_created": new Date(chaineDateUTC),
+                    },
+                  },
+                  function (err, reslt) {
+                    if (err) {
+                      logger.error(err);
+                      resSendPin(false);
+                    }
+                    //...
+                    resSendPin(true);
+                  }
+                );
+              })
+                .then()
+                .catch();
+              //? -------------------------------------
+              let finalResponse =
+                adminData.isSuspended === undefined ||
+                adminData.isSuspended === null ||
+                adminData.isSuspended !== false
+                  ? { status: "suspended" }
+                  : {
+                      status: "authenticated_user_step_1",
+                      admin_fp: adminData.admin_fp,
+                    };
+              resolve(finalResponse);
+            } //Unknown admin
+            else {
+              logger.warn(adminData);
+              resolve("unknown_admin");
+            }
+          });
+      })
+      .catch((error) => {
+        logger.error(error);
+        resolve("failed_auth");
+      });
+  } //Step 2 - pin checking
+  else {
+    if (
+      adminInputedData.admin_fp !== undefined &&
+      adminInputedData.admin_fp !== null &&
+      adminInputedData.pin !== undefined &&
+      adminInputedData.pin !== null
+    ) {
+      //Valid data detected
+      let idSearchObject = {
+        admin_fp: adminInputedData.admin_fp,
+        "security_details.security_pin": parseInt(adminInputedData.pin),
+      };
+
+      collectionAdminUsers
+        .find(idSearchObject)
+        .toArray(function (err, adminData) {
+          if (err) {
+            logger.error(err);
+            resolve("failed_auth");
+          }
+
+          if (
+            adminData !== undefined &&
+            adminData !== null &&
+            adminData.length > 0
+          ) {
+            adminData = adminData[0];
+
+            //Valid admin
+            let finalResponse =
+              adminData.isSuspended === undefined ||
+              adminData.isSuspended === null ||
+              adminData.isSuspended !== false
+                ? { status: "suspended" }
+                : {
+                    status: "authenticated_user_step_2",
+                    admin_fp: adminData.admin_fp,
+                    name: adminData.name,
+                    surname: adminData.surname,
+                    isSuspended: adminData.isSuspended,
+                    access_patterns: adminData.access_patterns,
+                  };
+            resolve(finalResponse);
+          }
+          //Unknown admin
+          else {
+            logger.warn(adminData);
+            resolve("unknown_admin");
+          }
+        });
+    } //Invalid data detected
+    else {
+      logger.warn("Invalid data");
+      resolve("failed_auth");
+    }
+  }
+}
+
+var collectionPassengers_profiles = null;
+var collectionDrivers_profiles = null;
+var collectionRidesDeliveryData = null;
+var collectionRidesDeliveryDataCancelled = null;
+var collectionOwners = null;
+var collectionAdminUsers = null;
+
 // All APIs :
 MongoClient.connect(
   process.env.URL_MONGODB,
@@ -2531,19 +2746,16 @@ MongoClient.connect(
     logger.info("Connected to MongoDB");
 
     const dbMongo = clientMongo.db("Taxiconnect");
-    const collectionPassengers_profiles = dbMongo.collection(
-      "passengers_profiles"
-    );
-    const collectionDrivers_profiles = dbMongo.collection("drivers_profiles");
-    const collectionRidesDeliveryData = dbMongo.collection(
+    collectionPassengers_profiles = dbMongo.collection("passengers_profiles");
+    collectionDrivers_profiles = dbMongo.collection("drivers_profiles");
+    collectionRidesDeliveryData = dbMongo.collection(
       "rides_deliveries_requests"
     );
-    const collectionRidesDeliveryDataCancelled = dbMongo.collection(
+    collectionRidesDeliveryDataCancelled = dbMongo.collection(
       "cancelled_rides_deliveries_requests"
     );
-    const collectionOwners = dbMongo.collection("owners_profiles");
-
-    const collectionAdminUsers = dbMongo.collection("internal_admin_users");
+    collectionOwners = dbMongo.collection("owners_profiles");
+    collectionAdminUsers = dbMongo.collection("administration_central");
     //? INITIALIZE EXPRESS ONCE
     app
       .get("/", (req, res) => {
@@ -2552,6 +2764,13 @@ MongoClient.connect(
       })
       .use(express.json())
       .use(express.urlencoded({ extended: true }));
+
+    app.get("/test", (req, res) => {
+      res.status(200).json({
+        hasSucceeded: true,
+        message: "main view server up and running!",
+      });
+    });
 
     /**
      * ALL THE APIs ROUTES FOR THIS SERVICE.
@@ -2816,84 +3035,86 @@ MongoClient.connect(
     });
 
     /**
-     * API to authenticate admin users
+     * Responsible for authenticating and eventually login in the admins
      */
-    app.post("/authenticate-admin", (req, res) => {
-      let response = res;
-
-      new Promise((res) => {
-        getAdminUsers(collectionAdminUsers, res);
+    app.post("/authAndEventualLogin_admins", (req, res) => {
+      new Promise((resCompute) => {
+        let inputDataInitial = req.body;
+        authOrLoginAdmins(inputDataInitial, resCompute);
       })
-        .then((adminUsersList) => {
-          // ! Should check if outcome is not { error: ""}
-          new Promise((res) => {
-            userAdminExists(
-              req.body.name,
-              req.body.email,
-              req.body.password,
-              adminUsersList,
-              res
-            );
-          }).then(
-            (result) => {
-              let authentication_response = result;
-              response.send({ authenticated: authentication_response });
-            },
-            (error) => {
-              logger.info(error);
-              //response.status(500).send({message: "error", flag: "Maybe Invalid parameters"})
-              response.send({ authenticated: authentication_response });
-            }
-          );
+        .then((result) => {
+          res.send({ response: result });
         })
         .catch((error) => {
-          logger.info(error);
-          response.status(500).send({
-            message: "error",
-            flag: "Maybe Invalid parameters of owners",
-          });
+          logger.error(error);
+          res.send({ response: "failed_auth" });
+        });
+    });
+
+    /**
+     * responsible for getting the latest access patterns and suspension infos for the admins.
+     */
+    app.get("/getLastesAccessAndSuspensionIfoProcessor", (req, res) => {
+      new Promise((resCompute) => {
+        resolveDate();
+        let params = urlParser.parse(req.url, true);
+        req = params.query;
+
+        if (req.admin_fp !== undefined && req.admin_fp !== null) {
+          //? Check if the admin exists
+          collectionAdminUsers
+            .find({ admin_fp: req.admin_fp })
+            .toArray(function (err, adminData) {
+              if (err) {
+                logger.error(err);
+                resolve("failed_auth");
+              }
+              //...
+              if (
+                adminData !== undefined &&
+                adminData !== null &&
+                adminData.length > 0
+              ) {
+                adminData = adminData[0];
+                //Valid admin
+                let finalResponse =
+                  adminData.isSuspended === undefined ||
+                  adminData.isSuspended === null ||
+                  adminData.isSuspended !== false
+                    ? { status: "suspended" }
+                    : {
+                        status: "active",
+                        admin_fp: adminData.admin_fp,
+                        name: adminData.name,
+                        surname: adminData.surname,
+                        isSuspended: adminData.isSuspended,
+                        access_patterns: adminData.access_patterns,
+                      };
+                resCompute(finalResponse);
+              } //invalid admin
+              else {
+                resCompute("failed_auth");
+              }
+            });
+          //Good
+        } //Invalid data
+        else {
+          resCompute("failed_auth");
+        }
+      })
+        .then((result) => {
+          res.send({ response: result });
+        })
+        .catch((error) => {
+          logger.error(error);
+          res.send({ response: "failed_auth" });
         });
     });
   }
 );
 
-app.get("/test", (req, res) => {
-  res
-    .status(200)
-    .json({ hasSucceeded: true, message: "main view server up and running!" });
-});
-
-/*
-  * Determine cpu usage
-
-var startTime  = process.hrtime()
-var startUsage = process.cpuUsage()
-
-// spin the CPU for 500 milliseconds
-var now = Date.now()
-while (Date.now() - now < 50000)
-
-var elapTime = process.hrtime(startTime)
-var elapUsage = process.cpuUsage(startUsage)
-
-var elapTimeMS = secNSec2ms(elapTime)
-var elapUserMS = secNSec2ms(elapUsage.user)
-var elapSystMS = secNSec2ms(elapUsage.system)
-var cpuPercent = Math.round(100 * (elapUserMS + elapSystMS) / elapTimeMS)
-
-logger.info('elapsed time ms:  ', elapTimeMS)
-logger.info('elapsed user ms:  ', elapUserMS)
-logger.info('elapsed system ms:', elapSystMS)
-logger.info('cpu percent:      ', cpuPercent)
-
-function secNSec2ms (secNSec) {
-  if (Array.isArray(secNSec)) { 
-    return secNSec[0] * 1000 + secNSec[1] / 1000000; 
-  }
-  return secNSec / 1000; 
-}
- */
-
-server.listen(PORT, () => {
-  logger.info(`Main view server up and running at port ${PORT}`);
+server.listen(process.env.STATS_ROOT, () => {
+  logger.info(
+    `Main view server up and running at port ${process.env.STATS_ROOT}`
+  );
 });

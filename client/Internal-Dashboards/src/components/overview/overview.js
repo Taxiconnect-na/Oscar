@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 //import axios from "axios"
 //import io from 'socket.io-client'
 import socket from "../socket";
@@ -212,4 +215,17 @@ function Overview() {
   );
 }
 
-export default Overview;
+const mapStateToProps = (state) => {
+  const { App } = state;
+  return { App };
+};
+
+const mapDispatchToProps = (dispatch) =>
+  bindActionCreators(
+    {
+      UpdateSuccessfullLoginDetails,
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(Overview);

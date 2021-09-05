@@ -76,7 +76,6 @@ export default function DriverCommission() {
 
     socket.on("getDriversWithCommission-response", (data) => {
       if (data !== undefined && data != null) {
-        ("received", data)(data);
         //mydata = data
         setDrivers(data);
       }

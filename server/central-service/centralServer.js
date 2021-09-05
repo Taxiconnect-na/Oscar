@@ -9,8 +9,8 @@ const axios = require("axios");
 const FormData = require("form-data");
 const cors = require("cors");
 const http = require("http");
-const fs = require("fs");
 const fetch = require("node-fetch");
+const requestAPI = require("request");
 
 // Import helmet for http headers protection
 const helmet = require("helmet");
@@ -383,32 +383,67 @@ io.on("connection", (socket) => {
   });
 
   // Authenticate admin user:
-  socket.on("authenticate-internal-admin", function (data) {
+  socket.on("authenticate_internal_admin", function (data) {
     if (data !== undefined && data !== null) {
       logger.info("Authenticating admin user...");
       //logger.info(data)
 
-      try {
-        axios
-          .post(
-            `${process.env.LOCAL_URL}:${process.env.STATS_ROOT}/authenticate-admin`,
-            data
-          )
-          .then((feedback) => {
-            logger.info(feedback.data);
+      let url =
+        `${process.env.LOCAL_URL}` +
+        ":" +
+        process.env.STATS_ROOT +
+        "/authAndEventualLogin_admins";
 
-            socket.emit("authenticate-internal-admin-response", feedback.data);
-          })
-          .catch((error) => {
-            socket.emit("authenticate-internal-admin-response", {
-              error: true,
+      requestAPI.post({ url, form: data }, function (error, response, body) {
+        if (error === null) {
+          try {
+            body = JSON.parse(body);
+            //logger.info(body);
+            socket.emit("authenticate_internal_admin-response", body);
+          } catch (error) {
+            socket.emit("authenticate_internal_admin-response", {
+              response: "failed_auth",
             });
-            logger.info(error);
+          }
+        } else {
+          socket.emit("authenticate_internal_admin-response", {
+            response: "failed_auth",
           });
-      } catch (error) {
-        logger.info(error);
-        socket.emit("authenticate-internal-admin-response", { error: true });
-      }
+        }
+      });
+    }
+  });
+
+  //Responsible for getting the latest access patterns for admins and suspension infos
+  socket.on("getLastesAccessAndSuspensionIfo", function (data) {
+    if (data !== undefined && data !== null) {
+      //logger.info(data)
+
+      let url =
+        `${process.env.LOCAL_URL}` +
+        ":" +
+        process.env.STATS_ROOT +
+        `/getLastesAccessAndSuspensionIfoProcessor?admin_fp=${data.admin_fp}`;
+
+      // logger.warn(url);
+
+      requestAPI(url, function (error, response, body) {
+        if (error === null) {
+          try {
+            body = JSON.parse(body);
+            //logger.info(body);
+            socket.emit("getLastesAccessAndSuspensionIfo-response", body);
+          } catch (error) {
+            socket.emit("getLastesAccessAndSuspensionIfo-response", {
+              response: "failed_auth",
+            });
+          }
+        } else {
+          socket.emit("getLastesAccessAndSuspensionIfo-response", {
+            response: "failed_auth",
+          });
+        }
+      });
     }
   });
 
