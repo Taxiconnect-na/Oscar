@@ -46,7 +46,7 @@ import SOCKET_CORE from "../../components/socket";
 
 const STATE = {
   loginData: {
-    isLoggedIn: true, //Logged in or not -default: false
+    isLoggedIn: false, //Logged in or not -default: false
     admin_data: null, //The names, etc acquired after a successful loggin
   },
 

@@ -84,7 +84,7 @@ class Home extends React.PureComponent {
   constructor(props) {
     super(props);
 
-    this.props.App.loginData.isLoggedIn = true; //! DEBUG
+    // this.props.App.loginData.isLoggedIn = true; //! DEBUG
   }
 
   componentDidMount() {}

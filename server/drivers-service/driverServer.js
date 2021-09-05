@@ -2021,7 +2021,7 @@ MongoClient.connect(
           new Promise((updateDriverCash) => {
             axios
               .get(
-                `http:172.31.16.195:9696/getDrivers_walletInfosDeep?user_fingerprint=${req.body.driver_fingerprint}&transactionData=true&avoidCached_data=true`
+                `${process.env.JERRY_ACCOUNT_SERVICE}/getDrivers_walletInfosDeep?user_fingerprint=${req.body.driver_fingerprint}&transactionData=true&avoidCached_data=true`
               )
               .then((data) => {
                 logger.info(data.data);
@@ -2034,8 +2034,9 @@ MongoClient.connect(
               // Do nothing
             })
             .catch((error) => {
+              logger.error(error);
               logger.warn(
-                " Failed to update DriverCash @http:172.31.16.195:9696/getDrivers_walletInfosDeep?user_fingerprint="
+                `Failed to update DriverCash @${process.env.JERRY_ACCOUNT_SERVICE}/getDrivers_walletInfosDeep?user_fingerprint=`
               );
             });
 

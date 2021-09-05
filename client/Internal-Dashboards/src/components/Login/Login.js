@@ -96,6 +96,7 @@ class Login extends React.PureComponent {
                 globalObject.setState({ foundError: true });
               } //Good
               else {
+                globalObject.setState({ isLoading: true });
                 //Update the redux store with the global data
                 // alert("Login successfull, update Redux");
                 //? Auto navigate to home

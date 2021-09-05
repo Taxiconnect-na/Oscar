@@ -1,17 +1,23 @@
 import React from "react";
 import { ProSidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
-import { BrowserRouter as Router, Link } from "react-router-dom"; // Ke
+import { BrowserRouter as Router, Link, Redirect } from "react-router-dom"; // Ke
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import {
   UpdateSuccessfullLoginDetails,
   UpdateLatestAccessPatternsAndSuspInfos,
+  LogOut,
 } from "../../Redux/HomeActionsCreators";
 import SOCKET_CORE from "../socket";
 import "react-pro-sidebar/dist/css/styles.css";
 import "./sidebar.scss";
 import logotaxiconnect from "../../logo_white.png";
-import { AiFillAppstore, AiFillSignal, AiFillInfoCircle } from "react-icons/ai";
+import {
+  AiFillAppstore,
+  AiFillSignal,
+  AiFillInfoCircle,
+  AiOutlineLogout,
+} from "react-icons/ai";
 import {
   ImUserPlus,
   ImMap,
@@ -35,6 +41,8 @@ const iconStyle = {
 class Sidebar extends React.PureComponent {
   constructor(props) {
     super(props);
+
+    this.intervalPersister = null;
   }
 
   componentDidMount() {
@@ -75,14 +83,23 @@ class Sidebar extends React.PureComponent {
   getAccessPatternsSuspensionStats() {
     let globalObject = this;
 
-    setInterval(function () {
-      globalObject.props.App.SOCKET_CORE.emit(
-        "getLastesAccessAndSuspensionIfo",
-        {
-          admin_fp: globalObject.props.App.loginData.admin_data.admin_fp,
-        }
-      );
-    }, 2000);
+    if (this.props.App.loginData.admin_data !== null) {
+      try {
+        this.intervalPersister = setInterval(function () {
+          globalObject.props.App.SOCKET_CORE.emit(
+            "getLastesAccessAndSuspensionIfo",
+            {
+              admin_fp: globalObject.props.App.loginData.admin_data.admin_fp,
+            }
+          );
+        }, 2000);
+      } catch (error) {
+        clearInterval(this.intervalPersister);
+      }
+    } //Clear
+    else {
+      clearInterval(this.intervalPersister);
+    }
   }
 
   render() {
@@ -92,7 +109,8 @@ class Sidebar extends React.PureComponent {
           <div className="logoContainer">
             <img src={logotaxiconnect} alt="TaxiConnect" className="logoTrue" />
           </div>
-          {/overview/i.test(
+          {this.props.App.loginData.admin_data !== null &&
+          /overview/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <MenuItem className="menuItemSideBar">
@@ -104,7 +122,8 @@ class Sidebar extends React.PureComponent {
           ) : (
             <></>
           )}
-          {/registerDrivers/i.test(
+          {this.props.App.loginData.admin_data !== null &&
+          /registerDrivers/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <MenuItem className="menuItemSideBar">
@@ -117,7 +136,8 @@ class Sidebar extends React.PureComponent {
             <></>
           )}
 
-          {/tripOverview/i.test(
+          {this.props.App.loginData.admin_data !== null &&
+          /tripOverview/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <SubMenu
@@ -130,7 +150,8 @@ class Sidebar extends React.PureComponent {
               }
             >
               <SubMenu title="Windhoek">
-                {/ridesTripOverview/i.test(
+                {this.props.App.loginData.admin_data !== null &&
+                /ridesTripOverview/i.test(
                   this.props.App.loginData.admin_data.access_patterns
                 ) ? (
                   <MenuItem>
@@ -141,7 +162,8 @@ class Sidebar extends React.PureComponent {
                 ) : (
                   <></>
                 )}
-                {/deliveriesTripOverview/i.test(
+                {this.props.App.loginData.admin_data !== null &&
+                /deliveriesTripOverview/i.test(
                   this.props.App.loginData.admin_data.access_patterns
                 ) ? (
                   <MenuItem>
@@ -161,7 +183,8 @@ class Sidebar extends React.PureComponent {
             <></>
           )}
 
-          {/cancelledTrips/i.test(
+          {this.props.App.loginData.admin_data !== null &&
+          /cancelledTrips/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <SubMenu
@@ -173,7 +196,8 @@ class Sidebar extends React.PureComponent {
                 </>
               }
             >
-              {/ridersCancelledRides/i.test(
+              {this.props.App.loginData.admin_data !== null &&
+              /ridersCancelledRides/i.test(
                 this.props.App.loginData.admin_data.access_patterns
               ) ? (
                 <MenuItem>
@@ -184,7 +208,8 @@ class Sidebar extends React.PureComponent {
               ) : (
                 <></>
               )}
-              {/driversCancelledRides/i.test(
+              {this.props.App.loginData.admin_data !== null &&
+              /driversCancelledRides/i.test(
                 this.props.App.loginData.admin_data.access_patterns
               ) ? (
                 <MenuItem>
@@ -195,7 +220,8 @@ class Sidebar extends React.PureComponent {
               ) : (
                 <></>
               )}
-              {/cancelledDeliveries/i.test(
+              {this.props.App.loginData.admin_data !== null &&
+              /cancelledDeliveries/i.test(
                 this.props.App.loginData.admin_data.access_patterns
               ) ? (
                 <MenuItem>
@@ -211,7 +237,8 @@ class Sidebar extends React.PureComponent {
             <></>
           )}
 
-          {/viewDrivers/i.test(
+          {this.props.App.loginData.admin_data !== null &&
+          /viewDrivers/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <MenuItem className="menuItemSideBar">
@@ -224,7 +251,8 @@ class Sidebar extends React.PureComponent {
             <></>
           )}
 
-          {/viewUsers/i.test(
+          {this.props.App.loginData.admin_data !== null &&
+          /viewUsers/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <MenuItem className="menuItemSideBar">
@@ -237,7 +265,8 @@ class Sidebar extends React.PureComponent {
             <></>
           )}
 
-          {/makePayment/i.test(
+          {this.props.App.loginData.admin_data !== null &&
+          /makePayment/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <MenuItem className="menuItemSideBar">
@@ -250,7 +279,8 @@ class Sidebar extends React.PureComponent {
             <></>
           )}
 
-          {/statistics/i.test(
+          {this.props.App.loginData.admin_data !== null &&
+          /statistics/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <MenuItem className="menuItemSideBar">
@@ -263,7 +293,8 @@ class Sidebar extends React.PureComponent {
             <></>
           )}
 
-          {/driversComissionCentral/i.test(
+          {this.props.App.loginData.admin_data !== null &&
+          /driversComissionCentral/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <MenuItem className="menuItemSideBar">
@@ -276,7 +307,8 @@ class Sidebar extends React.PureComponent {
             <></>
           )}
 
-          {/referralsView/i.test(
+          {this.props.App.loginData.admin_data !== null &&
+          /referralsView/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <MenuItem className="menuItemSideBar">
@@ -288,6 +320,18 @@ class Sidebar extends React.PureComponent {
           ) : (
             <></>
           )}
+
+          <MenuItem className="menuItemSideBar">
+            <Link
+              onClick={() => {
+                this.props.LogOut();
+                window.location.href = "/";
+              }}
+            >
+              <AiOutlineLogout style={iconStyle} />
+              <span className="menuTextVersionNo">Log out</span>
+            </Link>
+          </MenuItem>
 
           <MenuItem className="menuTextVersionNo">
             <Link>
@@ -313,6 +357,7 @@ const mapDispatchToProps = (dispatch) =>
     {
       UpdateSuccessfullLoginDetails,
       UpdateLatestAccessPatternsAndSuspInfos,
+      LogOut,
     },
     dispatch
   );

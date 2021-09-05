@@ -626,10 +626,9 @@ io.on("connection", (socket) => {
 
         let newDriverList = driverList.map((driver) => {
           return new Promise((future) => {
-            //public:  13.56.37.251:9696   private 172.31.16.195:9696
             axios
               .get(
-                `http://172.31.16.195:9696/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`
+                `${process.env.JERRY_ACCOUNT_SERVICE}/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`
               )
               .then((data) => {
                 logger.info(data.data);
@@ -1615,7 +1614,7 @@ app.post("/view-earnings", (req, res) => {
   logger.info(req.body.driverFingerPrint);
   axios
     .get(
-      `http://172.31.20.41:9696/getDrivers_walletInfosDeep?user_fingerprint=${req.body.driverFingerPrint}&transactionData=true`
+      `${process.env.JERRY_ACCOUNT_SERVICE}/getDrivers_walletInfosDeep?user_fingerprint=${req.body.driverFingerPrint}&transactionData=true`
     )
     //.then(response => response.json())
     .then((data) => {

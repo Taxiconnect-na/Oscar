@@ -16,3 +16,8 @@ export const UpdateLatestAccessPatternsAndSuspInfos = (dataReceived) => ({
   type: "UPDATE_LATEST_ACCESS_PATT_SUSPS_IFOS",
   payload: dataReceived,
 });
+
+//3. Log out
+export const LogOut = () => ({
+  type: "LOG_OUT",
+});
