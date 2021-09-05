@@ -104,7 +104,16 @@ class Login extends React.PureComponent {
                   globalObject.props.UpdateSuccessfullLoginDetails(
                     response.response
                   );
-                  globalObject.props.history.push("/overview");
+                  if (
+                    /overview/i.test(
+                      globalObject.props.App.loginData.admin_data
+                        .access_patterns
+                    )
+                  ) {
+                    globalObject.props.history.push("/overview");
+                  } else {
+                    globalObject.props.history.push("/driver-registration");
+                  }
                 }, 2000);
               }
             }
