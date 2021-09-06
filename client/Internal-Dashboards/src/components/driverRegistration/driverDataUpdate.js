@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import queryString from "query-string";
-import Sidebar from "../sidebar/sidebar";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 import "./driverRegistration.css";
 import { AiOutlineCheckSquare } from "react-icons/ai";
 import { VscError } from "react-icons/vsc";
@@ -25,6 +26,16 @@ const getBase64 = (file) => {
 };
 
 export default function DriverDataUpdate({ location }) {
+  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
+  const dispatch = useDispatch();
+
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    window.location.href = "/";
+  }
+
   // Images source:
 
   let [car_image, setCarImage] = useState("");
@@ -834,423 +845,432 @@ export default function DriverDataUpdate({ location }) {
     );
   }
 
-  return (
-    <div className="template">
-      <div className="main-content">
-        <div id="profile-driver">
-          <h2 style={{ display: "grid", placeItems: "center", padding: "2%" }}>
-            {" "}
-            DRIVER PROFILE{" "}
-          </h2>
-          {/* 
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    return <></>;
+  } else {
+    return (
+      <div className="template">
+        <div className="main-content">
+          <div id="profile-driver">
+            <h2
+              style={{ display: "grid", placeItems: "center", padding: "2%" }}
+            >
+              {" "}
+              DRIVER PROFILE{" "}
+            </h2>
+            {/* 
                 <h1> { driverFingerPrint } </h1>
                 <h5> { taxi_number } </h5>          
                 */}
-          <div className="profile-info-driver">
-            <div>
-              <img src={image_source} alt="Car Picture" />
-            </div>
-            <div>
-              <form style={formStyle} onSubmit={onSubmitDriverInfo}>
-                <div>
-                  <label> Name </label>
-                  <br></br>
-                  <input
-                    type="text"
-                    className="my-input-field"
-                    value={name}
-                    disabled={info_form_state}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                    }}
-                  />
-                </div>
-                <div>
-                  <label> Surname </label>
-                  <br></br>
-                  <input
-                    type="text"
-                    className="my-input-field"
-                    value={surname}
-                    disabled={info_form_state}
-                    onChange={(e) => {
-                      setSurname(e.target.value);
-                    }}
-                  />
-                </div>
-                <div>
-                  <label> Phone number </label>
-                  <br></br>
-                  <input
-                    type="text"
-                    className="my-input-field"
-                    value={phone_number}
-                    disabled={info_form_state}
-                    onChange={(e) => {
-                      setPhoneNumber(e.target.value);
-                    }}
-                  />
-                </div>
-                <div>
-                  <label> Taxi number </label>
-                  <br></br>
-                  <input
-                    type="text"
-                    className="my-input-field"
-                    value={taxi_number}
-                    disabled={info_form_state}
-                    onChange={(e) => {
-                      setTaxiNumber(e.target.value);
-                    }}
-                  />
-                </div>
-                <div>
-                  <label> Plate number </label>
-                  <br></br>
-                  <input
-                    type="text"
-                    className="my-input-field"
-                    value={plate_number}
-                    disabled={info_form_state}
-                    onChange={(e) => {
-                      setPlateNumber(e.target.value);
-                    }}
-                  />
-                </div>
-                <div style={{ display: "inline-block", width: "100%" }}>
-                  <button
-                    disabled={info_form_state}
-                    className="btn btn-info btn-sm"
-                    type="submit"
-                  >
-                    Update
-                  </button>
-                  {info_update_result}
-                </div>
-              </form>
-              <button
-                style={{ marginLeft: "80%" }}
-                onClick={formControlDisplay}
-                className="btn btn-warning btn-sm"
-              >
-                {info_form_state ? "Enable editing" : "Disable editing"}
-              </button>
-            </div>
-          </div>
-          {/* FILE UPLOAD OR UPDATE */}
-          <div
-            style={{ display: "grid", placeItems: "center", marginTop: "4%" }}
-          >
-            <h4
-              style={{
-                backgroundColor: "#0a0321",
-                padding: "2%",
-                color: "white",
-              }}
-            >
-              {" "}
-              UPLOAD / UPDATE FILES
-            </h4>
-
-            <form onSubmit={onSubmitTaxiPicture}>
-              <div className="custom-file mt-4">
-                <input
-                  type="file"
-                  className="custom-file-input"
-                  id="customFile"
-                  required
-                  onChange={(e) => {
-                    setTaxiPicture(e.target.files[0]);
-                    setTaxiPictureName(e.target.files[0].name);
-                  }}
-                />
-                <label
-                  className="custom-file-label"
-                  htmlFor="customFile"
-                  style={{ overflow: "hidden" }}
-                >
-                  {taxi_picture_name}
-                </label>
+            <div className="profile-info-driver">
+              <div>
+                <img src={image_source} alt="Car Picture" />
               </div>
-              {state ? (
-                state
-              ) : (
-                <div className="submit-registration">
-                  <input
-                    style={{ backgroundColor: "#03111a" }}
-                    type="submit"
-                    value="Upload"
-                    className="btn btn-primary btn-block mt-4"
-                  />
-                </div>
-              )}
-            </form>
-
-            <form onSubmit={onSubmitProfilePicture}>
-              <div className="custom-file mt-4">
-                <input
-                  type="file"
-                  className="custom-file-input"
-                  id="customFile"
-                  required
-                  onChange={(e) => {
-                    setProfilePicture(e.target.files[0]);
-                    setProfilePictureName(e.target.files[0].name);
-                  }}
-                />
-                <label
-                  className="custom-file-label"
-                  htmlFor="customFile"
-                  style={{ overflow: "hidden" }}
-                >
-                  {profile_picture_name}
-                </label>
-              </div>
-              {state_profile ? (
-                state_profile
-              ) : (
-                <div className="submit-registration">
-                  <input
-                    style={{ backgroundColor: "#03111a" }}
-                    type="submit"
-                    value="Upload"
-                    className="btn btn-primary btn-block mt-4"
-                  />
-                </div>
-              )}
-            </form>
-
-            <form onSubmit={onSubmitDriverLicence}>
-              <div className="custom-file mt-4">
-                <input
-                  type="file"
-                  className="custom-file-input"
-                  id="customFile"
-                  required
-                  onChange={(e) => {
-                    setDriverLicenceDoc(e.target.files[0]);
-                    setDriverLicenceDocName(e.target.files[0].name);
-                  }}
-                />
-                <label
-                  className="custom-file-label"
-                  htmlFor="customFile"
-                  style={{ overflow: "hidden" }}
-                >
-                  {driver_licence_doc_name}
-                </label>
-              </div>
-              {state_licence ? (
-                state_licence
-              ) : (
-                <div className="submit-registration">
-                  <input
-                    style={{ backgroundColor: "#03111a" }}
-                    type="submit"
-                    value="Upload"
-                    className="btn btn-primary btn-block mt-4"
-                  />
-                </div>
-              )}
-            </form>
-
-            <form onSubmit={onSubmitIdPaper}>
-              <div className="custom-file mt-4">
-                <input
-                  type="file"
-                  className="custom-file-input"
-                  id="customFile"
-                  required
-                  onChange={(e) => {
-                    setCopyIdPaper(e.target.files[0]);
-                    setCopyIdPaperName(e.target.files[0].name);
-                  }}
-                />
-                <label
-                  className="custom-file-label"
-                  htmlFor="customFile"
-                  style={{ overflow: "hidden" }}
-                >
-                  {copy_id_paper_name}
-                </label>
-              </div>
-              {state_id ? (
-                state_id
-              ) : (
-                <div className="submit-registration">
-                  <input
-                    style={{ backgroundColor: "#03111a" }}
-                    type="submit"
-                    value="Upload"
-                    className="btn btn-primary btn-block mt-4"
-                  />
-                </div>
-              )}
-            </form>
-
-            <form onSubmit={onSubmitWhitePaper}>
-              <div className="custom-file mt-4">
-                <input
-                  type="file"
-                  className="custom-file-input"
-                  id="customFile"
-                  required
-                  onChange={(e) => {
-                    setCopyWhitepaper(e.target.files[0]);
-                    setCopyWhitepaperName(e.target.files[0].name);
-                  }}
-                />
-                <label
-                  className="custom-file-label"
-                  htmlFor="customFile"
-                  style={{ overflow: "hidden" }}
-                >
-                  {copy_white_paper_name}
-                </label>
-              </div>
-              {state_white ? (
-                state_white
-              ) : (
-                <div className="submit-registration">
-                  <input
-                    style={{ backgroundColor: "#03111a" }}
-                    type="submit"
-                    value="Upload"
-                    className="btn btn-primary btn-block mt-4"
-                  />
-                </div>
-              )}
-            </form>
-
-            <form onSubmit={onSubmitPublicPermit}>
-              <div className="custom-file mt-4">
-                <input
-                  type="file"
-                  className="custom-file-input"
-                  id="customFile"
-                  required
-                  onChange={(e) => {
-                    setCopyPublicPermit(e.target.files[0]);
-                    setCopyPublicPermitName(e.target.files[0].name);
-                  }}
-                />
-                <label
-                  className="custom-file-label"
-                  htmlFor="customFile"
-                  style={{ overflow: "hidden" }}
-                >
-                  {copy_public_permit_name}
-                </label>
-              </div>
-              {state_permit ? (
-                state_permit
-              ) : (
-                <div className="submit-registration">
-                  <input
-                    style={{ backgroundColor: "#03111a" }}
-                    type="submit"
-                    value="Upload"
-                    className="btn btn-primary btn-block mt-4"
-                  />
-                </div>
-              )}
-            </form>
-
-            <form onSubmit={onSubmitBluePaper}>
-              <div className="custom-file mt-4">
-                <input
-                  type="file"
-                  className="custom-file-input"
-                  id="customFile"
-                  required
-                  onChange={(e) => {
-                    setCopyBluePaper(e.target.files[0]);
-                    setCopyBluePaperName(e.target.files[0].name);
-                  }}
-                />
-                <label
-                  className="custom-file-label"
-                  htmlFor="customFile"
-                  style={{ overflow: "hidden" }}
-                >
-                  {copy_blue_paper_name}
-                </label>
-              </div>
-              {state_blue ? (
-                state_blue
-              ) : (
-                <div className="submit-registration">
-                  <input
-                    style={{ backgroundColor: "#03111a" }}
-                    type="submit"
-                    value="Upload"
-                    className="btn btn-primary btn-block mt-4"
-                  />
-                </div>
-              )}
-            </form>
-          </div>
-
-          <div
-            style={{ display: "grid", placeItems: "center", marginTop: "4%" }}
-          >
-            <h4
-              style={{
-                backgroundColor: "#0a0321",
-                padding: "2%",
-                color: "white",
-              }}
-            >
-              {" "}
-              OTHER ACTIONS{" "}
-            </h4>
-
-            <table
-              className="table-striped"
-              style={{ border: "solid 1px", width: "60%" }}
-            >
-              <thead className="thead-light">
-                <tr>
-                  <th>Action Name</th>
-                  <th>Options</th>
-                  <th>Action Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ fontSize: "large" }}>
-                    <span style={{ display: "grid", placeItems: "center" }}>
-                      Suspension
-                    </span>
-                  </td>
-                  <td style={{ fontSize: "large" }}>
-                    <button
-                      className="btn btn-warning btn-sm"
-                      onClick={() => suspendDriver()}
-                      style={{ margin: "5px" }}
-                    >
-                      suspend
-                    </button>
+              <div>
+                <form style={formStyle} onSubmit={onSubmitDriverInfo}>
+                  <div>
+                    <label> Name </label>
                     <br></br>
+                    <input
+                      type="text"
+                      className="my-input-field"
+                      value={name}
+                      disabled={info_form_state}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label> Surname </label>
+                    <br></br>
+                    <input
+                      type="text"
+                      className="my-input-field"
+                      value={surname}
+                      disabled={info_form_state}
+                      onChange={(e) => {
+                        setSurname(e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label> Phone number </label>
+                    <br></br>
+                    <input
+                      type="text"
+                      className="my-input-field"
+                      value={phone_number}
+                      disabled={info_form_state}
+                      onChange={(e) => {
+                        setPhoneNumber(e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label> Taxi number </label>
+                    <br></br>
+                    <input
+                      type="text"
+                      className="my-input-field"
+                      value={taxi_number}
+                      disabled={info_form_state}
+                      onChange={(e) => {
+                        setTaxiNumber(e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label> Plate number </label>
+                    <br></br>
+                    <input
+                      type="text"
+                      className="my-input-field"
+                      value={plate_number}
+                      disabled={info_form_state}
+                      onChange={(e) => {
+                        setPlateNumber(e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div style={{ display: "inline-block", width: "100%" }}>
                     <button
-                      className="btn btn-success btn-sm"
-                      onClick={() => unsuspendDriver()}
+                      disabled={info_form_state}
+                      className="btn btn-info btn-sm"
+                      type="submit"
                     >
-                      unsuspend
+                      Update
                     </button>
-                  </td>
-                  <td style={{ fontSize: "large" }}>
-                    {" "}
-                    {suspension_result
-                      ? suspension_result
-                      : "no action taken"}{" "}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                    {info_update_result}
+                  </div>
+                </form>
+                <button
+                  style={{ marginLeft: "80%" }}
+                  onClick={formControlDisplay}
+                  className="btn btn-warning btn-sm"
+                >
+                  {info_form_state ? "Enable editing" : "Disable editing"}
+                </button>
+              </div>
+            </div>
+            {/* FILE UPLOAD OR UPDATE */}
+            <div
+              style={{ display: "grid", placeItems: "center", marginTop: "4%" }}
+            >
+              <h4
+                style={{
+                  backgroundColor: "#0a0321",
+                  padding: "2%",
+                  color: "white",
+                }}
+              >
+                {" "}
+                UPLOAD / UPDATE FILES
+              </h4>
+
+              <form onSubmit={onSubmitTaxiPicture}>
+                <div className="custom-file mt-4">
+                  <input
+                    type="file"
+                    className="custom-file-input"
+                    id="customFile"
+                    required
+                    onChange={(e) => {
+                      setTaxiPicture(e.target.files[0]);
+                      setTaxiPictureName(e.target.files[0].name);
+                    }}
+                  />
+                  <label
+                    className="custom-file-label"
+                    htmlFor="customFile"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {taxi_picture_name}
+                  </label>
+                </div>
+                {state ? (
+                  state
+                ) : (
+                  <div className="submit-registration">
+                    <input
+                      style={{ backgroundColor: "#03111a" }}
+                      type="submit"
+                      value="Upload"
+                      className="btn btn-primary btn-block mt-4"
+                    />
+                  </div>
+                )}
+              </form>
+
+              <form onSubmit={onSubmitProfilePicture}>
+                <div className="custom-file mt-4">
+                  <input
+                    type="file"
+                    className="custom-file-input"
+                    id="customFile"
+                    required
+                    onChange={(e) => {
+                      setProfilePicture(e.target.files[0]);
+                      setProfilePictureName(e.target.files[0].name);
+                    }}
+                  />
+                  <label
+                    className="custom-file-label"
+                    htmlFor="customFile"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {profile_picture_name}
+                  </label>
+                </div>
+                {state_profile ? (
+                  state_profile
+                ) : (
+                  <div className="submit-registration">
+                    <input
+                      style={{ backgroundColor: "#03111a" }}
+                      type="submit"
+                      value="Upload"
+                      className="btn btn-primary btn-block mt-4"
+                    />
+                  </div>
+                )}
+              </form>
+
+              <form onSubmit={onSubmitDriverLicence}>
+                <div className="custom-file mt-4">
+                  <input
+                    type="file"
+                    className="custom-file-input"
+                    id="customFile"
+                    required
+                    onChange={(e) => {
+                      setDriverLicenceDoc(e.target.files[0]);
+                      setDriverLicenceDocName(e.target.files[0].name);
+                    }}
+                  />
+                  <label
+                    className="custom-file-label"
+                    htmlFor="customFile"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {driver_licence_doc_name}
+                  </label>
+                </div>
+                {state_licence ? (
+                  state_licence
+                ) : (
+                  <div className="submit-registration">
+                    <input
+                      style={{ backgroundColor: "#03111a" }}
+                      type="submit"
+                      value="Upload"
+                      className="btn btn-primary btn-block mt-4"
+                    />
+                  </div>
+                )}
+              </form>
+
+              <form onSubmit={onSubmitIdPaper}>
+                <div className="custom-file mt-4">
+                  <input
+                    type="file"
+                    className="custom-file-input"
+                    id="customFile"
+                    required
+                    onChange={(e) => {
+                      setCopyIdPaper(e.target.files[0]);
+                      setCopyIdPaperName(e.target.files[0].name);
+                    }}
+                  />
+                  <label
+                    className="custom-file-label"
+                    htmlFor="customFile"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {copy_id_paper_name}
+                  </label>
+                </div>
+                {state_id ? (
+                  state_id
+                ) : (
+                  <div className="submit-registration">
+                    <input
+                      style={{ backgroundColor: "#03111a" }}
+                      type="submit"
+                      value="Upload"
+                      className="btn btn-primary btn-block mt-4"
+                    />
+                  </div>
+                )}
+              </form>
+
+              <form onSubmit={onSubmitWhitePaper}>
+                <div className="custom-file mt-4">
+                  <input
+                    type="file"
+                    className="custom-file-input"
+                    id="customFile"
+                    required
+                    onChange={(e) => {
+                      setCopyWhitepaper(e.target.files[0]);
+                      setCopyWhitepaperName(e.target.files[0].name);
+                    }}
+                  />
+                  <label
+                    className="custom-file-label"
+                    htmlFor="customFile"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {copy_white_paper_name}
+                  </label>
+                </div>
+                {state_white ? (
+                  state_white
+                ) : (
+                  <div className="submit-registration">
+                    <input
+                      style={{ backgroundColor: "#03111a" }}
+                      type="submit"
+                      value="Upload"
+                      className="btn btn-primary btn-block mt-4"
+                    />
+                  </div>
+                )}
+              </form>
+
+              <form onSubmit={onSubmitPublicPermit}>
+                <div className="custom-file mt-4">
+                  <input
+                    type="file"
+                    className="custom-file-input"
+                    id="customFile"
+                    required
+                    onChange={(e) => {
+                      setCopyPublicPermit(e.target.files[0]);
+                      setCopyPublicPermitName(e.target.files[0].name);
+                    }}
+                  />
+                  <label
+                    className="custom-file-label"
+                    htmlFor="customFile"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {copy_public_permit_name}
+                  </label>
+                </div>
+                {state_permit ? (
+                  state_permit
+                ) : (
+                  <div className="submit-registration">
+                    <input
+                      style={{ backgroundColor: "#03111a" }}
+                      type="submit"
+                      value="Upload"
+                      className="btn btn-primary btn-block mt-4"
+                    />
+                  </div>
+                )}
+              </form>
+
+              <form onSubmit={onSubmitBluePaper}>
+                <div className="custom-file mt-4">
+                  <input
+                    type="file"
+                    className="custom-file-input"
+                    id="customFile"
+                    required
+                    onChange={(e) => {
+                      setCopyBluePaper(e.target.files[0]);
+                      setCopyBluePaperName(e.target.files[0].name);
+                    }}
+                  />
+                  <label
+                    className="custom-file-label"
+                    htmlFor="customFile"
+                    style={{ overflow: "hidden" }}
+                  >
+                    {copy_blue_paper_name}
+                  </label>
+                </div>
+                {state_blue ? (
+                  state_blue
+                ) : (
+                  <div className="submit-registration">
+                    <input
+                      style={{ backgroundColor: "#03111a" }}
+                      type="submit"
+                      value="Upload"
+                      className="btn btn-primary btn-block mt-4"
+                    />
+                  </div>
+                )}
+              </form>
+            </div>
+
+            <div
+              style={{ display: "grid", placeItems: "center", marginTop: "4%" }}
+            >
+              <h4
+                style={{
+                  backgroundColor: "#0a0321",
+                  padding: "2%",
+                  color: "white",
+                }}
+              >
+                {" "}
+                OTHER ACTIONS{" "}
+              </h4>
+
+              <table
+                className="table-striped"
+                style={{ border: "solid 1px", width: "60%" }}
+              >
+                <thead className="thead-light">
+                  <tr>
+                    <th>Action Name</th>
+                    <th>Options</th>
+                    <th>Action Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ fontSize: "large" }}>
+                      <span style={{ display: "grid", placeItems: "center" }}>
+                        Suspension
+                      </span>
+                    </td>
+                    <td style={{ fontSize: "large" }}>
+                      <button
+                        className="btn btn-warning btn-sm"
+                        onClick={() => suspendDriver()}
+                        style={{ margin: "5px" }}
+                      >
+                        suspend
+                      </button>
+                      <br></br>
+                      <button
+                        className="btn btn-success btn-sm"
+                        onClick={() => unsuspendDriver()}
+                      >
+                        unsuspend
+                      </button>
+                    </td>
+                    <td style={{ fontSize: "large" }}>
+                      {" "}
+                      {suspension_result
+                        ? suspension_result
+                        : "no action taken"}{" "}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }

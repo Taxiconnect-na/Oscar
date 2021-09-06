@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../sidebar/sidebar";
-//import io from "socket.io"
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 import socket from "../socket";
 import "./PassengerList.css";
 import { FaUserAlt } from "react-icons/fa";
@@ -29,6 +29,16 @@ const PassengerRow = (props) => {
 };
 
 function PassengerList() {
+  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
+  const dispatch = useDispatch();
+
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    window.location.href = "/";
+  }
+
   let [passengers, setPassengers] = useState([]);
   let [totalNewPassengerToday, setTotalNewPassengerToday] = useState(0);
 
@@ -80,56 +90,66 @@ function PassengerList() {
     marginBottom: 15,
   };
 
-  //console.log(passengers)
-  return (
-    <div>
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    return <></>;
+  } else {
+    return (
       <div>
         <div>
-          <h2 style={title_style}>Registered Users</h2>
-          <hr></hr>
-          <div id="container-driver">
-            <div>
-              <h1 style={{ fontSize: "large", color: "black", width: "auto" }}>
-                {" "}
-                Total sign up:
-                <span style={{ fontSize: "large", color: "blue" }}>
+          <div>
+            <h2 style={title_style}>Registered Users</h2>
+            <hr></hr>
+            <div id="container-driver">
+              <div>
+                <h1
+                  style={{ fontSize: "large", color: "black", width: "auto" }}
+                >
                   {" "}
-                  {passengers.length}{" "}
-                </span>
-              </h1>
-            </div>
-            <div>
-              <h1 style={{ fontSize: "large", color: "black", width: "auto" }}>
-                {" "}
-                New sign up (today):
-                <span style={{ fontSize: "large", color: "blue" }}>
+                  Total sign up:
+                  <span style={{ fontSize: "large", color: "blue" }}>
+                    {" "}
+                    {passengers.length}{" "}
+                  </span>
+                </h1>
+              </div>
+              <div>
+                <h1
+                  style={{ fontSize: "large", color: "black", width: "auto" }}
+                >
                   {" "}
-                  {totalNewPassengerToday}{" "}
-                </span>
-              </h1>
+                  New sign up (today):
+                  <span style={{ fontSize: "large", color: "blue" }}>
+                    {" "}
+                    {totalNewPassengerToday}{" "}
+                  </span>
+                </h1>
+              </div>
             </div>
-          </div>
-          <hr></hr>
+            <hr></hr>
 
-          <table className="table-striped" style={{ margin: 15 }}>
-            <thead className="thead-light">
-              <tr>
-                <th>Profile</th>
-                <th>Name</th>
-                <th>Surname</th>
-                <th>Genger </th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Signed up</th>
-                <th>Total trips</th>
-              </tr>
-            </thead>
-            <tbody>{passengerData()}</tbody>
-          </table>
+            <table className="table-striped" style={{ margin: 15 }}>
+              <thead className="thead-light">
+                <tr>
+                  <th>Profile</th>
+                  <th>Name</th>
+                  <th>Surname</th>
+                  <th>Genger </th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Signed up</th>
+                  <th>Total trips</th>
+                </tr>
+              </thead>
+              <tbody>{passengerData()}</tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 export default PassengerList;

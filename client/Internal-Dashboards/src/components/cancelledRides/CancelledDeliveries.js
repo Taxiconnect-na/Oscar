@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../sidebar/sidebar";
-//import io from 'socket.io-client'
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 import socket from "../socket";
 
 const CancelledDeliveryRow = (props) => {
@@ -33,6 +33,16 @@ const CancelledDeliveryRow = (props) => {
 };
 
 export default function CancelledDeliveries() {
+  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
+  const dispatch = useDispatch();
+
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    window.location.href = "/";
+  }
+
   let [cancelledRides, setCancelledRides] = useState([]);
 
   useEffect(() => {
@@ -68,29 +78,36 @@ export default function CancelledDeliveries() {
     },
   };
 
-  return (
-    <div className="template">
-      <div className="main-content">
-        <h1 style={style.header}> CANCELLED DELIVERIES </h1>
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    return <></>;
+  } else {
+    return (
+      <div className="template">
+        <div className="main-content">
+          <h1 style={style.header}> CANCELLED DELIVERIES </h1>
 
-        <table className="table-striped" style={{ textAlign: "center" }}>
-          <thead className="thead-light">
-            <tr>
-              <th>Username</th>
-              <th>Origin</th>
-              <th>Destination</th>
-              <th>Date</th>
-              <th>Time requested</th>
-              <th>Fare</th>
-              <th>Passenger cellphone</th>
-              <th>Taxi number</th>
-              <th>Transport Type</th>
-              {/*<th>Driver name</th>*/}
-            </tr>
-          </thead>
-          <tbody>{cancelledRidesList()}</tbody>
-        </table>
+          <table className="table-striped" style={{ textAlign: "center" }}>
+            <thead className="thead-light">
+              <tr>
+                <th>Username</th>
+                <th>Origin</th>
+                <th>Destination</th>
+                <th>Date</th>
+                <th>Time requested</th>
+                <th>Fare</th>
+                <th>Passenger cellphone</th>
+                <th>Taxi number</th>
+                <th>Transport Type</th>
+                {/*<th>Driver name</th>*/}
+              </tr>
+            </thead>
+            <tbody>{cancelledRidesList()}</tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }

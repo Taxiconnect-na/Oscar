@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-//import io from 'socket.io'
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 import socket from "../socket";
-import Sidebar from "../sidebar/sidebar";
 import "./driverList.css";
 import { FaUserAlt } from "react-icons/fa";
 require("dotenv").config({ path: "../../../.env" });
@@ -53,6 +53,16 @@ const DriverRow = (props) => {
 };
 
 function DriverList() {
+  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
+  const dispatch = useDispatch();
+
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    window.location.href = "/";
+  }
+
   //let ENDPOINT = process.env.GATEWAY
   let [drivers, setDrivers] = useState([]);
   let [online_drivers_count, setOnlineDriversCount] = useState(0);
@@ -104,57 +114,68 @@ function DriverList() {
     marginBottom: 15,
   };
 
-  return (
-    <div>
-      <div className="template">
-        <div className="main-content">
-          <h1 style={title_style}>Registered drivers</h1>
-          <hr></hr>
-          <div id="container-driver">
-            <div>
-              <h1 style={{ fontSize: "large", color: "black", width: "auto" }}>
-                {" "}
-                Currently registered:
-                <span style={{ fontSize: "large", color: "blue" }}>
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    return <></>;
+  } else {
+    return (
+      <div>
+        <div className="template">
+          <div className="main-content">
+            <h1 style={title_style}>Registered drivers</h1>
+            <hr></hr>
+            <div id="container-driver">
+              <div>
+                <h1
+                  style={{ fontSize: "large", color: "black", width: "auto" }}
+                >
                   {" "}
-                  {drivers.length}{" "}
-                </span>
-              </h1>
-            </div>
-            <div>
-              <h1 style={{ fontSize: "large", color: "black", width: "auto" }}>
-                {" "}
-                Online:
-                <span style={{ fontSize: "large", color: "blue" }}>
+                  Currently registered:
+                  <span style={{ fontSize: "large", color: "blue" }}>
+                    {" "}
+                    {drivers.length}{" "}
+                  </span>
+                </h1>
+              </div>
+              <div>
+                <h1
+                  style={{ fontSize: "large", color: "black", width: "auto" }}
+                >
                   {" "}
-                  {online_drivers_count}{" "}
-                </span>
-              </h1>
+                  Online:
+                  <span style={{ fontSize: "large", color: "blue" }}>
+                    {" "}
+                    {online_drivers_count}{" "}
+                  </span>
+                </h1>
+              </div>
             </div>
+            <hr></hr>
+            <table className="table-striped" style={{ margin: 15 }}>
+              <thead className="thead-light">
+                <tr>
+                  <th>Profile</th>
+                  <th>Name</th>
+                  <th>Surname</th>
+                  <th>Phone </th>
+                  <th>Taxi Number</th>
+                  <th>Plate number</th>
+                  <th>Car brand</th>
+                  <th>Status</th>
+                  <th>Suspended</th>
+                  <th>Daily profit</th>
+                  <th>Daily connect</th>
+                </tr>
+              </thead>
+              <tbody>{driverData()}</tbody>
+            </table>
           </div>
-          <hr></hr>
-          <table className="table-striped" style={{ margin: 15 }}>
-            <thead className="thead-light">
-              <tr>
-                <th>Profile</th>
-                <th>Name</th>
-                <th>Surname</th>
-                <th>Phone </th>
-                <th>Taxi Number</th>
-                <th>Plate number</th>
-                <th>Car brand</th>
-                <th>Status</th>
-                <th>Suspended</th>
-                <th>Daily profit</th>
-                <th>Daily connect</th>
-              </tr>
-            </thead>
-            <tbody>{driverData()}</tbody>
-          </table>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 export default DriverList;

@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
-//import axios from "axios"
-//import io from 'socket.io-client'
 import socket from "../socket";
-import Sidebar from "../sidebar/sidebar";
 import "./overview.css";
 require("dotenv").config({ path: "../../../.env" });
 
 function Overview() {
+  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
+  const dispatch = useDispatch();
+
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    window.location.href = "/";
+  }
+
   // Initialize statistics state
   let [totalFareSuccessful, setTotalFareSuccessful] = useState(0);
   let [totalTripSuccessful, setTotalTripSuccessful] = useState(0);
@@ -73,159 +79,171 @@ function Overview() {
     totalWallet,
   ]);
 
-  return (
-    <div className="template">
-      <div style={{ backgroundColor: "#03162e" }} className="main-content">
-        <div>
-          <div id="top">
-            <h1>SUMMARY</h1>
-            <hr style={{ width: "60%", margin: "auto" }}></hr>
-          </div>
-          <div id="title">
-            <h2>TODAY </h2>
-          </div>
-
-          <div className="content-overview">
-            <div>
-              <h1 style={{ fontSize: "xx-large", color: "#0d17a8" }}>
-                {totalTripSuccessfulToday}
-                <span style={{ fontSize: "small", color: "black" }}>
-                  {" "}
-                  successful trip
-                </span>
-              </h1>
-              <h1 style={{ fontSize: "xx-large", color: "#a60a0a" }}>
-                {totalTripCancelledToday}
-                <span style={{ fontSize: "small", color: "black" }}>
-                  {" "}
-                  cancelled trip
-                </span>
-              </h1>
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    return <></>;
+  } else {
+    return (
+      <div className="template">
+        <div style={{ backgroundColor: "#03162e" }} className="main-content">
+          <div>
+            <div id="top">
+              <h1>SUMMARY</h1>
+              <hr style={{ width: "60%", margin: "auto" }}></hr>
+            </div>
+            <div id="title">
+              <h2>TODAY </h2>
             </div>
 
-            <div>
-              <h1 style={{ fontSize: "xx-large", color: "#0d17a8" }}>
-                N$ {totalFareSuccessfulToday}
-                <span style={{ fontSize: "small", color: "black" }}>
-                  {" "}
-                  processed{" "}
-                </span>
-              </h1>
-              <h1 style={{ fontSize: "xx-large", color: "#a60a0a" }}>
-                N$ {totalFareCancelledToday}
-                <span style={{ fontSize: "small", color: "black" }}>
-                  {" "}
-                  lost{" "}
-                </span>
-              </h1>
-            </div>
-          </div>
+            <div className="content-overview">
+              <div>
+                <h1 style={{ fontSize: "xx-large", color: "#0d17a8" }}>
+                  {totalTripSuccessfulToday}
+                  <span style={{ fontSize: "small", color: "black" }}>
+                    {" "}
+                    successful trip
+                  </span>
+                </h1>
+                <h1 style={{ fontSize: "xx-large", color: "#a60a0a" }}>
+                  {totalTripCancelledToday}
+                  <span style={{ fontSize: "small", color: "black" }}>
+                    {" "}
+                    cancelled trip
+                  </span>
+                </h1>
+              </div>
 
-          <div style={{ width: "50%", alignContent: "center", margin: "auto" }}>
-            <table
-              className="table-bordered"
-              style={{ border: "1px solid #205a8a", color: "white" }}
+              <div>
+                <h1 style={{ fontSize: "xx-large", color: "#0d17a8" }}>
+                  N$ {totalFareSuccessfulToday}
+                  <span style={{ fontSize: "small", color: "black" }}>
+                    {" "}
+                    processed{" "}
+                  </span>
+                </h1>
+                <h1 style={{ fontSize: "xx-large", color: "#a60a0a" }}>
+                  N$ {totalFareCancelledToday}
+                  <span style={{ fontSize: "small", color: "black" }}>
+                    {" "}
+                    lost{" "}
+                  </span>
+                </h1>
+              </div>
+            </div>
+
+            <div
+              style={{ width: "50%", alignContent: "center", margin: "auto" }}
             >
-              <thead className="thead-light">
-                <tr>
-                  <th colSpan="2">New Sign Up</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Users</td>
-                  <td>Drivers</td>
-                </tr>
-                <tr>
-                  <td>{totalNewPassengerToday}</td>
-                  <td>{totalNewDriverToday}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <br></br>
-          <hr></hr>
+              <table
+                className="table-bordered"
+                style={{ border: "1px solid #205a8a", color: "white" }}
+              >
+                <thead className="thead-light">
+                  <tr>
+                    <th colSpan="2">New Sign Up</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Users</td>
+                    <td>Drivers</td>
+                  </tr>
+                  <tr>
+                    <td>{totalNewPassengerToday}</td>
+                    <td>{totalNewDriverToday}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <br></br>
+            <hr></hr>
 
-          <div id="title">
-            <h2>OVERALL </h2>
-          </div>
-          <div className="content-overview">
-            <div style={{ backgroundColor: "#8d9294" }}>
-              <h1 style={{ fontSize: "xx-large", color: "#0d17a8" }}>
-                {totalTripSuccessful}
-                <span style={{ fontSize: "small", color: "black" }}>
-                  {" "}
-                  successful trip
-                </span>
-              </h1>
-              <h1 style={{ fontSize: "xx-large", color: "#a60a0a" }}>
-                {totalTripCancelled}
-                <span style={{ fontSize: "small", color: "black" }}>
-                  {" "}
-                  cancelled trip
-                </span>
-              </h1>
+            <div id="title">
+              <h2>OVERALL </h2>
+            </div>
+            <div className="content-overview">
+              <div style={{ backgroundColor: "#8d9294" }}>
+                <h1 style={{ fontSize: "xx-large", color: "#0d17a8" }}>
+                  {totalTripSuccessful}
+                  <span style={{ fontSize: "small", color: "black" }}>
+                    {" "}
+                    successful trip
+                  </span>
+                </h1>
+                <h1 style={{ fontSize: "xx-large", color: "#a60a0a" }}>
+                  {totalTripCancelled}
+                  <span style={{ fontSize: "small", color: "black" }}>
+                    {" "}
+                    cancelled trip
+                  </span>
+                </h1>
+              </div>
+
+              <div style={{ backgroundColor: "#8d9294" }}>
+                <h1 style={{ fontSize: "xx-large", color: "#0d17a8" }}>
+                  N$ {totalFareSuccessful}
+                  <span style={{ fontSize: "small", color: "black" }}>
+                    {" "}
+                    processed{" "}
+                  </span>
+                </h1>
+                <h1 style={{ fontSize: "xx-large", color: "#a60a0a" }}>
+                  N$ {totalFareCancelled}
+                  <span style={{ fontSize: "small", color: "black" }}>
+                    {" "}
+                    lost{" "}
+                  </span>
+                </h1>
+              </div>
             </div>
 
-            <div style={{ backgroundColor: "#8d9294" }}>
-              <h1 style={{ fontSize: "xx-large", color: "#0d17a8" }}>
-                N$ {totalFareSuccessful}
-                <span style={{ fontSize: "small", color: "black" }}>
-                  {" "}
-                  processed{" "}
-                </span>
-              </h1>
-              <h1 style={{ fontSize: "xx-large", color: "#a60a0a" }}>
-                N$ {totalFareCancelled}
-                <span style={{ fontSize: "small", color: "black" }}>
-                  {" "}
-                  lost{" "}
-                </span>
-              </h1>
+            <div
+              style={{ width: "55%", alignContent: "center", margin: "auto" }}
+            >
+              <table className="table-hover" style={{ color: "white" }}>
+                <thead className="thead-dark">
+                  <tr>
+                    <th colSpan="2">Processed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>cash</td>
+                    <td>N$ {totalCash}</td>
+                  </tr>
+                  <tr>
+                    <td>wallet</td>
+                    <td>N$ {totalWallet}</td>
+                  </tr>
+                  <tr>
+                    <td>Total</td>
+                    <td>N$ {totalCash + totalWallet}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
+            <br></br>
           </div>
-
-          <div style={{ width: "55%", alignContent: "center", margin: "auto" }}>
-            <table className="table-hover" style={{ color: "white" }}>
-              <thead className="thead-dark">
-                <tr>
-                  <th colSpan="2">Processed</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>cash</td>
-                  <td>N$ {totalCash}</td>
-                </tr>
-                <tr>
-                  <td>wallet</td>
-                  <td>N$ {totalWallet}</td>
-                </tr>
-                <tr>
-                  <td>Total</td>
-                  <td>N$ {totalCash + totalWallet}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <br></br>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
-const mapStateToProps = (state) => {
-  const { App } = state;
-  return { App };
-};
+// const mapStateToProps = (state) => {
+//   const { App } = state;
+//   return { App };
+// };
 
-const mapDispatchToProps = (dispatch) =>
-  bindActionCreators(
-    {
-      UpdateSuccessfullLoginDetails,
-    },
-    dispatch
-  );
+// const mapDispatchToProps = (dispatch) =>
+//   bindActionCreators(
+//     {
+//       UpdateSuccessfullLoginDetails,
+//     },
+//     dispatch
+//   );
 
-export default connect(mapStateToProps, mapDispatchToProps)(Overview);
+// export default connect(mapStateToProps, mapDispatchToProps)(Overview);
+export default Overview;

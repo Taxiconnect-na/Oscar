@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 import socket from "../socket";
-import Sidebar from "../sidebar/sidebar";
 import "./driverCommission.css";
 
 const isToday = (someDate) => {
@@ -68,6 +69,16 @@ const DriverRow = (props) => {
  * @returns
  */
 export default function DriverCommission() {
+  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
+  const dispatch = useDispatch();
+
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    window.location.href = "/";
+  }
+
   let [drivers, setDrivers] = useState([]);
 
   useEffect(() => {
@@ -100,34 +111,41 @@ export default function DriverCommission() {
     }
   };
 
-  return (
-    <div>
-      <div className="template">
-        <div className="main-content">
-          <h1 style={{ display: "grid", placeItems: "center", margin: "2%" }}>
-            {" "}
-            DRIVERS PAYMENTS{" "}
-          </h1>
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    return <></>;
+  } else {
+    return (
+      <div>
+        <div className="template">
+          <div className="main-content">
+            <h1 style={{ display: "grid", placeItems: "center", margin: "2%" }}>
+              {" "}
+              DRIVERS PAYMENTS{" "}
+            </h1>
 
-          <table
-            className="table-hover"
-            style={{ border: "solid 1px", marginBottom: "2%" }}
-          >
-            <thead className="thead-light">
-              <tr>
-                <th>Name</th>
-                <th>Surname</th>
-                <th>Phone </th>
-                <th>Taxi Number</th>
-                <th>Total commission</th>
-                <th>Wallet Balance</th>
-                <th>Scheduled payment date</th>
-              </tr>
-            </thead>
-            <tbody>{driverData()}</tbody>
-          </table>
+            <table
+              className="table-hover"
+              style={{ border: "solid 1px", marginBottom: "2%" }}
+            >
+              <thead className="thead-light">
+                <tr>
+                  <th>Name</th>
+                  <th>Surname</th>
+                  <th>Phone </th>
+                  <th>Taxi Number</th>
+                  <th>Total commission</th>
+                  <th>Wallet Balance</th>
+                  <th>Scheduled payment date</th>
+                </tr>
+              </thead>
+              <tbody>{driverData()}</tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }

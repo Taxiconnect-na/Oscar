@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 import queryString from "query-string";
 import Sidebar from "../sidebar/sidebar";
 
@@ -24,6 +26,16 @@ const DriverRow2 = (props) => {
 };
 
 export default function DriverCommissionInsert({ location }) {
+  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
+  const dispatch = useDispatch();
+
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    window.location.href = "/";
+  }
+
   let [driverFingerPrint, setDriverFingerprint] = useState("");
   let [taxi_number, setTaxiNumber] = useState("");
   let [name, setName] = useState("");
@@ -176,95 +188,104 @@ export default function DriverCommissionInsert({ location }) {
       });
   };
 
-  return (
-    <div className="template">
-      <div className="sidebar">
-        <Sidebar />
-      </div>
-
-      <div className="main-content">
-        <div>
-          <h5 style={wordingStyle}>
-            {" "}
-            You are about to make a payment for{" "}
-            <strong>
-              {name ? name : "unknown"} {surname}
-            </strong>{" "}
-            with taxi number:{" "}
-            <strong> {taxi_number ? taxi_number : "unknown"}</strong>
-          </h5>
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    return <></>;
+  } else {
+    return (
+      <div className="template">
+        <div className="sidebar">
+          <Sidebar />
         </div>
-        <div style={formStyle}>
-          <form onSubmit={onSubmitHandler}>
-            <div className="form-group ml-4">
-              <label>Insert amount : </label>
-              <input
-                type="number"
-                required
-                className="form-control"
-                value={amount}
-                onChange={(e) => {
-                  setAmount(e.target.value);
-                }}
-                style={{ width: 350 }}
-              />
-            </div>
-            {state ? (
-              state
-            ) : (
-              <div className="submit-registration ml-4">
+
+        <div className="main-content">
+          <div>
+            <h5 style={wordingStyle}>
+              {" "}
+              You are about to make a payment for{" "}
+              <strong>
+                {name ? name : "unknown"} {surname}
+              </strong>{" "}
+              with taxi number:{" "}
+              <strong> {taxi_number ? taxi_number : "unknown"}</strong>
+            </h5>
+          </div>
+          <div style={formStyle}>
+            <form onSubmit={onSubmitHandler}>
+              <div className="form-group ml-4">
+                <label>Insert amount : </label>
                 <input
-                  style={{ backgroundColor: "green", width: 350 }}
-                  type="submit"
-                  value="make payment"
-                  className="btn btn-primary btn-sm mt-4"
+                  type="number"
+                  required
+                  className="form-control"
+                  value={amount}
+                  onChange={(e) => {
+                    setAmount(e.target.value);
+                  }}
+                  style={{ width: 350 }}
                 />
               </div>
-            )}
-          </form>
-        </div>
-        <div style={{ display: "grid", placeItems: "center", marginTop: "2%" }}>
-          <h1> DRIVER'S EARNINGS </h1> <h4>(since April 2021)</h4>
-          <hr></hr>
-          <button
-            onClick={() => viewCashHandler()}
-            className="btn btn-primary btn-xs"
+              {state ? (
+                state
+              ) : (
+                <div className="submit-registration ml-4">
+                  <input
+                    style={{ backgroundColor: "green", width: 350 }}
+                    type="submit"
+                    value="make payment"
+                    className="btn btn-primary btn-sm mt-4"
+                  />
+                </div>
+              )}
+            </form>
+          </div>
+          <div
+            style={{ display: "grid", placeItems: "center", marginTop: "2%" }}
           >
-            Click to view earnings
-          </button>
-          <table
-            className="table-striped"
-            style={{ border: "solid 1px", width: "60%" }}
-          >
-            <thead className="thead-light">
-              <tr>
-                <th colSpan={2}> CASH </th>
-              </tr>
-              <tr>
-                <th>MONTH</th>
-                <th>TOTAL EARNINGS</th>
-              </tr>
-            </thead>
-            <tbody>{driverDataCash()}</tbody>
-          </table>
-          <br></br>
-          <table
-            className="table-striped"
-            style={{ border: "solid 1px", width: "60%" }}
-          >
-            <thead className="thead-light">
-              <tr>
-                <th colSpan={2}> WALLET </th>
-              </tr>
-              <tr>
-                <th>MONTH</th>
-                <th>TOTAL EARNINGS</th>
-              </tr>
-            </thead>
-            <tbody>{driverDataWallet()}</tbody>
-          </table>
+            <h1> DRIVER'S EARNINGS </h1> <h4>(since April 2021)</h4>
+            <hr></hr>
+            <button
+              onClick={() => viewCashHandler()}
+              className="btn btn-primary btn-xs"
+            >
+              Click to view earnings
+            </button>
+            <table
+              className="table-striped"
+              style={{ border: "solid 1px", width: "60%" }}
+            >
+              <thead className="thead-light">
+                <tr>
+                  <th colSpan={2}> CASH </th>
+                </tr>
+                <tr>
+                  <th>MONTH</th>
+                  <th>TOTAL EARNINGS</th>
+                </tr>
+              </thead>
+              <tbody>{driverDataCash()}</tbody>
+            </table>
+            <br></br>
+            <table
+              className="table-striped"
+              style={{ border: "solid 1px", width: "60%" }}
+            >
+              <thead className="thead-light">
+                <tr>
+                  <th colSpan={2}> WALLET </th>
+                </tr>
+                <tr>
+                  <th>MONTH</th>
+                  <th>TOTAL EARNINGS</th>
+                </tr>
+              </thead>
+              <tbody>{driverDataWallet()}</tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }

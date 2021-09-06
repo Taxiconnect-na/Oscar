@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-//import io from 'socket.io-client'
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 import socket from "../socket";
 import "./deliveryOverview.css";
-import Sidebar from "../sidebar/sidebar";
 require("dotenv").config({ path: "../../../.env" });
 
 /**
@@ -232,6 +232,16 @@ const DeliveryRow = (props) => {
 };
 
 function DeliveryOverview() {
+  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
+  const dispatch = useDispatch();
+
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    window.location.href = "/";
+  }
+
   let [deliveries, setDeliveries] = useState([]); // Main ride list of objects
   let [inProgress, setInProgress] = useState(true);
   let [DeliveryInProgressCountToday, setDeliveryInProgressCountToday] =
@@ -412,242 +422,249 @@ function DeliveryOverview() {
     );
   };
 
-  return (
-    <div>
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    return <></>;
+  } else {
+    return (
       <div>
         <div>
-          <h1 style={title_style}> Deliveries Overview </h1>
-          <div style={{ marginLeft: 200, padding: 10 }}>
-            <button
-              style={{ marginLeft: 25 }}
-              className="btn btn-info btn-sm "
-              onClick={() => {
-                setScheduled(false);
-                setCompleted(false);
-                setInProgress(true);
-              }}
-            >
-              Deliveries in progress [{InprogressCount}]
-            </button>
+          <div>
+            <h1 style={title_style}> Deliveries Overview </h1>
+            <div style={{ marginLeft: 200, padding: 10 }}>
+              <button
+                style={{ marginLeft: 25 }}
+                className="btn btn-info btn-sm "
+                onClick={() => {
+                  setScheduled(false);
+                  setCompleted(false);
+                  setInProgress(true);
+                }}
+              >
+                Deliveries in progress [{InprogressCount}]
+              </button>
 
-            <button
-              style={{ marginLeft: 35 }}
-              className="btn btn-info btn-sm"
-              onClick={() => {
-                setInProgress(false);
-                setCompleted(false);
-                setScheduled(true);
-              }}
-            >
-              Scheduled Deliveries [{ScheduledCount}]
-            </button>
+              <button
+                style={{ marginLeft: 35 }}
+                className="btn btn-info btn-sm"
+                onClick={() => {
+                  setInProgress(false);
+                  setCompleted(false);
+                  setScheduled(true);
+                }}
+              >
+                Scheduled Deliveries [{ScheduledCount}]
+              </button>
 
-            <button
-              style={{ marginLeft: 35 }}
-              className="btn btn-info btn-sm"
-              onClick={() => {
-                setInProgress(false);
-                setCompleted(true);
-                setScheduled(false);
-              }}
-            >
-              Completed Deliveries [{CompletedCount}]
-            </button>
-          </div>
+              <button
+                style={{ marginLeft: 35 }}
+                className="btn btn-info btn-sm"
+                onClick={() => {
+                  setInProgress(false);
+                  setCompleted(true);
+                  setScheduled(false);
+                }}
+              >
+                Completed Deliveries [{CompletedCount}]
+              </button>
+            </div>
 
-          <div style={{ display: inProgress ? "" : "none" }}>
-            <hr></hr>
+            <div style={{ display: inProgress ? "" : "none" }}>
+              <hr></hr>
 
-            <div>
-              <div className="container">
-                <div className="row text-center">
-                  <div className="col-sm">
-                    <div className="card" style={card}>
-                      <div className="card-header" style={card_header}>
-                        cash
-                      </div>
-                      <div className="card-body">
-                        <h3>N$ {moneyInprogress["totalCash"]}</h3>
+              <div>
+                <div className="container">
+                  <div className="row text-center">
+                    <div className="col-sm">
+                      <div className="card" style={card}>
+                        <div className="card-header" style={card_header}>
+                          cash
+                        </div>
+                        <div className="card-body">
+                          <h3>N$ {moneyInprogress["totalCash"]}</h3>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-sm">
-                    <div className="card" style={card}>
-                      <div className="card-header" style={card_header}>
-                        wallet
-                      </div>
-                      <div className="card-body">
-                        <h3>N$ {moneyInprogress["totalWallet"]}</h3>
+                    <div className="col-sm">
+                      <div className="card" style={card}>
+                        <div className="card-header" style={card_header}>
+                          wallet
+                        </div>
+                        <div className="card-body">
+                          <h3>N$ {moneyInprogress["totalWallet"]}</h3>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-sm">
-                    <div className="card" style={card}>
-                      <div className="card-header" style={card_header}>
-                        Total
-                      </div>
-                      <div className="card-body">
-                        <h3>N$ {moneyInprogress["totalCashWallet"]}</h3>
+                    <div className="col-sm">
+                      <div className="card" style={card}>
+                        <div className="card-header" style={card_header}>
+                          Total
+                        </div>
+                        <div className="card-body">
+                          <h3>N$ {moneyInprogress["totalCashWallet"]}</h3>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+
+              <hr></hr>
+
+              {today()}
+
+              <h3 style={subtitle_style}>
+                Deliveries in progress [ {DeliveryInProgressCountToday} ]{" "}
+              </h3>
+              <table className="table" style={{ textAlign: "center" }}>
+                <thead className="thead-light">
+                  <tr>
+                    <th>Taxi number</th>
+                    <th>Origin</th>
+                    <th>Request type</th>
+                    <th>Date</th>
+                    <th>Time requested</th>
+                    <th>Item picked up</th>
+                    <th>Dropped (Driver side) </th>
+                    <th>Receiver</th>
+                    <th>...</th>
+                  </tr>
+                </thead>
+                <tbody>{deliveryListInProgress()}</tbody>
+              </table>
             </div>
 
-            <hr></hr>
-
-            {today()}
-
-            <h3 style={subtitle_style}>
-              Deliveries in progress [ {DeliveryInProgressCountToday} ]{" "}
-            </h3>
-            <table className="table" style={{ textAlign: "center" }}>
-              <thead className="thead-light">
-                <tr>
-                  <th>Taxi number</th>
-                  <th>Origin</th>
-                  <th>Request type</th>
-                  <th>Date</th>
-                  <th>Time requested</th>
-                  <th>Item picked up</th>
-                  <th>Dropped (Driver side) </th>
-                  <th>Receiver</th>
-                  <th>...</th>
-                </tr>
-              </thead>
-              <tbody>{deliveryListInProgress()}</tbody>
-            </table>
-          </div>
-
-          <div style={{ display: scheduled ? "" : "none" }}>
-            <hr></hr>
-            <div>
-              <div className="container">
-                <div className="row text-center">
-                  <div className="col-sm">
-                    <div className="card" style={card}>
-                      <div className="card-header" style={card_header}>
-                        cash
-                      </div>
-                      <div className="card-body">
-                        <h3>N$ {moneyScheduled["totalCash"]}</h3>
+            <div style={{ display: scheduled ? "" : "none" }}>
+              <hr></hr>
+              <div>
+                <div className="container">
+                  <div className="row text-center">
+                    <div className="col-sm">
+                      <div className="card" style={card}>
+                        <div className="card-header" style={card_header}>
+                          cash
+                        </div>
+                        <div className="card-body">
+                          <h3>N$ {moneyScheduled["totalCash"]}</h3>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-sm">
-                    <div className="card" style={card}>
-                      <div className="card-header" style={card_header}>
-                        wallet
-                      </div>
-                      <div className="card-body">
-                        <h3>N$ {moneyScheduled["totalWallet"]}</h3>
+                    <div className="col-sm">
+                      <div className="card" style={card}>
+                        <div className="card-header" style={card_header}>
+                          wallet
+                        </div>
+                        <div className="card-body">
+                          <h3>N$ {moneyScheduled["totalWallet"]}</h3>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-sm">
-                    <div className="card" style={card}>
-                      <div className="card-header" style={card_header}>
-                        Total
-                      </div>
-                      <div className="card-body">
-                        <h3>N$ {moneyScheduled["totalCashWallet"]}</h3>
+                    <div className="col-sm">
+                      <div className="card" style={card}>
+                        <div className="card-header" style={card_header}>
+                          Total
+                        </div>
+                        <div className="card-body">
+                          <h3>N$ {moneyScheduled["totalCashWallet"]}</h3>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+
+              <hr></hr>
+
+              {today()}
+
+              <h3 style={subtitle_style}>Scheduled deliveries </h3>
+              <table className="table" style={{ textAlign: "center" }}>
+                <thead className="thead-light">
+                  <tr>
+                    <th>Taxi number</th>
+                    <th>Origin</th>
+                    <th>Request type</th>
+                    <th>Date</th>
+                    <th>Time requested</th>
+                    <th>Item picked up</th>
+                    <th>Item dropped off</th>
+                    <th>Receiver</th>
+                    <th>...</th>
+                  </tr>
+                </thead>
+                <tbody>{deliveryListScheduled()}</tbody>
+              </table>
             </div>
 
-            <hr></hr>
+            <div style={{ display: completed ? "" : "none" }}>
+              <hr></hr>
 
-            {today()}
-
-            <h3 style={subtitle_style}>Scheduled deliveries </h3>
-            <table className="table" style={{ textAlign: "center" }}>
-              <thead className="thead-light">
-                <tr>
-                  <th>Taxi number</th>
-                  <th>Origin</th>
-                  <th>Request type</th>
-                  <th>Date</th>
-                  <th>Time requested</th>
-                  <th>Item picked up</th>
-                  <th>Item dropped off</th>
-                  <th>Receiver</th>
-                  <th>...</th>
-                </tr>
-              </thead>
-              <tbody>{deliveryListScheduled()}</tbody>
-            </table>
-          </div>
-
-          <div style={{ display: completed ? "" : "none" }}>
-            <hr></hr>
-
-            <div>
-              <div className="container">
-                <div className="row text-center">
-                  <div className="col-sm">
-                    <div className="card" style={card}>
-                      <div className="card-header" style={card_header}>
-                        cash
-                      </div>
-                      <div className="card-body">
-                        <h3>N$ {moneyCompleted["totalCash"]}</h3>
+              <div>
+                <div className="container">
+                  <div className="row text-center">
+                    <div className="col-sm">
+                      <div className="card" style={card}>
+                        <div className="card-header" style={card_header}>
+                          cash
+                        </div>
+                        <div className="card-body">
+                          <h3>N$ {moneyCompleted["totalCash"]}</h3>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-sm">
-                    <div className="card" style={card}>
-                      <div className="card-header" style={card_header}>
-                        wallet
-                      </div>
-                      <div className="card-body">
-                        <h3>N$ {moneyCompleted["totalWallet"]}</h3>
+                    <div className="col-sm">
+                      <div className="card" style={card}>
+                        <div className="card-header" style={card_header}>
+                          wallet
+                        </div>
+                        <div className="card-body">
+                          <h3>N$ {moneyCompleted["totalWallet"]}</h3>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-sm">
-                    <div className="card" style={card}>
-                      <div className="card-header" style={card_header}>
-                        Total
-                      </div>
-                      <div className="card-body">
-                        <h3>N$ {moneyCompleted["totalCashWallet"]}</h3>
+                    <div className="col-sm">
+                      <div className="card" style={card}>
+                        <div className="card-header" style={card_header}>
+                          Total
+                        </div>
+                        <div className="card-body">
+                          <h3>N$ {moneyCompleted["totalCashWallet"]}</h3>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+
+              <hr></hr>
+
+              {today()}
+
+              <h3 style={subtitle_style}>Completed deliveries </h3>
+              <table className="table" style={{ textAlign: "center" }}>
+                <thead className="thead-light">
+                  <tr>
+                    <th>Taxi number</th>
+                    <th>Origin</th>
+                    <th>Request type</th>
+                    <th>Date</th>
+                    <th>Time requested</th>
+                    <th>Item picked up</th>
+                    <th>Item dropped off</th>
+                    <th>Receiver</th>
+                    <th>...</th>
+                  </tr>
+                </thead>
+                <tbody>{deliveryListCompleted()}</tbody>
+              </table>
             </div>
-
-            <hr></hr>
-
-            {today()}
-
-            <h3 style={subtitle_style}>Completed deliveries </h3>
-            <table className="table" style={{ textAlign: "center" }}>
-              <thead className="thead-light">
-                <tr>
-                  <th>Taxi number</th>
-                  <th>Origin</th>
-                  <th>Request type</th>
-                  <th>Date</th>
-                  <th>Time requested</th>
-                  <th>Item picked up</th>
-                  <th>Item dropped off</th>
-                  <th>Receiver</th>
-                  <th>...</th>
-                </tr>
-              </thead>
-              <tbody>{deliveryListCompleted()}</tbody>
-            </table>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 export default DeliveryOverview;

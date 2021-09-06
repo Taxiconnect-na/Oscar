@@ -1,8 +1,19 @@
 import React from "react";
 import "./DataVisualizerRoutesList.css";
-import Sidebar from "../sidebar/sidebar";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 
 export default function DataVisualizerRoutesList() {
+  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
+  const dispatch = useDispatch();
+
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    window.location.href = "/";
+  }
+
   const rideCountsRedirect = () => {
     window.location = "/visualize-ride-counts";
   };
@@ -30,77 +41,85 @@ export default function DataVisualizerRoutesList() {
     margin: "1%",
     padding: "1%",
   };
-  return (
-    <div className="template">
-      <div className="main-content">
-        <h1
-          style={{
-            display: "grid",
-            placeItems: "center",
-            paddingTop: "2%",
-            marginBottom: "2%",
-          }}
-        >
-          {" "}
-          VISUALIZE DATA{" "}
-        </h1>
 
-        <h4 style={section_styles}> Monthly Basis </h4>
-        <div className="main-container-DataVisualizerRoutesList">
-          <div
-            className="view-options"
-            onClick={() => {
-              rideCountsRedirect();
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    return <></>;
+  } else {
+    return (
+      <div className="template">
+        <div className="main-content">
+          <h1
+            style={{
+              display: "grid",
+              placeItems: "center",
+              paddingTop: "2%",
+              marginBottom: "2%",
             }}
           >
-            Rides
-          </div>
-          <div
-            className="view-options"
-            onClick={() => {
-              grossSalesRedirect();
-            }}
-          >
-            Gross Sales
-          </div>
-          <div
-            className="view-options"
-            onClick={() => {
-              revenuesRedirect();
-            }}
-          >
-            Revenues
-          </div>
-          <div
-            className="view-options"
-            onClick={() => {
-              connectTypeRedirect();
-            }}
-          >
-            Connect Types
-          </div>
-          <div
-            className="view-options"
-            onClick={() => {
-              paymentMethodRedirect();
-            }}
-          >
-            Payment Methods
-          </div>
-        </div>
+            {" "}
+            VISUALIZE DATA{" "}
+          </h1>
 
-        <h4 style={section_styles}> Daily Basis </h4>
-        <div className="main-container-DataVisualizerRoutesList">
-          <div
-            className="view-options"
-            onClick={() => {
-              monthlyDataDetailedRedirect();
-            }}
-          >
-            Daily Data per Month
+          <h4 style={section_styles}> Monthly Basis </h4>
+          <div className="main-container-DataVisualizerRoutesList">
+            <div
+              className="view-options"
+              onClick={() => {
+                rideCountsRedirect();
+              }}
+            >
+              Rides
+            </div>
+            <div
+              className="view-options"
+              onClick={() => {
+                grossSalesRedirect();
+              }}
+            >
+              Gross Sales
+            </div>
+            <div
+              className="view-options"
+              onClick={() => {
+                revenuesRedirect();
+              }}
+            >
+              Revenues
+            </div>
+            <div
+              className="view-options"
+              onClick={() => {
+                connectTypeRedirect();
+              }}
+            >
+              Connect Types
+            </div>
+            <div
+              className="view-options"
+              onClick={() => {
+                paymentMethodRedirect();
+              }}
+            >
+              Payment Methods
+            </div>
+          </div>
+
+          <h4 style={section_styles}> Daily Basis </h4>
+          <div className="main-container-DataVisualizerRoutesList">
+            <div
+              className="view-options"
+              onClick={() => {
+                monthlyDataDetailedRedirect();
+              }}
+            >
+              Daily Data per Month
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }

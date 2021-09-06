@@ -1,7 +1,8 @@
 import React, { useState } from "react";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 import {} from "./ReferralsStyles";
 import "./Referrals.css";
-import { MdExpandMore } from "react-icons/md";
 import { VscTriangleDown } from "react-icons/vsc";
 
 //Active referrals
@@ -651,6 +652,16 @@ const RejectedRow = (props) => {
 };
 
 export default function Referrals() {
+  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
+  const dispatch = useDispatch();
+
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    window.location.href = "/";
+  }
+
   let [active_referrals, setActiveReferrals] = useState([]);
   let [expired_referrals, setExpiredReferrals] = useState([]);
   let [rejected_referrals, setrejectedReferrals] = useState([]);
@@ -784,109 +795,116 @@ export default function Referrals() {
       }
     : {};
 
-  return (
-    <div style={{ margin: "5%" }}>
-      <div>
-        <div display={{ float: "right" }}>
-          <button
-            className="btn btn-info btn-sm"
-            onClick={() => (window.location = "/trip-overview/rides")}
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    return <></>;
+  } else {
+    return (
+      <div style={{ margin: "5%" }}>
+        <div>
+          <div display={{ float: "right" }}>
+            <button
+              className="btn btn-info btn-sm"
+              onClick={() => (window.location = "/trip-overview/rides")}
+            >
+              Back to trips
+            </button>
+          </div>
+          <h1
+            style={{
+              display: "grid",
+              placeItems: "center",
+              marginBottom: "1%",
+              marginTop: "0%",
+            }}
           >
-            Back to trips
-          </button>
+            {" "}
+            REFERRALS{" "}
+          </h1>
         </div>
-        <h1
-          style={{
-            display: "grid",
-            placeItems: "center",
-            marginBottom: "1%",
-            marginTop: "0%",
-          }}
+        <div className="toggle-referral-buttons">
+          <div
+            style={active_style}
+            className="toggle-referral-text"
+            onClick={() => ShowActivePage()}
+          >
+            Active
+          </div>
+          <div
+            style={expired_style}
+            className="toggle-referral-text"
+            onClick={() => showExpiredPage()}
+          >
+            Expired
+          </div>
+          <div
+            style={rejected_style}
+            className="toggle-referral-text"
+            onClick={() => showRejectedPage()}
+          >
+            Rejected
+          </div>
+        </div>
+
+        {/** ACTIVE REFERRALS  */}
+        <table
+          style={{ width: "100%", display: active_show ? "" : "none" }}
+          className="table-striped"
         >
-          {" "}
-          REFERRALS{" "}
-        </h1>
+          <thead>
+            <tr>
+              <th>Date Referred</th>
+              <th>Driver cell</th>
+              <th>Taxi number</th>
+              <th>Expiration date</th>
+              <th>Driver name</th>
+              <th>Paid</th>
+              <th> ... </th>
+            </tr>
+          </thead>
+          <tbody>{RowDataActive()}</tbody>
+        </table>
+
+        {/** EXPIRED REFERRALS  */}
+        <table
+          style={{ width: "100%", display: expired_show ? "" : "none" }}
+          className="table-striped"
+        >
+          <thead>
+            <tr>
+              <th>Date Referred</th>
+              <th>Driver cell</th>
+              <th>Taxi number</th>
+              <th>Expiration date</th>
+              <th>Driver name</th>
+              <th>Paid</th>
+              <th> ... </th>
+            </tr>
+          </thead>
+          <tbody>{RowDataExpired()}</tbody>
+        </table>
+
+        {/** REJECTED REFERRALS  */}
+        <table
+          style={{ width: "100%", display: rejected_show ? "" : "none" }}
+          className="table-striped"
+        >
+          <thead>
+            <tr>
+              <th>Date Referred</th>
+              <th>Driver cell</th>
+              <th>Taxi number</th>
+              <th>Expiration date</th>
+              <th>Driver name</th>
+              <th>Paid</th>
+              <th> ... </th>
+            </tr>
+          </thead>
+          <tbody>{RowDataRejected()}</tbody>
+        </table>
       </div>
-      <div className="toggle-referral-buttons">
-        <div
-          style={active_style}
-          className="toggle-referral-text"
-          onClick={() => ShowActivePage()}
-        >
-          Active
-        </div>
-        <div
-          style={expired_style}
-          className="toggle-referral-text"
-          onClick={() => showExpiredPage()}
-        >
-          Expired
-        </div>
-        <div
-          style={rejected_style}
-          className="toggle-referral-text"
-          onClick={() => showRejectedPage()}
-        >
-          Rejected
-        </div>
-      </div>
-
-      {/** ACTIVE REFERRALS  */}
-      <table
-        style={{ width: "100%", display: active_show ? "" : "none" }}
-        className="table-striped"
-      >
-        <thead>
-          <tr>
-            <th>Date Referred</th>
-            <th>Driver cell</th>
-            <th>Taxi number</th>
-            <th>Expiration date</th>
-            <th>Driver name</th>
-            <th>Paid</th>
-            <th> ... </th>
-          </tr>
-        </thead>
-        <tbody>{RowDataActive()}</tbody>
-      </table>
-
-      {/** EXPIRED REFERRALS  */}
-      <table
-        style={{ width: "100%", display: expired_show ? "" : "none" }}
-        className="table-striped"
-      >
-        <thead>
-          <tr>
-            <th>Date Referred</th>
-            <th>Driver cell</th>
-            <th>Taxi number</th>
-            <th>Expiration date</th>
-            <th>Driver name</th>
-            <th>Paid</th>
-            <th> ... </th>
-          </tr>
-        </thead>
-        <tbody>{RowDataExpired()}</tbody>
-      </table>
-
-      {/** REJECTED REFERRALS  */}
-      <table
-        style={{ width: "100%", display: rejected_show ? "" : "none" }}
-        className="table-striped"
-      >
-        <thead>
-          <tr>
-            <th>Date Referred</th>
-            <th>Driver cell</th>
-            <th>Taxi number</th>
-            <th>Expiration date</th>
-            <th>Driver name</th>
-            <th>Paid</th>
-            <th> ... </th>
-          </tr>
-        </thead>
-        <tbody>{RowDataRejected()}</tbody>
-      </table>
-    </div>
-  );
+    );
+  }
 }

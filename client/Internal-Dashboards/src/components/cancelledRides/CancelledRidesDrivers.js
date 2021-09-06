@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../sidebar/sidebar";
-//import io from 'socket.io-client'
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 import socket from "../socket";
 
 const CancelledRideRow = (props) => {
@@ -76,6 +76,16 @@ const CancelledRideRow = (props) => {
 };
 
 export default function CancelledRidesDrivers() {
+  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
+  const dispatch = useDispatch();
+
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    window.location.href = "/";
+  }
+
   let [cancelledRides, setCancelledRides] = useState([]);
 
   useEffect(() => {
@@ -112,31 +122,38 @@ export default function CancelledRidesDrivers() {
     },
   };
 
-  return (
-    <div className="template">
-      <div className="main-content">
-        <h1 style={style.header}> CANCELLED RIDES BY DRIVERS </h1>
+  if (
+    App.App.loginData.admin_data === null ||
+    App.App.loginData.admin_data === undefined
+  ) {
+    return <></>;
+  } else {
+    return (
+      <div className="template">
+        <div className="main-content">
+          <h1 style={style.header}> CANCELLED RIDES BY DRIVERS </h1>
 
-        <table className="table-striped" style={{ textAlign: "center" }}>
-          <thead className="thead-light">
-            <tr>
-              <th>Taxi number</th>
-              <th>Driver name</th>
-              <th>Driver cellphone</th>
-              <th>Ride Exists</th>
-              <th>Date | Time requested</th>
-              <th>Date | Time cancelled</th>
-              <th>Passenger name</th>
-              <th>Passenger cellphone</th>
-              <th>Origin</th>
-              <th>Destination</th>
-              <th>Connect Type</th>
-              <th>Fare [Passengers] </th>
-            </tr>
-          </thead>
-          <tbody>{cancelledRidesList()}</tbody>
-        </table>
+          <table className="table-striped" style={{ textAlign: "center" }}>
+            <thead className="thead-light">
+              <tr>
+                <th>Taxi number</th>
+                <th>Driver name</th>
+                <th>Driver cellphone</th>
+                <th>Ride Exists</th>
+                <th>Date | Time requested</th>
+                <th>Date | Time cancelled</th>
+                <th>Passenger name</th>
+                <th>Passenger cellphone</th>
+                <th>Origin</th>
+                <th>Destination</th>
+                <th>Connect Type</th>
+                <th>Fare [Passengers] </th>
+              </tr>
+            </thead>
+            <tbody>{cancelledRidesList()}</tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
