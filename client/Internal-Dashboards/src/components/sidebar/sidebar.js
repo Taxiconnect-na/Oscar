@@ -110,7 +110,7 @@ class Sidebar extends React.PureComponent {
             <img src={logotaxiconnect} alt="TaxiConnect" className="logoTrue" />
           </div>
           {this.props.App.loginData.admin_data !== null &&
-          /overview/i.test(
+          /overviewSummary/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <MenuItem className="menuItemSideBar">

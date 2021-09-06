@@ -105,14 +105,14 @@ class Login extends React.PureComponent {
                     response.response
                   );
                   if (
-                    /overview/i.test(
+                    /overviewSummary/i.test(
                       globalObject.props.App.loginData.admin_data
                         .access_patterns
                     )
                   ) {
-                    globalObject.props.history.push("/overview");
+                    window.location.href = "/overview";
                   } else {
-                    globalObject.props.history.push("/driver-registration");
+                    window.location.href = "/driver-registration";
                   }
                 }, 2000);
               }
