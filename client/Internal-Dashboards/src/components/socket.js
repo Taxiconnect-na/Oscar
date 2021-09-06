@@ -3,11 +3,11 @@ import io from "socket.io-client";
 const ENDPOINT = process.env.REACT_APP_GATEWAY;
 
 const socket = io(ENDPOINT, {
-  transports: ["websocket", "polling", "flashsocket"],
-  // transports: ['websocket'],
+  //   transports: ["websocket", "polling", "flashsocket"],
+  transports: ["websocket"],
   reconnection: true,
   withCredentials: true,
-  upgrade: true,
+  //   upgrade: true,
   //reconnectionDelay: 100,
   //reconnectionDelayMax: 200
   reconnectionAttempts: Infinity,
