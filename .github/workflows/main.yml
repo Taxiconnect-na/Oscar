@@ -25,6 +25,7 @@ jobs:
           push: false
           tags: latest
   continuous-deployment:
+    needs: continous-integration
     runs-on: ubuntu-latest
 
     steps:
