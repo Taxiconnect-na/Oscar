@@ -17,6 +17,8 @@ const urlParser = require("url");
 const redis = require("redis");
 var otpGenerator = require("otp-generator");
 const moment = require("moment");
+const { promisify, inspect } = require("util");
+var compression = require("compression");
 
 const client = /production/i.test(String(process.env.EVIRONMENT))
   ? null
@@ -40,6 +42,8 @@ var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
       },
     })
   : client;
+
+const redisGet = promisify(redisCluster.get).bind(redisCluster);
 
 let transporter = nodemailer.createTransport({
   host: process.env.INOUT_GOING_SERVER,
@@ -82,21 +86,6 @@ resolveDate();
 const http = require("http");
 const { resolve } = require("path");
 const server = http.createServer(app);
-
-app.use(helmet());
-app.use(cors());
-app.use(
-  express.json({
-    extended: true,
-    limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS,
-  })
-);
-app.use(
-  express.urlencoded({
-    extended: true,
-    limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS,
-  })
-);
 
 Date.prototype.addHours = function (h) {
   this.setTime(this.getTime() + h * 60 * 60 * 1000);
@@ -3410,6 +3399,1046 @@ function authOrLoginAdmins(adminInputedData, resolve) {
   }
 }
 
+/**
+ * @func getWeekNumber
+ * Responsible for getting the week number for any specific date.
+ * @param d: the date object
+ */
+function getWeekNumber(d) {
+  // Copy date so don't modify original
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  // Set to nearest Thursday: current date + 4 - current day number
+  // Make Sunday's day number 7
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  // Get first day of year
+  var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  // Calculate full weeks to nearest Thursday
+  var weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  // Return array of year and week number
+  return [d.getUTCFullYear(), weekNo];
+}
+
+/**
+ * @func getAdminSummaryData
+ * Responsible for getting the admin global summary data very efficiently.
+ * @param params: will contain the day_zoom which specifies how far behind in days to start to
+ * @param resolve
+ */
+function getAdminSummaryData(params, resolve) {
+  //! Default day zoom to 3 days in the past if not set
+  params["day_zoom"] =
+    params.day_zoom === undefined ||
+    params === undefined ||
+    params.day_zoom === null ||
+    params === null
+      ? 3
+      : params.day_zoom;
+
+  let redisKey = `admininstrationSummaryData-${params.day_zoom}`; //Cache based on the day zoom
+
+  redisGet(redisKey)
+    .then((resp) => {
+      if (resp !== null) {
+        //Found some cached data
+        try {
+          //Rehydrate
+          new Promise((resCompute) => {
+            execGetAdminSummaryData(params, redisKey, resCompute);
+          })
+            .then()
+            .catch((error) => {
+              logger.error(error);
+            });
+          //...
+          resp = JSON.parse(resp);
+          resolve(resp);
+        } catch (error) {
+          logger.error(error);
+          new Promise((resCompute) => {
+            execGetAdminSummaryData(params, redisKey, resCompute);
+          })
+            .then((result) => {
+              resolve(result);
+            })
+            .catch((error) => {
+              logger.error(error);
+              resolve("error_getting_stats");
+            });
+        }
+      } //Make a fresh search
+      else {
+        new Promise((resCompute) => {
+          execGetAdminSummaryData(params, redisKey, resCompute);
+        })
+          .then((result) => {
+            resolve(result);
+          })
+          .catch((error) => {
+            logger.error(error);
+            resolve("error_getting_stats");
+          });
+      }
+    })
+    .catch((error) => {
+      logger.error(error);
+      //Make a fresh search
+      new Promise((resCompute) => {
+        execGetAdminSummaryData(params, redisKey, resCompute);
+      })
+        .then((result) => {
+          resolve(result);
+        })
+        .catch((error) => {
+          logger.error(error);
+          resolve("error_getting_stats");
+        });
+    });
+}
+/**
+ * @func execGetAdminSummaryData
+ * Responsible for actively getting the admin summary data
+ * @param params: will contain the day_zoom which specifies how far behind in days to start to
+ * @param redisKey: the redis key to cache the results to
+ * @param resolve
+ */
+function execGetAdminSummaryData(params, redisKey, resolve) {
+  resolveDate();
+  let daysBehindToLook = params.day_zoom * 24 * 3600 * 1000;
+  let startingDate = new Date(
+    new Date(chaineDateUTC).getTime() - daysBehindToLook
+  );
+
+  //? Array fixed base suburbs
+  let arrayFixedBaseSuburbs = {
+    Academia: "Academia",
+    Auasblick: "Auasblik",
+    Auasblik: "Auasblik",
+    Avis: "Avis",
+    "Big Bend": "Big Bend",
+    Brakwater: "Brakwater",
+    Cimbebasia: "Cimbebasia",
+    "Dorado Park": "Dorado Park",
+    Eros: "Eros",
+    "Eros Park": "Eros Park",
+    Goreangab: "Goreangab",
+    "Greenwell Matongo": "Greenwell Matongo",
+    Hakahana: "Hakahana",
+    Havana: "Havana",
+    "Hochland Park": "Hochland Park",
+    Hochlandpark: "Hochland Park",
+    "Informal settlements": "Informal settlements",
+    Katutura: "Katutura",
+    Khomasdal: "Khomasdal",
+    "Kilimanjaro Informal Settlement": "Kilimanjaro Informal Settlement",
+    "Klein Windhoek": "Klein Windhoek",
+    "Lafrenz Industrial": "Lafrenz Industrial",
+    Ludwigsdorf: "Ludwigsdorf",
+    "Luxury Hill": "Luxury Hill",
+    "Northern Industrial": "Northern Industrial",
+    Okuryangava: "Okuryangava",
+    Olympia: "Olympia",
+    Otjomuise: "Otjomuise",
+    "Pioneers Park": "Pioneers Park",
+    Pionierspark: "Pioneers Park",
+    "Prosperita Industrial": "Prosperita Industrial",
+    Prosperita: "Prosperita Industrial",
+    "Rocky Crest": "Rocky Crest",
+    Wanaheda: "Wanaheda",
+    "Samora Machel Constituency": "Wanaheda",
+    "Southern Industrial Area": "Southern Industrial Area",
+    Suiderhof: "Suiderhof",
+    "Tauben Glen": "Tauben Glen",
+    "Windhoek Central / CBD": "Windhoek Central / CBD",
+    "Windhoek Central": "Windhoek Central / CBD",
+    "Windhoek North": "Windhoek North",
+    "Windhoek West": "Windhoek West",
+  };
+
+  //? The model of the meta object final response.
+  let modelMetaDataResponse = {
+    genericGlobalStats: {
+      total_trips: 0, //? Done
+      total_successful_trips: 0, //?Done
+      total_cancelled_trips: 0, //?Done
+      total_connectme_trips: 0, //?Done
+      total_connectus_trips: 0, //?Done
+      total_scheduled_trips: 0, //?Done
+      total_immediate_trips: 0, //? Done
+      total_cash_trips: 0, //?Done
+      total_wallet_trips: 0, //?done
+      //...
+      total_cash_trips_sales: 0, //?Done
+      total_wallet_trips_sales: 0, //?done
+      //...rides
+      total_successful_rides: 0, //?done
+      total_cancelled_rides: 0, //?Done
+      total_successful_immediate_rides: 0, //?Done
+      total_successful_scheduled_rides: 0, //?Done
+      total_cancelled_immediate_rides: 0, //?Done
+      total_cancelled_scheduled_rides: 0, //?Done
+      total_successful_connectme_rides: 0, //?Done
+      total_cancelled_connectme_rides: 0, //?Done
+      total_successful_connectus_rides: 0, //?Done
+      total_cancelled_connectus_rides: 0, //?Done
+      total_successful_cash_rides: 0, //?Done
+      total_cancelled_cash_rides: 0, //?Done
+      total_successful_wallet_rides: 0, //?Done
+      total_cancelled_wallet_rides: 0, //?Done
+      //.
+      total_successful_cash_rides_sales: 0, //?Done
+      total_cancelled_cash_rides_sales: 0, //?Done
+      total_successful_wallet_rides_sales: 0, //?Done
+      total_cancelled_wallet_rides_sales: 0, //?Done
+      //...deliveries
+      total_successful_deliveries: 0, //?Done
+      total_cancelled_deliveries: 0, //?Done
+      total_successful_immediate_deliveries: 0, //?Done
+      total_successful_scheduled_deliveries: 0, //?Done
+      total_cancelled_immediate_deliveries: 0, //?Done
+      total_cancelled_scheduled_deliveries: 0, //?Done
+      total_successful_cash_deliveries: 0, //?Done
+      total_cancelled_cash_deliveries: 0, //?Done
+      total_successful_wallet_deliveries: 0, //?Done
+      total_cancelled_wallet_deliveries: 0, //?Done
+      //.
+      total_successful_cash_deliveries_sales: 0, //?Done
+      total_cancelled_cash_deliveries_sales: 0, //?Done
+      total_successful_wallet_deliveries_sales: 0, //?Done
+      total_cancelled_wallet_deliveries_sales: 0, //?Done
+      //...Number of passengers
+      total_numberOf_passengers_requestedFor: 0,
+      total_numberOf_passengers_successfully_moved: 0,
+      total_numberOf_passengers_cancelled_moved: 0,
+      //...Handling
+      percentage_trip_handling: 0, //success/total * 100%
+      percentage_rides_handling: 0,
+      percentage_deliveries_handling: 0,
+      //...drivers/riders
+      total_riders: 0,
+      total_drivers: 0,
+      riders_to_drivers_ratio: 0,
+      //...Commission
+      total_commission: 0, //Generated by rides during zoom period
+      total_commission_collected: 0,
+      total_commission_pending: 0,
+    },
+    daily_view: {}, //Daily summary of the selected day zoom
+    weekly_view: {}, //weekly summary of the selected day zoom
+    monthly_view: {}, //monthly summary of the selected day zoom
+    yearly_view: {}, //yearly summary of the selected day zoom
+    drivers_view: {}, //drivers summary of the selected day zoom
+    riders_view: {}, //riders summary of the selected day zoom
+    //...Traffic per suburbs
+    busiest_pickup_suburbs: {},
+    busiest_destination_suburbs: {},
+  };
+
+  //Get the global numbers
+  //? 1. Trips related trips
+  new Promise((resGetTripsInfos) => {
+    collectionRidesDeliveryData
+      .find({
+        date_requested: { $gte: new Date(startingDate.toISOString()) },
+      })
+      .toArray(function (err, tripData) {
+        if (err) {
+          resGetTripsInfos("error_getting_trips");
+        }
+        //...
+        if (
+          tripData !== undefined &&
+          tripData !== null &&
+          tripData.length > 0
+        ) {
+          modelMetaDataResponse.genericGlobalStats.total_trips =
+            tripData.length;
+          modelMetaDataResponse.genericGlobalStats.total_successful_trips =
+            tripData.length;
+          //...
+          tripData.map((trip) => {
+            //Get the passengers numbers
+            modelMetaDataResponse.genericGlobalStats.total_numberOf_passengers_requestedFor +=
+              parseInt(trip.passengers_number);
+            modelMetaDataResponse.genericGlobalStats.total_numberOf_passengers_successfully_moved +=
+              parseInt(trip.passengers_number);
+
+            //? 1. Get the daily_view stats - successful rides
+            let day_date_argument = new Date(trip.date_requested)
+              .toLocaleString()
+              .split(", ")[0];
+
+            modelMetaDataResponse.daily_view = getInsightStats(
+              trip,
+              day_date_argument,
+              modelMetaDataResponse.daily_view,
+              "successful"
+            );
+
+            //? 2. Get the weekly_view stats - successful rides
+            //Week number - year
+            let week_number_argument = `${
+              getWeekNumber(new Date(trip.date_requested))[1]
+            }-${getWeekNumber(new Date(trip.date_requested))[0]}`;
+
+            modelMetaDataResponse.weekly_view = getInsightStats(
+              trip,
+              week_number_argument,
+              modelMetaDataResponse.weekly_view,
+              "successful"
+            );
+
+            //? 3. Get the monthly_view stats - successful rides
+            //Month number - year
+            let month_number_argument = `${
+              new Date(trip.date_requested).getMonth() + 1
+            }-${new Date(trip.date_requested).getFullYear()}`;
+
+            modelMetaDataResponse.monthly_view = getInsightStats(
+              trip,
+              month_number_argument,
+              modelMetaDataResponse.monthly_view,
+              "successful"
+            );
+
+            //? 4. Get the yearly_view stats - successful rides
+            //Year number
+            let year_number_argument = new Date(
+              trip.date_requested
+            ).getFullYear();
+
+            modelMetaDataResponse.yearly_view = getInsightStats(
+              trip,
+              year_number_argument,
+              modelMetaDataResponse.yearly_view,
+              "successful"
+            );
+
+            //? 5. Get the drivers_view stats - successful rides
+            //driver_fp
+            if (
+              trip.taxi_id !== null &&
+              trip.taxi_id !== undefined &&
+              trip.taxi_id !== false &&
+              trip.taxi_id !== "false"
+            ) {
+              let driver_number_argument = trip.taxi_id;
+
+              modelMetaDataResponse.drivers_view = getInsightStats(
+                trip,
+                driver_number_argument,
+                modelMetaDataResponse.drivers_view,
+                "successful"
+              );
+            }
+
+            //? 6. Get the riders_view stats - successful rides
+            //user_fp
+            let rider_number_argument = trip.client_id;
+
+            modelMetaDataResponse.riders_view = getInsightStats(
+              trip,
+              rider_number_argument,
+              modelMetaDataResponse.riders_view,
+              "successful"
+            );
+
+            //? 7. Get the busiest_pickup_suburbs stats - successful rides
+            //user_fp
+            let pickup_number_argument =
+              arrayFixedBaseSuburbs[trip.pickup_location_infos.suburb] !==
+                undefined &&
+              arrayFixedBaseSuburbs[trip.pickup_location_infos.suburb] !== null
+                ? arrayFixedBaseSuburbs[trip.pickup_location_infos.suburb] !==
+                    undefined &&
+                  arrayFixedBaseSuburbs[trip.pickup_location_infos.suburb]
+                : trip.pickup_location_infos.suburb;
+
+            modelMetaDataResponse.busiest_pickup_suburbs = getInsightStats(
+              trip,
+              pickup_number_argument,
+              modelMetaDataResponse.busiest_pickup_suburbs,
+              "successful"
+            );
+
+            //? 8. Get the busiest_destination_suburbs stats - successful rides
+            trip.destinationData.map((destination) => {
+              //user_fp
+              let destination_number_argument =
+                arrayFixedBaseSuburbs[destination.suburb] !== undefined &&
+                arrayFixedBaseSuburbs[destination.suburb] !== null
+                  ? arrayFixedBaseSuburbs[destination.suburb]
+                  : destination.suburb;
+
+              modelMetaDataResponse.busiest_destination_suburbs =
+                getInsightStats(
+                  trip,
+                  destination_number_argument,
+                  modelMetaDataResponse.busiest_destination_suburbs,
+                  "successful"
+                );
+            });
+            //! ---------------------------------------------------------------------------------------------
+            if (/RIDE/i.test(trip.ride_mode)) {
+              //Ride
+              modelMetaDataResponse.genericGlobalStats.total_successful_rides += 1;
+            } else if (/DELIVERY/i.test(trip.ride_mode)) {
+              //Delivery
+              modelMetaDataResponse.genericGlobalStats.total_successful_deliveries += 1;
+            }
+            //...
+            if (/connectme/i.test(trip.connect_type)) {
+              //Connectme
+              modelMetaDataResponse.genericGlobalStats.total_connectme_trips += 1;
+              if (/RIDE/i.test(trip.ride_mode)) {
+                //Ride
+                modelMetaDataResponse.genericGlobalStats.total_successful_connectme_rides += 1;
+              }
+            } //ConnectUs
+            else {
+              modelMetaDataResponse.genericGlobalStats.total_connectus_trips += 1;
+              if (/RIDE/i.test(trip.ride_mode)) {
+                //Ride
+                modelMetaDataResponse.genericGlobalStats.total_successful_connectus_rides += 1;
+              }
+            }
+            //...Schedule
+            if (/scheduled/i.test(trip.request_type)) {
+              //Scheduled rides
+              modelMetaDataResponse.genericGlobalStats.total_scheduled_trips += 1;
+              //.
+              if (/RIDE/i.test(trip.ride_mode)) {
+                //Ride
+                modelMetaDataResponse.genericGlobalStats.total_successful_scheduled_rides += 1;
+              } else if (/DELIVERY/i.test(trip.ride_mode)) {
+                //Delivery
+                modelMetaDataResponse.genericGlobalStats.total_successful_scheduled_deliveries += 1;
+              }
+            } //Immediate
+            else {
+              modelMetaDataResponse.genericGlobalStats.total_immediate_trips += 1;
+              //.
+              if (/RIDE/i.test(trip.ride_mode)) {
+                //Ride
+                modelMetaDataResponse.genericGlobalStats.total_successful_immediate_rides += 1;
+              } else if (/DELIVERY/i.test(trip.ride_mode)) {
+                //Delivery
+                modelMetaDataResponse.genericGlobalStats.total_successful_immediate_deliveries += 1;
+              }
+            }
+            //...Payment method
+            if (/cash/i.test(trip.payment_method)) {
+              //Cash
+              modelMetaDataResponse.genericGlobalStats.total_cash_trips += 1;
+              modelMetaDataResponse.genericGlobalStats.total_cash_trips_sales +=
+                parseFloat(trip.fare);
+              //.
+              if (/RIDE/i.test(trip.ride_mode)) {
+                //Ride
+                modelMetaDataResponse.genericGlobalStats.total_successful_cash_rides += 1;
+                modelMetaDataResponse.genericGlobalStats.total_successful_cash_rides_sales +=
+                  parseFloat(trip.fare);
+              } else if (/DELIVERY/i.test(trip.ride_mode)) {
+                //Delivery
+                modelMetaDataResponse.genericGlobalStats.total_successful_cash_deliveries += 1;
+                modelMetaDataResponse.genericGlobalStats.total_successful_cash_deliveries_sales +=
+                  parseFloat(trip.fare);
+              }
+            } //Wallet
+            else {
+              modelMetaDataResponse.genericGlobalStats.total_wallet_trips += 1;
+              modelMetaDataResponse.genericGlobalStats.total_wallet_trips_sales +=
+                parseFloat(trip.fare);
+              //.
+              if (/RIDE/i.test(trip.ride_mode)) {
+                //Ride
+                modelMetaDataResponse.genericGlobalStats.total_successful_wallet_rides += 1;
+                modelMetaDataResponse.genericGlobalStats.total_successful_wallet_rides_sales +=
+                  parseFloat(trip.fare);
+              } else if (/DELIVERY/i.test(trip.ride_mode)) {
+                //Delivery
+                modelMetaDataResponse.genericGlobalStats.total_successful_wallet_deliveries += 1;
+                modelMetaDataResponse.genericGlobalStats.total_successful_wallet_deliveries_sales +=
+                  parseFloat(trip.fare);
+              }
+            }
+          });
+          //Done for successful rides/deliveries
+          resGetTripsInfos(true);
+        } //No trip Data
+        else {
+          resGetTripsInfos("empty_trip_data");
+        }
+      });
+  })
+    .then((resultTrips) => {
+      //?2. Get the cancelled rides/deliveries
+      new Promise((resGetTripsInfos) => {
+        collectionRidesDeliveryDataCancelled
+          .find({
+            date_deleted: { $gte: new Date(startingDate.toISOString()) },
+          })
+          .toArray(function (err, tripData) {
+            if (err) {
+              resGetTripsInfos("error_getting_trips");
+            }
+            //...
+            if (
+              tripData !== undefined &&
+              tripData !== null &&
+              tripData.length > 0
+            ) {
+              modelMetaDataResponse.genericGlobalStats.total_trips +=
+                tripData.length;
+              modelMetaDataResponse.genericGlobalStats.total_cancelled_trips =
+                tripData.length;
+              //...
+              tripData.map((trip) => {
+                //Get the passengers numbers
+                modelMetaDataResponse.genericGlobalStats.total_numberOf_passengers_requestedFor +=
+                  parseInt(trip.passengers_number);
+                modelMetaDataResponse.genericGlobalStats.total_numberOf_passengers_cancelled_moved +=
+                  parseInt(trip.passengers_number);
+
+                //? 1. Get the daily_view stats - cancelled rides
+                let day_date_argument = new Date(trip.date_requested)
+                  .toLocaleString()
+                  .split(", ")[0];
+
+                modelMetaDataResponse.daily_view = getInsightStats(
+                  trip,
+                  day_date_argument,
+                  modelMetaDataResponse.daily_view,
+                  "cancelled"
+                );
+
+                //? 2. Get the weekly_view stats - cancelled rides
+                //Week number - year
+                let week_number_argument = `${
+                  getWeekNumber(new Date(trip.date_requested))[1]
+                }-${getWeekNumber(new Date(trip.date_requested))[0]}`;
+
+                modelMetaDataResponse.weekly_view = getInsightStats(
+                  trip,
+                  week_number_argument,
+                  modelMetaDataResponse.weekly_view,
+                  "cancelled"
+                );
+
+                //? 3. Get the monthly_view stats - cancelled rides
+                //Month number - year
+                let month_number_argument = `${
+                  new Date(trip.date_requested).getMonth() + 1
+                }-${new Date(trip.date_requested).getFullYear()}`;
+
+                modelMetaDataResponse.monthly_view = getInsightStats(
+                  trip,
+                  month_number_argument,
+                  modelMetaDataResponse.monthly_view,
+                  "cancelled"
+                );
+
+                //? 4. Get the yearly_view stats - cancelled rides
+                //Year number
+                let year_number_argument = new Date(
+                  trip.date_requested
+                ).getFullYear();
+
+                modelMetaDataResponse.yearly_view = getInsightStats(
+                  trip,
+                  year_number_argument,
+                  modelMetaDataResponse.yearly_view,
+                  "cancelled"
+                );
+
+                //? 5. Get the drivers_view stats - cancelled rides
+                //driver_fp
+                if (
+                  trip.taxi_id !== null &&
+                  trip.taxi_id !== undefined &&
+                  trip.taxi_id !== false &&
+                  trip.taxi_id !== "false"
+                ) {
+                  let driver_number_argument = trip.taxi_id;
+
+                  modelMetaDataResponse.drivers_view = getInsightStats(
+                    trip,
+                    driver_number_argument,
+                    modelMetaDataResponse.drivers_view,
+                    "cancelled"
+                  );
+                }
+
+                //? 6. Get the riders_view stats - cancelled rides
+                //user_fp
+                let rider_number_argument = trip.client_id;
+
+                modelMetaDataResponse.riders_view = getInsightStats(
+                  trip,
+                  rider_number_argument,
+                  modelMetaDataResponse.riders_view,
+                  "cancelled"
+                );
+
+                //? 7. Get the busiest_pickup_suburbs stats - successful rides
+                //user_fp
+                let pickup_number_argument =
+                  arrayFixedBaseSuburbs[trip.pickup_location_infos.suburb] !==
+                    undefined &&
+                  arrayFixedBaseSuburbs[trip.pickup_location_infos.suburb] !==
+                    null
+                    ? arrayFixedBaseSuburbs[
+                        trip.pickup_location_infos.suburb
+                      ] !== undefined &&
+                      arrayFixedBaseSuburbs[trip.pickup_location_infos.suburb]
+                    : trip.pickup_location_infos.suburb;
+
+                modelMetaDataResponse.busiest_pickup_suburbs = getInsightStats(
+                  trip,
+                  pickup_number_argument,
+                  modelMetaDataResponse.busiest_pickup_suburbs,
+                  "cancelled"
+                );
+
+                //? 8. Get the busiest_destination_suburbs stats - successful rides
+                trip.destinationData.map((destination) => {
+                  //user_fp
+                  let destination_number_argument =
+                    arrayFixedBaseSuburbs[destination.suburb] !== undefined &&
+                    arrayFixedBaseSuburbs[destination.suburb] !== null
+                      ? arrayFixedBaseSuburbs[destination.suburb]
+                      : destination.suburb;
+
+                  modelMetaDataResponse.busiest_destination_suburbs =
+                    getInsightStats(
+                      trip,
+                      destination_number_argument,
+                      modelMetaDataResponse.busiest_destination_suburbs,
+                      "cancelled"
+                    );
+                });
+                //! ---------------------------------------------------------------------------------------------
+
+                if (/RIDE/i.test(trip.ride_mode)) {
+                  //Ride
+                  modelMetaDataResponse.genericGlobalStats.total_cancelled_rides += 1;
+                } else if (/DELIVERY/i.test(trip.ride_mode)) {
+                  //Delivery
+                  modelMetaDataResponse.genericGlobalStats.total_cancelled_deliveries += 1;
+                }
+                //...
+                if (/connectme/i.test(trip.connect_type)) {
+                  //Connectme
+                  modelMetaDataResponse.genericGlobalStats.total_connectme_trips += 1;
+                  if (/RIDE/i.test(trip.ride_mode)) {
+                    //Ride
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_connectme_rides += 1;
+                  }
+                } //ConnectUs
+                else {
+                  modelMetaDataResponse.genericGlobalStats.total_connectus_trips += 1;
+                  if (/RIDE/i.test(trip.ride_mode)) {
+                    //Ride
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_connectus_rides += 1;
+                  }
+                }
+                //...Schedule
+                if (/scheduled/i.test(trip.request_type)) {
+                  //Scheduled rides
+                  modelMetaDataResponse.genericGlobalStats.total_scheduled_trips += 1;
+                  //.
+                  if (/RIDE/i.test(trip.ride_mode)) {
+                    //Ride
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_scheduled_rides += 1;
+                  } else if (/DELIVERY/i.test(trip.ride_mode)) {
+                    //Delivery
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_scheduled_deliveries += 1;
+                  }
+                } //Immediate
+                else {
+                  modelMetaDataResponse.genericGlobalStats.total_immediate_trips += 1;
+                  //.
+                  if (/RIDE/i.test(trip.ride_mode)) {
+                    //Ride
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_immediate_rides += 1;
+                  } else if (/DELIVERY/i.test(trip.ride_mode)) {
+                    //Delivery
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_immediate_deliveries += 1;
+                  }
+                }
+                //...Payment method
+                if (/cash/i.test(trip.payment_method)) {
+                  //Cash
+                  modelMetaDataResponse.genericGlobalStats.total_cash_trips += 1;
+                  modelMetaDataResponse.genericGlobalStats.total_cash_trips_sales +=
+                    parseFloat(trip.fare);
+                  //.
+                  if (/RIDE/i.test(trip.ride_mode)) {
+                    //Ride
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_cash_rides += 1;
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_cash_rides_sales +=
+                      parseFloat(trip.fare);
+                  } else if (/DELIVERY/i.test(trip.ride_mode)) {
+                    //Delivery
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_cash_deliveries += 1;
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_cash_deliveries_sales +=
+                      parseFloat(trip.fare);
+                  }
+                } //Wallet
+                else {
+                  modelMetaDataResponse.genericGlobalStats.total_wallet_trips += 1;
+                  modelMetaDataResponse.genericGlobalStats.total_wallet_trips_sales +=
+                    parseFloat(trip.fare);
+                  //.
+                  if (/RIDE/i.test(trip.ride_mode)) {
+                    //Ride
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_wallet_rides += 1;
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_wallet_rides_sales +=
+                      parseFloat(trip.fare);
+                  } else if (/DELIVERY/i.test(trip.ride_mode)) {
+                    //Delivery
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_wallet_deliveries += 1;
+                    modelMetaDataResponse.genericGlobalStats.total_cancelled_wallet_deliveries_sales +=
+                      parseFloat(trip.fare);
+                  }
+                }
+              });
+              //Done for successful rides/deliveries
+              resGetTripsInfos(true);
+            } //No trip Data
+            else {
+              resGetTripsInfos("empty_trip_data");
+            }
+          });
+      })
+        .then((resultTrips) => {
+          // logger.warn(modelMetaDataResponse);
+          //! Cache final result
+          new Promise((resCache) => {
+            redisCluster.set(redisKey, JSON.stringify(modelMetaDataResponse));
+            resCache(true);
+          })
+            .then()
+            .catch();
+          //....
+          resolve(modelMetaDataResponse);
+        })
+        .catch((error) => {
+          logger.error(error);
+          resolve("error_getting_stats");
+        });
+    })
+    .catch((error) => {
+      logger.error(error);
+      resolve("error_getting_stats");
+    });
+}
+
+/**
+ * @func getDailyStats
+ * Responsible for packing an processing daily, weekly, monthly, yearly, suburb based or any kind of similarly structured stats
+ * @param trip: basic trip data object: successful/cancelled
+ * @param day_date_argument: the object argument of the daily view
+ * @param modelMetaDataResponseTargeted: the specific object child to modify
+ * @param natureTrip: successful or cancelled
+ */
+function getInsightStats(
+  trip,
+  day_date_argument,
+  modelMetaDataResponseTargeted,
+  natureTrip
+) {
+  modelMetaDataResponseTargeted[day_date_argument] =
+    modelMetaDataResponseTargeted[day_date_argument] !== undefined &&
+    modelMetaDataResponseTargeted[day_date_argument] !== null
+      ? modelMetaDataResponseTargeted[day_date_argument]
+      : {
+          date_refs: [],
+          total_trips: 0, //? Done
+          total_successful_trips: 0, //?Done
+          total_cancelled_trips: 0, //?Done
+          total_connectme_trips: 0, //?Done
+          total_connectus_trips: 0, //?Done
+          total_scheduled_trips: 0, //?Done
+          total_immediate_trips: 0, //? Done
+          total_cash_trips: 0, //?Done
+          total_wallet_trips: 0, //?done
+          //...rides
+          total_successful_rides: 0, //?done
+          total_cancelled_rides: 0, //?Done
+          total_successful_immediate_rides: 0, //?Done
+          total_successful_scheduled_rides: 0, //?Done
+          total_cancelled_immediate_rides: 0, //?Done
+          total_cancelled_scheduled_rides: 0, //?Done
+          total_successful_connectme_rides: 0, //?Done
+          total_cancelled_connectme_rides: 0, //?Done
+          total_successful_connectus_rides: 0, //?Done
+          total_cancelled_connectus_rides: 0, //?Done
+          total_successful_cash_rides: 0, //?Done
+          total_cancelled_cash_rides: 0, //?Done
+          total_successful_wallet_rides: 0, //?Done
+          total_cancelled_wallet_rides: 0, //?Done
+          //...deliveries
+          total_successful_deliveries: 0, //?Done
+          total_cancelled_deliveries: 0, //?Done
+          total_successful_immediate_deliveries: 0, //?Done
+          total_successful_scheduled_deliveries: 0, //?Done
+          total_cancelled_immediate_deliveries: 0, //?Done
+          total_cancelled_scheduled_deliveries: 0, //?Done
+          total_successful_cash_deliveries: 0, //?Done
+          total_cancelled_cash_deliveries: 0, //?Done
+          total_successful_wallet_deliveries: 0, //?Done
+          total_cancelled_wallet_deliveries: 0, //?Done
+          //...Handling
+          percentage_trip_handling: 0, //success/total * 100%
+          percentage_rides_handling: 0,
+          percentage_deliveries_handling: 0,
+          //...drivers/riders
+          total_riders: 0,
+          total_drivers: 0,
+          riders_to_drivers_ratio: 0,
+          //...Commission
+          total_commission: 0, //Generated by rides during zoom period
+          total_commission_collected: 0,
+          total_commission_pending: 0,
+        };
+
+  if (/successful/i.test(natureTrip)) {
+    //successful trips
+    modelMetaDataResponseTargeted[day_date_argument].date_refs.push(
+      new Date(trip.date_requested)
+    );
+    modelMetaDataResponseTargeted[day_date_argument].total_trips += 1;
+    modelMetaDataResponseTargeted[
+      day_date_argument
+    ].total_successful_trips += 1;
+    //? -------------------------------------------------------------------
+    if (/RIDE/i.test(trip.ride_mode)) {
+      //Ride
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_successful_rides += 1;
+    } else if (/DELIVERY/i.test(trip.ride_mode)) {
+      //Delivery
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_successful_deliveries += 1;
+    }
+    //...
+    if (/connectme/i.test(trip.connect_type)) {
+      //Connectme
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_connectme_trips += 1;
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_successful_connectme_rides += 1;
+      }
+    } //ConnectUs
+    else {
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_connectus_trips += 1;
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_successful_connectus_rides += 1;
+      }
+    }
+    //...Schedule
+    if (/scheduled/i.test(trip.request_type)) {
+      //Scheduled rides
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_scheduled_trips += 1;
+      //.
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_successful_scheduled_rides += 1;
+      } else if (/DELIVERY/i.test(trip.ride_mode)) {
+        //Delivery
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_successful_scheduled_deliveries += 1;
+      }
+    } //Immediate
+    else {
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_immediate_trips += 1;
+      //.
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_successful_immediate_rides += 1;
+      } else if (/DELIVERY/i.test(trip.ride_mode)) {
+        //Delivery
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_successful_immediate_deliveries += 1;
+      }
+    }
+    //...Payment method
+    if (/cash/i.test(trip.payment_method)) {
+      //Cash
+      modelMetaDataResponseTargeted[day_date_argument].total_cash_trips +=
+        parseFloat(trip.fare);
+      //.
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_successful_cash_rides += parseFloat(trip.fare);
+      } else if (/DELIVERY/i.test(trip.ride_mode)) {
+        //Delivery
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_successful_cash_deliveries += parseFloat(trip.fare);
+      }
+    } //Wallet
+    else {
+      modelMetaDataResponseTargeted[day_date_argument].total_wallet_trips +=
+        parseFloat(trip.fare);
+      //.
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_successful_wallet_rides += parseFloat(trip.fare);
+      } else if (/DELIVERY/i.test(trip.ride_mode)) {
+        //Delivery
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_successful_wallet_deliveries += parseFloat(trip.fare);
+      }
+    }
+
+    //? DONE
+    return modelMetaDataResponseTargeted;
+  } //Cancelled Trips
+  else {
+    modelMetaDataResponseTargeted[day_date_argument].date_refs.push(
+      new Date(trip.date_requested)
+    );
+    modelMetaDataResponseTargeted[day_date_argument].total_trips += 1;
+    modelMetaDataResponseTargeted[day_date_argument].total_cancelled_trips += 1;
+
+    if (/RIDE/i.test(trip.ride_mode)) {
+      //Ride
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_cancelled_rides += 1;
+    } else if (/DELIVERY/i.test(trip.ride_mode)) {
+      //Delivery
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_cancelled_deliveries += 1;
+    }
+    //...
+    if (/connectme/i.test(trip.connect_type)) {
+      //Connectme
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_connectme_trips += 1;
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_cancelled_connectme_rides += 1;
+      }
+    } //ConnectUs
+    else {
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_connectus_trips += 1;
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_cancelled_connectus_rides += 1;
+      }
+    }
+    //...Schedule
+    if (/scheduled/i.test(trip.request_type)) {
+      //Scheduled rides
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_scheduled_trips += 1;
+      //.
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_cancelled_scheduled_rides += 1;
+      } else if (/DELIVERY/i.test(trip.ride_mode)) {
+        //Delivery
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_cancelled_scheduled_deliveries += 1;
+      }
+    } //Immediate
+    else {
+      modelMetaDataResponseTargeted[
+        day_date_argument
+      ].total_immediate_trips += 1;
+      //.
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_cancelled_immediate_rides += 1;
+      } else if (/DELIVERY/i.test(trip.ride_mode)) {
+        //Delivery
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_cancelled_immediate_deliveries += 1;
+      }
+    }
+    //...Payment method
+    if (/cash/i.test(trip.payment_method)) {
+      //Cash
+      modelMetaDataResponseTargeted[day_date_argument].total_cash_trips +=
+        parseFloat(trip.fare);
+      //.
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_cancelled_cash_rides += parseFloat(trip.fare);
+      } else if (/DELIVERY/i.test(trip.ride_mode)) {
+        //Delivery
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_cancelled_cash_deliveries += parseFloat(trip.fare);
+      }
+    } //Wallet
+    else {
+      modelMetaDataResponseTargeted[day_date_argument].total_wallet_trips +=
+        parseFloat(trip.fare);
+      //.
+      if (/RIDE/i.test(trip.ride_mode)) {
+        //Ride
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_cancelled_wallet_rides += parseFloat(trip.fare);
+      } else if (/DELIVERY/i.test(trip.ride_mode)) {
+        //Delivery
+        modelMetaDataResponseTargeted[
+          day_date_argument
+        ].total_cancelled_wallet_deliveries += parseFloat(trip.fare);
+      }
+    }
+
+    //? Done
+    return modelMetaDataResponseTargeted;
+  }
+}
+
 var collectionPassengers_profiles = null;
 var collectionDrivers_profiles = null;
 var collectionRidesDeliveryData = null;
@@ -3417,392 +4446,486 @@ var collectionRidesDeliveryDataCancelled = null;
 var collectionOwners = null;
 var collectionAdminUsers = null;
 
-// All APIs :
-MongoClient.connect(
-  process.env.URL_MONGODB,
-  /production/i.test(process.env.EVIRONMENT)
-    ? {
-        tlsCAFile: certFile, //The DocDB cert
-        useUnifiedTopology: true,
-        useNewUrlParser: true,
+redisCluster.on("connect", function () {
+  MongoClient.connect(
+    process.env.URL_MONGODB,
+    /production/i.test(process.env.EVIRONMENT)
+      ? {
+          tlsCAFile: certFile, //The DocDB cert
+          useUnifiedTopology: true,
+          useNewUrlParser: true,
+        }
+      : {
+          useUnifiedTopology: true,
+          useNewUrlParser: true,
+        },
+    function (err, clientMongo) {
+      if (err) {
+        logger.info(err);
       }
-    : {
-        useUnifiedTopology: true,
-        useNewUrlParser: true,
-      },
-  function (err, clientMongo) {
-    if (err) {
-      logger.info(err);
-    }
-    logger.info("Connected to MongoDB");
+      logger.info("Connected to MongoDB");
 
-    const dbMongo = clientMongo.db("Taxiconnect");
-    collectionPassengers_profiles = dbMongo.collection("passengers_profiles");
-    collectionDrivers_profiles = dbMongo.collection("drivers_profiles");
-    collectionRidesDeliveryData = dbMongo.collection(
-      "rides_deliveries_requests"
-    );
-    collectionRidesDeliveryDataCancelled = dbMongo.collection(
-      "cancelled_rides_deliveries_requests"
-    );
-    collectionOwners = dbMongo.collection("owners_profiles");
-    collectionAdminUsers = dbMongo.collection("administration_central");
-    //? INITIALIZE EXPRESS ONCE
-    app
-      .get("/", (req, res) => {
-        //!DO NOT SEND AN ANSWER FROM THE ROOT PATH
-        logger.info("All is good at main view server");
-      })
-      .use(express.json())
-      .use(express.urlencoded({ extended: true }));
+      const dbMongo = clientMongo.db("Taxiconnect");
+      collectionPassengers_profiles = dbMongo.collection("passengers_profiles");
+      collectionDrivers_profiles = dbMongo.collection("drivers_profiles");
+      collectionRidesDeliveryData = dbMongo.collection(
+        "rides_deliveries_requests"
+      );
+      collectionRidesDeliveryDataCancelled = dbMongo.collection(
+        "cancelled_rides_deliveries_requests"
+      );
+      collectionOwners = dbMongo.collection("owners_profiles");
+      collectionAdminUsers = dbMongo.collection("administration_central");
+      //? INITIALIZE EXPRESS ONCE
+      app
+        .use(helmet())
+        .use(cors())
+        .use(
+          express.json({
+            extended: true,
+            limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS,
+          })
+        )
+        .use(
+          express.urlencoded({
+            extended: true,
+            limit: process.env.MAX_DATA_BANDWIDTH_EXPRESS,
+          })
+        );
 
-    app.get("/test", (req, res) => {
-      res.status(200).json({
-        hasSucceeded: true,
-        message: "main view server up and running!",
+      app
+        .get("/", (req, res) => {
+          //!DO NOT SEND AN ANSWER FROM THE ROOT PATH
+          logger.info("All is good at main view server");
+        })
+        .use(express.json())
+        .use(express.urlencoded({ extended: true }));
+
+      app.get("/test", (req, res) => {
+        res.status(200).json({
+          hasSucceeded: true,
+          message: "main view server up and running!",
+        });
       });
-    });
 
-    /**
-     * ALL THE APIs ROUTES FOR THIS SERVICE.
-     * ! Comment the top of each API
-     */
+      /**
+       * ALL THE APIs ROUTES FOR THIS SERVICE.
+       * ! Comment the top of each API
+       */
 
-    /**
-     * 1. API responsible for getting all the general statistics.
-     * @param: some params that this API is expecting...
-     */
-    app.get("/statistics", (req, res) => {
-      logger.info("Statistics API called!");
-      new Promise((res) => {
-        activelyGet_allThe_stats(
-          collectionRidesDeliveryData,
-          collectionRidesDeliveryDataCancelled,
-          collectionDrivers_profiles,
-          collectionPassengers_profiles,
-          res
+      /**
+       * 1. API responsible for getting all the general statistics.
+       * @param: some params that this API is expecting...
+       */
+      app.get("/statistics", (req, res) => {
+        logger.info("Statistics API called!");
+        new Promise((res) => {
+          activelyGet_allThe_stats(
+            collectionRidesDeliveryData,
+            collectionRidesDeliveryDataCancelled,
+            collectionDrivers_profiles,
+            collectionPassengers_profiles,
+            res
+          );
+        }).then(
+          (result) => {
+            //logger.info(result);
+            res.send(result);
+          },
+          (error) => {
+            logger.info(error);
+            res.send({ response: "error", flag: "Invalid_params_maybe" });
+          }
         );
-      }).then(
-        (result) => {
-          //logger.info(result);
-          res.send(result);
-        },
-        (error) => {
-          logger.info(error);
-          res.send({ response: "error", flag: "Invalid_params_maybe" });
-        }
-      );
-    });
+      });
 
-    /**
-     * 2. API responsible for getting rides
-     * !except cancelled rides
-     */
-    app.get("/ride-overview", (req, res) => {
-      logger.info("Ride overview API called!!");
-      new Promise((res) => {
-        getRideOverview(
-          collectionRidesDeliveryData,
-          collectionPassengers_profiles,
-          collectionDrivers_profiles,
-          res
-        );
-      }).then(
-        (result) => {
-          logger.info(result);
-          res.send(result);
-        },
-        (error) => {
-          logger.info(error);
-          res.send({
-            response: "error",
-            flag: "Something went wrong, could be Invalid parameters",
-          });
-        }
-      );
-    });
-
-    app.get("/inprogress-ride-delivery-count-today", (req, res) => {
-      new Promise((res) => {
-        todayRideDeliveryInProgress(collectionRidesDeliveryData, res);
-      })
-        .then((data) => {
-          if (data.error) {
-            logger.info(data);
+      /**
+       * 2. API responsible for getting rides
+       * !except cancelled rides
+       */
+      app.get("/ride-overview", (req, res) => {
+        logger.info("Ride overview API called!!");
+        new Promise((res) => {
+          getRideOverview(
+            collectionRidesDeliveryData,
+            collectionPassengers_profiles,
+            collectionDrivers_profiles,
+            res
+          );
+        }).then(
+          (result) => {
+            logger.info(result);
+            res.send(result);
+          },
+          (error) => {
+            logger.info(error);
             res.send({
-              error: "Failed to get rides and deliveries in progress",
+              response: "error",
+              flag: "Something went wrong, could be Invalid parameters",
             });
           }
-          logger.info(data);
-          res.send(data);
+        );
+      });
+
+      app.get("/inprogress-ride-delivery-count-today", (req, res) => {
+        new Promise((res) => {
+          todayRideDeliveryInProgress(collectionRidesDeliveryData, res);
         })
-        .catch((error) => {
-          logger.info(error);
-          res.send({
-            error: "Failed to get rides and deliveries in progress @API level",
+          .then((data) => {
+            if (data.error) {
+              logger.info(data);
+              res.send({
+                error: "Failed to get rides and deliveries in progress",
+              });
+            }
+            logger.info(data);
+            res.send(data);
+          })
+          .catch((error) => {
+            logger.info(error);
+            res.send({
+              error:
+                "Failed to get rides and deliveries in progress @API level",
+            });
           });
-        });
-    });
-    /**
-     * API that sets a given ride as completed and pickup "confirmed" by passenger
-     * Input is the id of the ride request_fp (commes as "id" )
-     */
-    app.post("/set-ride-confirmed", (req, res) => {
-      logger.info(" SET RIDE CONFIRMED API CALLED");
-      logger.info(
-        "----- Updating Ride State (Setting complete) ..... IN PROGRESS.......-----------"
-      );
-      // Convert the received id of the ride to an ObjectID to be identified @MongoDB _id
-      //let query = {_id: new ObjectID(req.body.id.toString()) }
-      /*let query = { request_fp: req.body.request_fp }
+      });
+      /**
+       * API that sets a given ride as completed and pickup "confirmed" by passenger
+       * Input is the id of the ride request_fp (commes as "id" )
+       */
+      app.post("/set-ride-confirmed", (req, res) => {
+        logger.info(" SET RIDE CONFIRMED API CALLED");
+        logger.info(
+          "----- Updating Ride State (Setting complete) ..... IN PROGRESS.......-----------"
+        );
+        // Convert the received id of the ride to an ObjectID to be identified @MongoDB _id
+        //let query = {_id: new ObjectID(req.body.id.toString()) }
+        /*let query = { request_fp: req.body.request_fp }
     let newValues = {$set: {"ride_state_vars.isRideCompleted_riderSide" :true, 
                              isArrivedToDestination: true,
                              "ride_state_vars.isRideCompleted_driverSide": true}} */
-      logger.info(`request fingerprint: ${req.body.request_fp}`);
-      new Promise((res) => {
-        //Call updating function
-        updateEntry(
-          collectionRidesDeliveryData,
-          { request_fp: req.body.request_fp },
-          {
-            $set: {
-              "ride_state_vars.isRideCompleted_riderSide": true,
-              isArrivedToDestination: true,
-              "ride_state_vars.isRideCompleted_driverSide": true,
+        logger.info(`request fingerprint: ${req.body.request_fp}`);
+        new Promise((res) => {
+          //Call updating function
+          updateEntry(
+            collectionRidesDeliveryData,
+            { request_fp: req.body.request_fp },
+            {
+              $set: {
+                "ride_state_vars.isRideCompleted_riderSide": true,
+                isArrivedToDestination: true,
+                "ride_state_vars.isRideCompleted_driverSide": true,
+              },
             },
-          },
-          res
-        );
-      })
-        .then((result) => {
-          logger.info(result);
-          if (result.success) {
-            res.status(200).send({ success: "Successful update" });
-          } else if (result.error) {
-            res.send({
-              error:
-                " Something went wrong while updating the entry, ride already confirmed",
-            });
-          }
-        })
-        .catch((error) => {
-          logger.info(error);
-          res.send({ error: " Something went wrong while updating the entry" });
-        });
-    });
-
-    /**
-     * API responsible of cancelling trips
-     */
-
-    app.post("/cancell-trip", (req, res) => {
-      logger.info("TRIP CANCELLATION API CALLED...");
-
-      new Promise((res) => {
-        CancellTrip(
-          collectionRidesDeliveryDataCancelled,
-          collectionRidesDeliveryData,
-          { request_fp: req.body.request_fp },
-          res
-        );
-      })
-        .then((outcome) => {
-          logger.info(outcome);
-          if (outcome.success) {
-            logger.info("SUCCESSFUL CANCELLATION");
-            // Send back successful response object
-            res.send({ success: true, error: false });
-          } else if (outcome.error) {
-            logger.info("FAILED TO CANCELL RIDE");
-            // send back error response object
-            res.send({ success: false, error: true });
-          }
-        })
-        .catch((error) => {
-          logger.info(error);
-          res.send({ success: false, error: true });
-        });
-    });
-
-    /**
-     * API responsible of getting all deliveries data
-     */
-    app.get("/delivery-overview", (req, res) => {
-      logger.info("Delivery overview API called delivery!!");
-
-      new Promise((res) => {
-        getDeliveryOverview(
-          collectionRidesDeliveryData,
-          collectionPassengers_profiles,
-          collectionDrivers_profiles,
-          res
-        );
-      }).then(
-        (result) => {
-          logger.info(result);
-          res.send(result);
-        },
-        (error) => {
-          logger.info(error);
-          res.status(500).send({
-            response: "error",
-            flag: "Something went wrong, could be Invalid parameters",
-          });
-        }
-      );
-    });
-    /**
-     * API to authenticate an owner
-     */
-    app.post("/authenticate-owner", (req, res) => {
-      let response = res;
-
-      new Promise((res) => {
-        getOwners(collectionOwners, res);
-      })
-        .then((ownersList) => {
-          new Promise((res) => {
-            userExists(
-              req.body.name,
-              req.body.email,
-              req.body.password,
-              ownersList,
-              res
-            );
-          }).then(
-            (result) => {
-              let authentication_response = result;
-              response.send({ authenticated: authentication_response });
-            },
-            (error) => {
-              logger.info(error);
-              response
-                .status(500)
-                .send({ message: "error", flag: "Maybe Invalid parameters" });
-            }
+            res
           );
         })
-        .catch((error) => {
-          logger.info(error);
-          response.status(500).send({
-            message: "error",
-            flag: "Maybe Invalid parameters of owners",
-          });
-        });
-    });
-
-    /**
-     * API responsible of getting the partners data (delivery providers)
-     */
-
-    app.get("/delivery-provider-data/:provider", (req, res) => {
-      let response = res;
-      // Get the received parameter
-      let providerName = req.params.provider;
-
-      logger.info(`Delivery provider API called by: ${providerName}`);
-
-      new Promise((res) => {
-        getDeliveryProviderInfo(
-          collectionDrivers_profiles,
-          collectionRidesDeliveryData,
-          req.params.provider,
-          res
-        );
-      })
-        .then((result) => {
-          let deliveryInfo = result;
-
-          response.send(deliveryInfo);
-          logger.info(result);
-        })
-        .catch((error) => {
-          logger.info(error);
-          response.send({
-            response: "error",
-            flag: "Something went wrong, could be Invalid parameters",
-          });
-        });
-    });
-
-    /**
-     * Responsible for authenticating and eventually login in the admins
-     */
-    app.post("/authAndEventualLogin_admins", (req, res) => {
-      new Promise((resCompute) => {
-        let inputDataInitial = req.body;
-        authOrLoginAdmins(inputDataInitial, resCompute);
-      })
-        .then((result) => {
-          res.send({ response: result });
-        })
-        .catch((error) => {
-          logger.error(error);
-          res.send({ response: "failed_auth" });
-        });
-    });
-
-    /**
-     * responsible for getting the latest access patterns and suspension infos for the admins.
-     */
-    app.get("/getLastesAccessAndSuspensionIfoProcessor", (req, res) => {
-      new Promise((resCompute) => {
-        resolveDate();
-        let params = urlParser.parse(req.url, true);
-        req = params.query;
-
-        if (req.admin_fp !== undefined && req.admin_fp !== null) {
-          //? Check if the admin exists
-          collectionAdminUsers
-            .find({ admin_fp: req.admin_fp })
-            .toArray(function (err, adminData) {
-              if (err) {
-                logger.error(err);
-                resolve("failed_auth");
-              }
-              //...
-              if (
-                adminData !== undefined &&
-                adminData !== null &&
-                adminData.length > 0
-              ) {
-                adminData = adminData[0];
-                //Valid admin
-                let finalResponse =
-                  adminData.isSuspended === undefined ||
-                  adminData.isSuspended === null ||
-                  adminData.isSuspended !== false
-                    ? { status: "suspended" }
-                    : {
-                        status: "active",
-                        admin_fp: adminData.admin_fp,
-                        name: adminData.name,
-                        surname: adminData.surname,
-                        isSuspended: adminData.isSuspended,
-                        access_patterns: adminData.access_patterns,
-                      };
-                resCompute(finalResponse);
-              } //invalid admin
-              else {
-                resCompute("failed_auth");
-              }
+          .then((result) => {
+            logger.info(result);
+            if (result.success) {
+              res.status(200).send({ success: "Successful update" });
+            } else if (result.error) {
+              res.send({
+                error:
+                  " Something went wrong while updating the entry, ride already confirmed",
+              });
+            }
+          })
+          .catch((error) => {
+            logger.info(error);
+            res.send({
+              error: " Something went wrong while updating the entry",
             });
-          //Good
-        } //Invalid data
-        else {
-          resCompute("failed_auth");
-        }
-      })
-        .then((result) => {
-          res.send({ response: result });
+          });
+      });
+
+      /**
+       * API responsible of cancelling trips
+       */
+
+      app.post("/cancell-trip", (req, res) => {
+        logger.info("TRIP CANCELLATION API CALLED...");
+
+        new Promise((res) => {
+          CancellTrip(
+            collectionRidesDeliveryDataCancelled,
+            collectionRidesDeliveryData,
+            { request_fp: req.body.request_fp },
+            res
+          );
         })
-        .catch((error) => {
-          logger.error(error);
-          res.send({ response: "failed_auth" });
-        });
-    });
-  }
-);
+          .then((outcome) => {
+            logger.info(outcome);
+            if (outcome.success) {
+              logger.info("SUCCESSFUL CANCELLATION");
+              // Send back successful response object
+              res.send({ success: true, error: false });
+            } else if (outcome.error) {
+              logger.info("FAILED TO CANCELL RIDE");
+              // send back error response object
+              res.send({ success: false, error: true });
+            }
+          })
+          .catch((error) => {
+            logger.info(error);
+            res.send({ success: false, error: true });
+          });
+      });
+
+      /**
+       * API responsible of getting all deliveries data
+       */
+      app.get("/delivery-overview", (req, res) => {
+        logger.info("Delivery overview API called delivery!!");
+
+        new Promise((res) => {
+          getDeliveryOverview(
+            collectionRidesDeliveryData,
+            collectionPassengers_profiles,
+            collectionDrivers_profiles,
+            res
+          );
+        }).then(
+          (result) => {
+            logger.info(result);
+            res.send(result);
+          },
+          (error) => {
+            logger.info(error);
+            res.status(500).send({
+              response: "error",
+              flag: "Something went wrong, could be Invalid parameters",
+            });
+          }
+        );
+      });
+      /**
+       * API to authenticate an owner
+       */
+      app.post("/authenticate-owner", (req, res) => {
+        let response = res;
+
+        new Promise((res) => {
+          getOwners(collectionOwners, res);
+        })
+          .then((ownersList) => {
+            new Promise((res) => {
+              userExists(
+                req.body.name,
+                req.body.email,
+                req.body.password,
+                ownersList,
+                res
+              );
+            }).then(
+              (result) => {
+                let authentication_response = result;
+                response.send({ authenticated: authentication_response });
+              },
+              (error) => {
+                logger.info(error);
+                response
+                  .status(500)
+                  .send({ message: "error", flag: "Maybe Invalid parameters" });
+              }
+            );
+          })
+          .catch((error) => {
+            logger.info(error);
+            response.status(500).send({
+              message: "error",
+              flag: "Maybe Invalid parameters of owners",
+            });
+          });
+      });
+
+      /**
+       * API responsible of getting the partners data (delivery providers)
+       */
+
+      app.get("/delivery-provider-data/:provider", (req, res) => {
+        let response = res;
+        // Get the received parameter
+        let providerName = req.params.provider;
+
+        logger.info(`Delivery provider API called by: ${providerName}`);
+
+        new Promise((res) => {
+          getDeliveryProviderInfo(
+            collectionDrivers_profiles,
+            collectionRidesDeliveryData,
+            req.params.provider,
+            res
+          );
+        })
+          .then((result) => {
+            let deliveryInfo = result;
+
+            response.send(deliveryInfo);
+            logger.info(result);
+          })
+          .catch((error) => {
+            logger.info(error);
+            response.send({
+              response: "error",
+              flag: "Something went wrong, could be Invalid parameters",
+            });
+          });
+      });
+
+      /**
+       * Responsible for authenticating and eventually login in the admins
+       */
+      app.post("/authAndEventualLogin_admins", (req, res) => {
+        new Promise((resCompute) => {
+          let inputDataInitial = req.body;
+          authOrLoginAdmins(inputDataInitial, resCompute);
+        })
+          .then((result) => {
+            res.send({ response: result });
+          })
+          .catch((error) => {
+            logger.error(error);
+            res.send({ response: "failed_auth" });
+          });
+      });
+
+      /**
+       * responsible for getting the latest access patterns and suspension infos for the admins.
+       */
+      app.get("/getLastesAccessAndSuspensionIfoProcessor", (req, res) => {
+        new Promise((resCompute) => {
+          resolveDate();
+          let params = urlParser.parse(req.url, true);
+          req = params.query;
+
+          if (req.admin_fp !== undefined && req.admin_fp !== null) {
+            //? Check if the admin exists
+            collectionAdminUsers
+              .find({ admin_fp: req.admin_fp })
+              .toArray(function (err, adminData) {
+                if (err) {
+                  logger.error(err);
+                  resolve("failed_auth");
+                }
+                //...
+                if (
+                  adminData !== undefined &&
+                  adminData !== null &&
+                  adminData.length > 0
+                ) {
+                  adminData = adminData[0];
+                  //Valid admin
+                  let finalResponse =
+                    adminData.isSuspended === undefined ||
+                    adminData.isSuspended === null ||
+                    adminData.isSuspended !== false
+                      ? { status: "suspended" }
+                      : {
+                          status: "active",
+                          admin_fp: adminData.admin_fp,
+                          name: adminData.name,
+                          surname: adminData.surname,
+                          isSuspended: adminData.isSuspended,
+                          access_patterns: adminData.access_patterns,
+                        };
+                  resCompute(finalResponse);
+                } //invalid admin
+                else {
+                  resCompute("failed_auth");
+                }
+              });
+            //Good
+          } //Invalid data
+          else {
+            resCompute("failed_auth");
+          }
+        })
+          .then((result) => {
+            res.send({ response: result });
+          })
+          .catch((error) => {
+            logger.error(error);
+            res.send({ response: "failed_auth" });
+          });
+      });
+
+      /**
+       * Responsible for getting the summary data
+       */
+      app.get("/getSummaryAdminGlobal_data", (req, res) => {
+        new Promise((resCompute) => {
+          let params = urlParser.parse(req.url, true);
+          req = params.query;
+
+          getAdminSummaryData(req, resCompute);
+        })
+          .then((result) => {
+            //Isolate response based on the isolation_factor
+            new Promise((resTokenize) => {
+              //?Generate unique hash representing the current state of the data
+              generateUniqueFingerprint(
+                JSON.stringify(result),
+                "sha256",
+                resTokenize
+              );
+            })
+              .then((dataStateHash) => {
+                logger.warn(dataStateHash);
+                //? Use generic_view by default
+                req.isolation_factor =
+                  req.isolation_factor !== undefined &&
+                  req.isolation_factor !== null
+                    ? req.isolation_factor
+                    : "generic_view";
+                //?...
+                if (req.isolation_factor === "req.isolation_factor") {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: result.genericGlobalStats,
+                  });
+                } else if (
+                  req.isolation_factor === "generic_view|weekly_view"
+                ) {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      genericGlobalStats: result.genericGlobalStats,
+                      weekly_view: result.weekly_view,
+                    },
+                  });
+                } else if (req.isolation_factor === "generic_view|daily_view") {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      genericGlobalStats: result.genericGlobalStats,
+                      daily_view: result.daily_view,
+                    },
+                  });
+                } else if (req.isolation_factor === "all") {
+                  //! Too heavy!
+                  res.send({ stateHash: dataStateHash, response: result });
+                } else {
+                  //Generic view
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: result.genericGlobalStats,
+                  });
+                }
+              })
+              .catch((error) => {
+                logger.error(error);
+                res.send({ response: "error" });
+              });
+          })
+          .catch((error) => {
+            logger.error(error);
+            res.send({ response: "error" });
+          });
+      });
+    }
+  );
+});
 
 server.listen(process.env.STATS_ROOT, () => {
   logger.info(

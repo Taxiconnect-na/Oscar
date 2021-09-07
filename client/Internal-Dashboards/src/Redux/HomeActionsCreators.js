@@ -21,3 +21,9 @@ export const UpdateLatestAccessPatternsAndSuspInfos = (dataReceived) => ({
 export const LogOut = () => ({
   type: "LOG_OUT",
 });
+
+//4. Update the overview data
+export const UpdateOverviewData = (dataReceived) => ({
+  type: "UPDATE_OVERVIEW_DATA",
+  payload: dataReceived,
+});

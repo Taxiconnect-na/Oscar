@@ -87,6 +87,8 @@ const STATE = {
   // vandeliveryNormal: vandeliveryNormal,
 
   // tripCurrentlySelectedFp: null, //The fp of the currently selected trip
+
+  overviewData: null, //Will hold the overview data fetched
 };
 
 export default STATE;

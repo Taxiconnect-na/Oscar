@@ -9,7 +9,7 @@ import "./Loader.css";
 import { VscLoading } from "react-icons/vsc";
 import SuccessPage from "../successPage/SuccessPage";
 import ErrorPage from "../errorPage/ErrorPage";
-import logotaxiconnect from "../../logotaxiconnect.png";
+import logotaxiconnect from "../../Assets/logotaxiconnect.png";
 
 require("dotenv").config({ path: "../../../.env" });
 

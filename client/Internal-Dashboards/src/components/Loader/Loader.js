@@ -4,7 +4,7 @@ import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 import socket from "../socket";
 import SuccessPage from "../successPage/SuccessPage";
 import ErrorPage from "../errorPage/ErrorPage";
-import logotaxiconnect from "../../logotaxiconnect.png";
+import logotaxiconnect from "../../Assets/logotaxiconnect.png";
 import "./Loader.css";
 import { VscLoading } from "react-icons/vsc";
 

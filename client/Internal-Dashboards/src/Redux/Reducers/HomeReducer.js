@@ -68,6 +68,22 @@ const HomeReducer = (state = INIT_STATE, action) => {
       newState.loginData.admin_data = null;
 
       return { ...state, ...newState };
+
+    case "UPDATE_OVERVIEW_DATA":
+      //?Optimized with the stateHash remotely computed
+      if (
+        newState.overviewData === null ||
+        newState.overviewData === undefined ||
+        newState.overviewData.stateHash !== action.payload.stateHash
+      ) {
+        //New data
+        newState.overviewData = action.payload;
+        //..
+        return { ...state, ...newState };
+      } //Same data
+      else {
+        return state;
+      }
     default:
       return state;
   }

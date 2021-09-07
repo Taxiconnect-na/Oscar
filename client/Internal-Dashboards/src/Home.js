@@ -13,7 +13,6 @@ import DeliveryOverview from "./components/deliveryOverview/deliveryOverview";
 import DriverList from "./components/driversList/driverList";
 import PassengerList from "./components/passengersList/passengerList";
 import CashPaymentDriver from "./components/cashPaymentDriver/cashPaymentDriver";
-import socket from "./components/socket";
 import Loader from "./components/Loader/Loader";
 import ErrorPage from "./components/errorPage/ErrorPage";
 import SuccessPage from "./components/successPage/SuccessPage";
@@ -26,7 +25,6 @@ import DataVisualizerRoutesList from "./components/DataVisualizerRoutesList/Data
 //import LogoutButton from "./components/LogoutButton"
 //import Profile from "./components/Profile"
 import "./App.css";
-import logotaxiconnect from "./logotaxiconnect.png";
 import { VscLoading } from "react-icons/vsc";
 import CancelledDeliveries from "./components/cancelledRides/CancelledDeliveries";
 import GrossSales from "./components/visualize/GrossSales";
@@ -39,42 +37,8 @@ import DriverCommission from "./components/driverCommission/driverCommission";
 import DriverCommissionInsert from "./components/driverCommission/driverCommissionInsert";
 import Referrals from "./components/referrals/Referrals";
 import DriverRegistrationReferred from "./components/driverRegistration/driverRegistrationReferred";
+import Header from "./components/Header/Header";
 
-function useLocalStorage(key, initialValue) {
-  // State to store our value
-  // Pass initial state function to useState so logic is only executed once
-  const [storedValue, setStoredValue] = useState(() => {
-    try {
-      // Get from local storage by key
-      const item = window.localStorage.getItem(key);
-      // Parse stored json or if none return initialValue
-      return item ? JSON.parse(item) : initialValue;
-    } catch (error) {
-      // If error also return initialValue
-      console.log(error);
-      return initialValue;
-    }
-  });
-
-  // Return a wrapped version of useState's setter function that ...
-  // ... persists the new value to localStorage.
-  const setValue = (value) => {
-    try {
-      // Allow value to be a function so we have same API as useState
-      const valueToStore =
-        value instanceof Function ? value(storedValue) : value;
-      // Save state
-      setStoredValue(valueToStore);
-      // Save to local storage
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
-    } catch (error) {
-      // A more advanced implementation would handle the error case
-      console.log(error);
-    }
-  };
-
-  return [storedValue, setValue];
-}
 /**
  * @function App : Main function
  * @returns: All routes
@@ -91,7 +55,14 @@ class Home extends React.PureComponent {
 
   render() {
     return (
-      <div>
+      <div
+        style={{
+          backgroundColor: "#f3f3f3",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Header />
         <div className="mainParentNode">
           {this.props.App.loginData.isLoggedIn ? (
             <div className="sidebar">

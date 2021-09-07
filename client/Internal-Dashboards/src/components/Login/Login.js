@@ -4,28 +4,13 @@ import { bindActionCreators } from "redux";
 import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 
 import SOCKET_CORE from "../socket";
-import { useHistory } from "react-router-dom";
 
 import classes from "./login.module.css";
-import LogoGeneric from "../../logotaxiconnect.png";
+import LogoGeneric from "../../Assets/logotaxiconnect.png";
 import { AiOutlineSecurityScan } from "react-icons/ai";
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 import Loader from "react-loader-spinner";
 import EmailValidator from "../../Helpers/EmailValidator";
-
-// const navigate = (route) => {
-//     const history = useHistory();
-
-//     function handleClick() {
-//       history.push("/home");
-//     }
-
-//     return (
-//       <button type="button" onClick={handleClick}>
-//         Go home
-//       </button>
-//     );
-//   }
 
 class Login extends React.PureComponent {
   constructor(props) {

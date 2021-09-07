@@ -447,6 +447,53 @@ io.on("connection", (socket) => {
     }
   });
 
+  //Responsible for getting the collosal data based on specific requirements: daily, weekly, monthly and or global
+  socket.on("getMastiff_insightData", function (data) {
+    if (data !== undefined && data !== null) {
+      //logger.info(data)
+      //? Isolation factor to generic view and day_zoom to 3 by default
+      data.isolation_factor =
+        data.isolation_factor !== undefined && data.isolation_factor !== null
+          ? data.isolation_factor
+          : "generic_view";
+      try {
+        data.day_zoom =
+          data.day_zoom !== undefined && data.day_zoom !== null
+            ? parseInt(data.day_zoom)
+            : 3;
+      } catch (error) {
+        logger.error(error);
+        data.day_zoom = 3;
+      }
+
+      let url =
+        `${process.env.LOCAL_URL}` +
+        ":" +
+        process.env.STATS_ROOT +
+        `/getSummaryAdminGlobal_data?isolation_factor=${data.isolation_factor}&day_zoom=${data.day_zoom}`;
+
+      // logger.warn(url);
+
+      requestAPI(url, function (error, response, body) {
+        if (error === null) {
+          try {
+            body = JSON.parse(body);
+            //logger.info(body);
+            socket.emit("getMastiff_insightData-response", body);
+          } catch (error) {
+            socket.emit("getMastiff_insightData-response", {
+              response: "error",
+            });
+          }
+        } else {
+          socket.emit("getMastiff_insightData-response", {
+            response: "error",
+          });
+        }
+      });
+    }
+  });
+
   /*
 *===================================================================================================
 //*                 Driver Data related events

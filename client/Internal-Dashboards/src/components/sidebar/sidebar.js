@@ -11,7 +11,6 @@ import {
 import SOCKET_CORE from "../socket";
 import "react-pro-sidebar/dist/css/styles.css";
 import "./sidebar.scss";
-import logotaxiconnect from "../../logo_white.png";
 import {
   AiFillAppstore,
   AiFillSignal,
@@ -29,13 +28,14 @@ import {
   ImPieChart,
   ImShare2,
 } from "react-icons/im";
+import { icons } from "react-icons/lib";
 
 const iconStyle = {
-  width: 35,
-  height: 20,
+  width: 30,
+  height: 15,
   position: "relative",
-  bottom: "2px",
-  color: "#fff",
+  bottom: "1px",
+  color: "#4b5158",
 };
 
 class Sidebar extends React.PureComponent {
@@ -106,8 +106,8 @@ class Sidebar extends React.PureComponent {
     return (
       <ProSidebar>
         <Menu iconShape="square">
-          <div className="logoContainer">
-            <img src={logotaxiconnect} alt="TaxiConnect" className="logoTrue" />
+          <div className="logoContainer" style={{ color: "#4b5158" }}>
+            Administration
           </div>
           {this.props.App.loginData.admin_data !== null &&
           /overviewSummary/i.test(
@@ -286,7 +286,7 @@ class Sidebar extends React.PureComponent {
             <MenuItem className="menuItemSideBar">
               <Link className="menuText" to="/visualize">
                 <AiFillSignal style={iconStyle} />
-                <span className="menuText">Visualize </span>
+                <span className="menuText">Statistics</span>
               </Link>
             </MenuItem>
           ) : (
@@ -329,16 +329,26 @@ class Sidebar extends React.PureComponent {
               }}
             >
               <AiOutlineLogout style={iconStyle} />
-              <span className="menuTextVersionNo">Log out</span>
+              <span className="menuText">Log out</span>
             </Link>
           </MenuItem>
 
           <MenuItem className="menuTextVersionNo">
             <Link>
-              <AiFillInfoCircle style={iconStyle} />
-              <span className="menuTextVersionNo">
-                {String(process.env.REACT_APP_ENVIRONMENT)}
-              </span>
+              <AiFillInfoCircle
+                style={{
+                  width: 30,
+                  height: 15,
+                  position: "relative",
+                  bottom: "1px",
+                  color: /Development/i.test(
+                    String(process.env.REACT_APP_ENVIRONMENT)
+                  )
+                    ? "red"
+                    : "#4b5158",
+                }}
+              />
+              <span className="menuTextVersionNo">v2.0.048</span>
             </Link>
           </MenuItem>
         </Menu>

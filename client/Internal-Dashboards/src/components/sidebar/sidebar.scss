@@ -33,14 +33,16 @@
 
 .menuText {
   font-family: "MoveTextMedium", sans-serif;
-  color: #fff;
+  color: #4b5158;
+  font-size: 14px;
 }
 
 .menuTextVersionNo {
   position: relative;
   font-family: "MoveTextLight", sans-serif;
-  color: #fff;
-  margin-top: 25%;
+  color: #4b5158;
+  margin-top: 35px;
+  font-size: 14px;
 }
 
 .sidebar {
@@ -50,6 +52,7 @@
   left: 0;
   overflow: hidden;
   width: 25%;
+  border-right: 1px solid #d0d0d0;
 }
 
 .menuItemSideBar {
@@ -57,11 +60,13 @@
 }
 
 .logoContainer {
-  width: 80px;
-  height: 70px;
-  margin-left: 25px;
+  width: 150px;
+  margin-left: 28px;
   text-align: left;
-  margin-bottom: 15%;
+  margin-bottom: 20px;
+  margin-top: 15px;
+  // border: 1px solid red;
+  font-family: "MoveTextBold";
 }
 
 .logoTrue {
@@ -72,7 +77,9 @@
   border-radius: 0;
 }
 
-$sidebar-bg-color: #000;
+$sidebar-bg-color: #fff;
 $sidebar-width: 100%;
+$submenu-bg-color: #fff !default;
+$highlight-color: #0e8491 !default;
 
 @import "~react-pro-sidebar/dist/scss/styles.scss";
