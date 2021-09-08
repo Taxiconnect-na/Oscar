@@ -362,6 +362,119 @@ class Overview extends React.PureComponent {
                     )
                 ).toFixed(2)}%`,
               },
+            ]}
+          />
+
+          <NodeTableExplainer
+            marginTop={50}
+            title="Sales related (N$)"
+            left={[
+              {
+                title: "Total cash trips",
+                value: this.returnValidValueOrZero("total_cash_trips"),
+              },
+              {
+                title: "Total wallet trips",
+                value: this.returnValidValueOrZero("total_wallet_trips"),
+              },
+              {
+                title: "Total cash trips sales",
+                value: `N$${this.returnValidValueOrZero(
+                  "total_cash_trips_sales"
+                )}`,
+              },
+              {
+                title: "Total wallet trips sales",
+                value: `N$${this.returnValidValueOrZero(
+                  "total_wallet_trips_sales"
+                )}`,
+              },
+              {
+                title: "Total successful cash rides sales",
+                value: `N$${this.returnValidValueOrZero(
+                  "total_successful_cash_rides_sales"
+                )}`,
+              },
+              {
+                title: "Total cancelled cash rides sales",
+                value: `N$${this.returnValidValueOrZero(
+                  "total_cancelled_cash_rides_sales"
+                )}`,
+              },
+              {
+                title: "Total successful wallet rides sales",
+                value: `N$${this.returnValidValueOrZero(
+                  "total_successful_wallet_rides_sales"
+                )}`,
+              },
+            ]}
+            right={[
+              {
+                title: "Total cancelled wallet deliveries sales",
+                value: `N$${this.returnValidValueOrZero(
+                  "total_cancelled_wallet_rides_sales"
+                )}`,
+              },
+              {
+                title: "Total successful cash deliveries",
+                value: this.returnValidValueOrZero(
+                  "total_successful_cash_deliveries"
+                ),
+              },
+              {
+                title: "Total cancelled wallet deliveries",
+                value: this.returnValidValueOrZero(
+                  "total_cancelled_cash_deliveries"
+                ),
+              },
+              {
+                title: "Total successful wallet deliveries sales",
+                value: this.returnValidValueOrZero(
+                  "total_successful_wallet_deliveries_sales"
+                ),
+              },
+
+              {
+                title: "Total cancelled wallet deliveries sales",
+                value: this.returnValidValueOrZero(
+                  "total_cancelled_wallet_deliveries_sales"
+                ),
+              },
+            ]}
+          />
+
+          <NodeTableExplainer
+            marginTop={50}
+            title="Users related"
+            left={[
+              {
+                title: "Total number of riders",
+                value: this.returnValidValueOrZero("total_riders"),
+              },
+              {
+                title: "Total number of drivers",
+                value: this.returnValidValueOrZero("total_drivers"),
+              },
+              {
+                title: "Riders who requested",
+                value: this.returnValidValueOrZero(
+                  "total_numberOf_passengers_requestedFor"
+                ),
+              },
+              {
+                title: "Riders successfully moved",
+                value: this.returnValidValueOrZero(
+                  "total_numberOf_passengers_successfully_moved"
+                ),
+              },
+              {
+                title: "Riders not moved after request",
+                value: this.returnValidValueOrZero(
+                  "total_numberOf_passengers_cancelled_moved"
+                ),
+              },
+            ]}
+            right={[
               {
                 title: "Riders to drivers ratio",
                 value: "-",
@@ -371,8 +484,25 @@ class Overview extends React.PureComponent {
 
           <NodeTableExplainer
             marginTop={50}
-            title="Sales related (N$)"
-            left={[]}
+            title="Commission related (N$)"
+            left={[
+              {
+                title: "Total commission gathered",
+                value: `N$${this.returnValidValueOrZero("total_commission")}`,
+              },
+              {
+                title: "Total commission collected",
+                value: `N$${this.returnValidValueOrZero(
+                  "total_commission_collected"
+                )}`,
+              },
+              {
+                title: "Total commission pending",
+                value: `N$${this.returnValidValueOrZero(
+                  "total_commission_pending"
+                )}`,
+              },
+            ]}
             right={[]}
           />
         </div>
