@@ -1,14 +1,94 @@
 .headerGeneric {
-  border: 1px solid red;
+  /* border: 1px solid red; */
   font-family: "MoveBold";
-  font-size: 17px;
+  font-size: 18px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dayZoomLabel {
+  font-family: "MoveTextMedium", sans-serif;
+  font-size: 14px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .chartContainer {
-  border: 1px solid black;
+  border: 1px solid #d0d0d0;
   width: 100%;
   margin-top: 15px;
   margin-bottom: 20px;
-  height: 400px;
+  height: 480px;
   background-color: #fff;
+  padding-top: 25px;
+}
+
+.globalNumbersContainer {
+  position: relative;
+  border: 1px solid black;
+  min-height: 400px;
+  margin-top: 50px;
+  background-color: #fff;
+  padding: 15px;
+}
+
+.headerGBNumbers {
+  font-family: "MoveMedium", sans-serif;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+.nodeContainer {
+  /* border: 1px solid black; */
+  display: flex;
+  flex-direction: row;
+}
+.titleNodeInsider {
+  font-family: "MoveTextBold", sans-serif;
+  color: #888585;
+  font-size: 13px;
+  /* border: 1px solid black; */
+  height: 20px;
+}
+
+.nodeInsideSideContainer {
+  /* border: 1px solid red; */
+  flex: 1;
+}
+
+.podInsideInsider {
+  /* border-bottom: 1px solid black; */
+  margin-top: 20px;
+}
+
+.lineLabelData {
+  border-bottom: 1px solid #d0d0d0;
+  display: flex;
+  flex-direction: row;
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.labelInsido {
+  /* border: 1px solid red; */
+  flex: 1;
+  display: flex;
+  flex-direction: "row";
+  align-items: center;
+  font-size: 15px;
+}
+
+.squarePoint {
+  position: "relative";
+  width: 7px;
+  height: 7px;
+  margin-right: 3px;
+  bottom: 2px;
+}
+
+.dataInsido {
+  font-family: "MoveTextBold", sans-serif;
 }

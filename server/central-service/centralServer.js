@@ -465,12 +465,21 @@ io.on("connection", (socket) => {
         logger.error(error);
         data.day_zoom = 3;
       }
+      //?Default the make graph ready to false
+      data.make_graphReady =
+        data.make_graphReady !== undefined && data.make_graphReady !== null
+          ? true
+          : false;
+      //?---
+      //! Allow parallel request 1 - only
+      data.parallel =
+        data.parallel !== undefined && data.parallel !== null ? true : false;
 
       let url =
         `${process.env.LOCAL_URL}` +
         ":" +
         process.env.STATS_ROOT +
-        `/getSummaryAdminGlobal_data?isolation_factor=${data.isolation_factor}&day_zoom=${data.day_zoom}`;
+        `/getSummaryAdminGlobal_data?isolation_factor=${data.isolation_factor}&day_zoom=${data.day_zoom}&make_graphReady=${data.make_graphReady}$parallal=${data.parallel}`;
 
       // logger.warn(url);
 
@@ -479,16 +488,32 @@ io.on("connection", (socket) => {
           try {
             body = JSON.parse(body);
             //logger.info(body);
-            socket.emit("getMastiff_insightData-response", body);
+            if (data.parallel) {
+              socket.emit("getMastiff_insightData-parallel-response", body);
+            } else {
+              socket.emit("getMastiff_insightData-response", body);
+            }
           } catch (error) {
+            if (data.parallel) {
+              socket.emit("getMastiff_insightData-parallel-response", {
+                response: "error",
+              });
+            } else {
+              socket.emit("getMastiff_insightData-response", {
+                response: "error",
+              });
+            }
+          }
+        } else {
+          if (data.parallel) {
+            socket.emit("getMastiff_insightData-parallel-response", {
+              response: "error",
+            });
+          } else {
             socket.emit("getMastiff_insightData-response", {
               response: "error",
             });
           }
-        } else {
-          socket.emit("getMastiff_insightData-response", {
-            response: "error",
-          });
         }
       });
     }

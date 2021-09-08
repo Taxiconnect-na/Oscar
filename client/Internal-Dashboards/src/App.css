@@ -48,14 +48,16 @@
   width: 100%;
   font-family: "MoveTextRegular", sans-serif;
   /* background-color: brown; */
+  overflow-y: auto;
 }
 
 .mainParentNode {
   display: flex;
   flex-direction: row;
   font-family: "MoveTextRegular", sans-serif;
-  height: 100vh;
-  /* overflow: hidden; */
+  height: 100%;
+  overflow: hidden;
+  /* background-color: red; */
 }
 
 .rotate {

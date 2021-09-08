@@ -27,3 +27,9 @@ export const UpdateOverviewData = (dataReceived) => ({
   type: "UPDATE_OVERVIEW_DATA",
   payload: dataReceived,
 });
+
+//4.b Update the global overview data
+export const UpdateGlobalOverviewData = (dataReceived) => ({
+  type: "UPDATE_GLOBAL_OVERVIEW_DATA",
+  payload: dataReceived,
+});

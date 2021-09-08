@@ -89,6 +89,7 @@ const STATE = {
   // tripCurrentlySelectedFp: null, //The fp of the currently selected trip
 
   overviewData: null, //Will hold the overview data fetched
+  globalOverviewData: null, //Will hold the global generic data from day 1 of TaxiConnect
 };
 
 export default STATE;

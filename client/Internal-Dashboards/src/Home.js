@@ -60,6 +60,8 @@ class Home extends React.PureComponent {
           backgroundColor: "#f3f3f3",
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden",
+          height: "100vh",
         }}
       >
         <Header />

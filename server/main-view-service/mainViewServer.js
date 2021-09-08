@@ -4439,6 +4439,57 @@ function getInsightStats(
   }
 }
 
+/**
+ * Responsible for sorting objects by keys!
+ */
+function sortObj(obj) {
+  return Object.keys(obj)
+    .sort()
+    .reduce(function (result, key) {
+      result[key] = obj[key];
+      return result;
+    }, {});
+}
+
+/**
+ * @func makegraphReady
+ * Responsible for turning the standard views data to a react-vis graph ready format
+ */
+function makegraphReady(standardData) {
+  //? 1. Sort the data
+  standardData = sortObj(standardData);
+  //..
+  let tmpMetaChildObject = {};
+  //...
+  Object.keys(standardData).forEach((key) => {
+    let tmpReadiness = standardData[key];
+    let characteristic_label = key;
+    let sorter = new Date(tmpReadiness.date_refs[0]).getTime();
+    //...
+    Object.keys(tmpReadiness).forEach((key2) => {
+      tmpMetaChildObject[key2] =
+        tmpMetaChildObject[key2] === undefined ||
+        tmpMetaChildObject[key2] === null ||
+        tmpMetaChildObject[key2].length === undefined ||
+        tmpMetaChildObject[key2].length === null
+          ? []
+          : tmpMetaChildObject[key2];
+      //...
+      tmpMetaChildObject[key2].push({
+        x: characteristic_label,
+        y: tmpReadiness[key2],
+        sorter: sorter,
+      });
+      //? Sort it
+      tmpMetaChildObject[key2] = tmpMetaChildObject[key2].sort((a, b) =>
+        a.sorter > b.sorter ? 1 : a.sorter < b.sorter ? -1 : 0
+      );
+    });
+  });
+  //Done
+  return tmpMetaChildObject;
+}
+
 var collectionPassengers_profiles = null;
 var collectionDrivers_profiles = null;
 var collectionRidesDeliveryData = null;
@@ -4857,6 +4908,11 @@ redisCluster.on("connect", function () {
         new Promise((resCompute) => {
           let params = urlParser.parse(req.url, true);
           req = params.query;
+          //Check for graph readiness - default - false
+          req.make_graphReady =
+            req.make_graphReady !== undefined && req.make_graphReady !== null
+              ? true
+              : false;
 
           getAdminSummaryData(req, resCompute);
         })
@@ -4865,7 +4921,7 @@ redisCluster.on("connect", function () {
             new Promise((resTokenize) => {
               //?Generate unique hash representing the current state of the data
               generateUniqueFingerprint(
-                JSON.stringify(result),
+                `${JSON.stringify(result)}-${JSON.stringify(req)}`,
                 "sha256",
                 resTokenize
               );
@@ -4884,6 +4940,13 @@ redisCluster.on("connect", function () {
                     stateHash: dataStateHash,
                     response: result.genericGlobalStats,
                   });
+                } else if (req.isolation_factor === "generic_view") {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      genericGlobalStats: result.genericGlobalStats,
+                    },
+                  });
                 } else if (
                   req.isolation_factor === "generic_view|weekly_view"
                 ) {
@@ -4891,7 +4954,18 @@ redisCluster.on("connect", function () {
                     stateHash: dataStateHash,
                     response: {
                       genericGlobalStats: result.genericGlobalStats,
-                      weekly_view: result.weekly_view,
+                      weekly_view: req.make_graphReady
+                        ? makegraphReady(result.weekly_view)
+                        : result.weekly_view,
+                    },
+                  });
+                } else if (req.isolation_factor === "weekly_view") {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      weekly_view: req.make_graphReady
+                        ? makegraphReady(result.weekly_view)
+                        : result.weekly_view,
                     },
                   });
                 } else if (req.isolation_factor === "generic_view|daily_view") {
@@ -4899,7 +4973,60 @@ redisCluster.on("connect", function () {
                     stateHash: dataStateHash,
                     response: {
                       genericGlobalStats: result.genericGlobalStats,
-                      daily_view: result.daily_view,
+                      daily_view: req.make_graphReady
+                        ? makegraphReady(result.daily_view)
+                        : result.daily_view,
+                    },
+                  });
+                } else if (req.isolation_factor === "daily_view") {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      daily_view: req.make_graphReady
+                        ? makegraphReady(result.daily_view)
+                        : result.daily_view,
+                    },
+                  });
+                } else if (
+                  req.isolation_factor === "generic_view|monthly_view"
+                ) {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      genericGlobalStats: result.genericGlobalStats,
+                      monthly_view: req.make_graphReady
+                        ? makegraphReady(result.monthly_view)
+                        : result.monthly_view,
+                    },
+                  });
+                } else if (req.isolation_factor === "monthly_view") {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      monthly_view: req.make_graphReady
+                        ? makegraphReady(result.monthly_view)
+                        : result.monthly_view,
+                    },
+                  });
+                } else if (
+                  req.isolation_factor === "generic_view|yearly_view"
+                ) {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      genericGlobalStats: result.genericGlobalStats,
+                      yearly_view: req.make_graphReady
+                        ? makegraphReady(result.yearly_view)
+                        : result.yearly_view,
+                    },
+                  });
+                } else if (req.isolation_factor === "yearly_view") {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      yearly_view: req.make_graphReady
+                        ? makegraphReady(result.yearly_view)
+                        : result.yearly_view,
                     },
                   });
                 } else if (req.isolation_factor === "all") {
