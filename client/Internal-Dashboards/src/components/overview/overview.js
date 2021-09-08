@@ -145,12 +145,13 @@ class Overview extends React.PureComponent {
    */
   getOverviewDataStats() {
     let globalObject = this;
+    let day_zoom = 7;
 
     if (this.props.App.loginData.admin_data !== null) {
       try {
         globalObject.props.App.SOCKET_CORE.emit("getMastiff_insightData", {
           isolation_factor: "generic_view|daily_view",
-          day_zoom: 30,
+          day_zoom: day_zoom,
           make_graphReady: true,
         });
         //!Parallel for global overview
@@ -163,7 +164,7 @@ class Overview extends React.PureComponent {
         this.intervalPersister = setInterval(function () {
           globalObject.props.App.SOCKET_CORE.emit("getMastiff_insightData", {
             isolation_factor: "generic_view|daily_view",
-            day_zoom: 30,
+            day_zoom: day_zoom,
             make_graphReady: true,
           });
           //!Parallel for global overview
@@ -219,7 +220,7 @@ class Overview extends React.PureComponent {
             <AiTwotoneCalendar
               style={{ marginRight: 5, bottom: 1, position: "relative" }}
             />
-            For the last 30 days
+            For the last 7 days
           </div>
         </div>
         <div className={classes.chartContainer}>
@@ -288,8 +289,8 @@ class Overview extends React.PureComponent {
               className={"test-class-name"}
               titleFormat={(d) => ({ title: "Trips", value: d[0].y + d[1].y })}
               itemsFormat={(d) => [
-                { title: "Successful", value: d[0].y },
-                { title: "Cancelled", value: d[1].y },
+                { title: "Successful", value: d[1].y },
+                { title: "Cancelled", value: d[0].y },
               ]}
             />
           </FlexibleXYPlot>
