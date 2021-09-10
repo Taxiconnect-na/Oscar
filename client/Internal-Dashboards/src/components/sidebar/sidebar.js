@@ -43,9 +43,16 @@ class Sidebar extends React.PureComponent {
     super(props);
 
     this.intervalPersister = null;
+
+    this.shouldBeRenderedBasedOnAccess();
+  }
+
+  componentDidUpdate() {
+    this.shouldBeRenderedBasedOnAccess();
   }
 
   componentDidMount() {
+    this.shouldBeRenderedBasedOnAccess();
     let globalObject = this;
 
     this.props.App.SOCKET_CORE =
@@ -78,6 +85,39 @@ class Sidebar extends React.PureComponent {
   }
 
   /**
+   * Responsible to answer to yes or no question of which component should be rendered
+   * @return true: Yes render
+   * @return false: No do not render
+   */
+  shouldBeRenderedBasedOnAccess() {
+    if (
+      (this.props.App.loginData.admin_data === null ||
+        this.props.App.loginData.admin_data === undefined ||
+        this.props.App.loginData.admin_data.admin_fp === null ||
+        this.props.App.loginData.admin_data.admin_fp === undefined ||
+        this.props.App.loginData.admin_data.isSuspended === true ||
+        this.props.App.loginData.admin_data.isSuspended === undefined ||
+        this.props.App.loginData.admin_data.isSuspended === null) &&
+      /\/$/.test(window.location.href) === false
+    ) {
+      this.props.LogOut();
+      window.location.href = "/";
+    }
+  }
+  //!Part B
+  shouldBeRendered() {
+    return (
+      this.props.App.loginData.admin_data === null ||
+      this.props.App.loginData.admin_data === undefined ||
+      this.props.App.loginData.admin_data.admin_fp === null ||
+      this.props.App.loginData.admin_data.admin_fp === undefined ||
+      this.props.App.loginData.admin_data.isSuspended === true ||
+      this.props.App.loginData.admin_data.isSuspended === undefined ||
+      this.props.App.loginData.admin_data.isSuspended === null
+    );
+  }
+
+  /**
    *  Responsible for getting periodically the access patterns for the current user if any and suspension status.
    */
   getAccessPatternsSuspensionStats() {
@@ -89,7 +129,10 @@ class Sidebar extends React.PureComponent {
           globalObject.props.App.SOCKET_CORE.emit(
             "getLastesAccessAndSuspensionIfo",
             {
-              admin_fp: globalObject.props.App.loginData.admin_data.admin_fp,
+              admin_fp:
+                globalObject.props.App.loginData.admin_data !== null
+                  ? globalObject.props.App.loginData.admin_data.admin_fp
+                  : 0,
             }
           );
         }, 2000);

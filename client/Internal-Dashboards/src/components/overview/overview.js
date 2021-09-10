@@ -37,18 +37,6 @@ import NodeTableExplainer from "../../Helpers/NodeTableExplainer";
 
 const FlexibleXYPlot = makeWidthFlexible(XYPlot);
 
-const greenData = [
-  { x: "Mon", y: 10, sorter: 12 },
-  { x: "Tues", y: 5 },
-  { x: "Wed", y: 15 },
-];
-
-const blueData = [
-  { x: "Thu", y: 12 },
-  { x: "Fri", y: 2 },
-  { x: "Sat", y: 11 },
-];
-
 class Overview extends React.PureComponent {
   constructor(props) {
     super(props);
@@ -58,6 +46,7 @@ class Overview extends React.PureComponent {
     this.state = {
       useCanvas: false,
       crosshairValues: [],
+      day_zoom: 30,
     };
   }
 
@@ -145,13 +134,12 @@ class Overview extends React.PureComponent {
    */
   getOverviewDataStats() {
     let globalObject = this;
-    let day_zoom = 7;
 
     if (this.props.App.loginData.admin_data !== null) {
       try {
         globalObject.props.App.SOCKET_CORE.emit("getMastiff_insightData", {
           isolation_factor: "generic_view|daily_view",
-          day_zoom: day_zoom,
+          day_zoom: this.state.day_zoom,
           make_graphReady: true,
         });
         //!Parallel for global overview
@@ -164,9 +152,10 @@ class Overview extends React.PureComponent {
         this.intervalPersister = setInterval(function () {
           globalObject.props.App.SOCKET_CORE.emit("getMastiff_insightData", {
             isolation_factor: "generic_view|daily_view",
-            day_zoom: day_zoom,
+            day_zoom: globalObject.state.day_zoom,
             make_graphReady: true,
           });
+          console.log("Clock on updated");
           //!Parallel for global overview
           globalObject.props.App.SOCKET_CORE.emit("getMastiff_insightData", {
             isolation_factor: "generic_view|daily_view",
@@ -198,14 +187,6 @@ class Overview extends React.PureComponent {
   }
 
   render() {
-    console.log(
-      this.props.App.overviewData !== null &&
-        this.props.App.overviewData !== undefined &&
-        this.props.App.overviewData.response !== undefined &&
-        this.props.App.overviewData.response.daily_view !== undefined
-        ? this.props.App.overviewData.response
-        : []
-    );
     return (
       <div
         style={{
@@ -220,7 +201,7 @@ class Overview extends React.PureComponent {
             <AiTwotoneCalendar
               style={{ marginRight: 5, bottom: 1, position: "relative" }}
             />
-            For the last 7 days
+            For the last {this.state.day_zoom} days
           </div>
         </div>
         <div className={classes.chartContainer}>
@@ -261,6 +242,7 @@ class Overview extends React.PureComponent {
               }}
               color={"#3EA37C"}
               onNearestX={this._onNearestX}
+              onValueMouseOut={this._onMouseLeave}
             />
 
             {/* Show cancelled total trips */}
@@ -281,6 +263,7 @@ class Overview extends React.PureComponent {
               }}
               color={"#a13d63"}
               onNearestX={this._onNearestX}
+              onValueMouseOut={this._onMouseLeave}
             />
 
             {/* Crosshair */}

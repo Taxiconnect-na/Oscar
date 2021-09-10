@@ -1,0 +1,43 @@
+.error_page_body {
+  background-color: darkgray;
+  width: 80%;
+  margin: auto;
+  margin-top: 8%;
+}
+
+.errorContainer {
+  border: 1px solid #d0d0d0;
+  margin: auto;
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 25px;
+  margin-right: 25px;
+  height: 400px;
+  justify-content: center;
+  background-color: #fff;
+}
+
+.textWarning {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 15px;
+  width: 70%;
+}
+
+.textWarningW {
+  font-family: "MoveTextMedium", sans-serif;
+  margin-top: 25px;
+  text-align: center;
+  font-size: 15px;
+  width: 50%;
+}
+
+.copyright {
+  margin-top: 10%;
+  font-size: 13px;
+  color: #686767bb;
+  margin-left: 25px;
+  margin-right: 25px;
+}

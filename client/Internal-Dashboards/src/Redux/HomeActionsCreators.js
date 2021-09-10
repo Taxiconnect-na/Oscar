@@ -33,3 +33,8 @@ export const UpdateGlobalOverviewData = (dataReceived) => ({
   type: "UPDATE_GLOBAL_OVERVIEW_DATA",
   payload: dataReceived,
 });
+
+//! 5. Make sure that the user is on a permitted route based on his access patterns
+export const MakeSureAccessRoutePermitted = (dataReceived) => ({
+  type: "MAKE_SURE_ACCESS_ROUTE_PERMITTED",
+});

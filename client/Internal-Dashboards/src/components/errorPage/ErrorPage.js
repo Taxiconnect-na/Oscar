@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
 import { VscError } from "react-icons/vsc";
-import "./error.css";
+import classes from "./Error.module.css";
 
 export default function ErrorPage() {
   const App = useSelector((state) => ({ App: state.App }), shallowEqual);
@@ -34,7 +34,7 @@ export default function ErrorPage() {
     return <></>;
   } else {
     return (
-      <div className="error-page-body">
+      <div className={classes.error_page_body}>
         <div style={style}>
           <h1>
             <VscError style={{ width: 50, height: 50, color: "red" }} />

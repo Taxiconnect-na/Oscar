@@ -38,6 +38,7 @@ import DriverCommissionInsert from "./components/driverCommission/driverCommissi
 import Referrals from "./components/referrals/Referrals";
 import DriverRegistrationReferred from "./components/driverRegistration/driverRegistrationReferred";
 import Header from "./components/Header/Header";
+import NotPermitted from "./components/errorPage/NotPermitted";
 
 /**
  * @function App : Main function
@@ -49,11 +50,53 @@ class Home extends React.PureComponent {
     super(props);
 
     // this.props.App.loginData.isLoggedIn = true; //! DEBUG
+    this.shouldBeRenderedBasedOnAccess();
   }
 
-  componentDidMount() {}
+  componentDidMount() {
+    this.shouldBeRenderedBasedOnAccess();
+  }
+
+  componentDidUpdate() {
+    this.shouldBeRenderedBasedOnAccess();
+  }
+
+  /**
+   * Responsible to answer to yes or no question of which component should be rendered
+   * @return true: Yes render
+   * @return false: No do not render
+   */
+  shouldBeRenderedBasedOnAccess() {
+    if (
+      (this.props.App.loginData.admin_data === null ||
+        this.props.App.loginData.admin_data === undefined ||
+        this.props.App.loginData.admin_data.admin_fp === null ||
+        this.props.App.loginData.admin_data.admin_fp === undefined ||
+        this.props.App.loginData.admin_data.isSuspended === true ||
+        this.props.App.loginData.admin_data.isSuspended === undefined ||
+        this.props.App.loginData.admin_data.isSuspended === null) &&
+      /\/$/.test(window.location.href) === false
+    ) {
+      this.props.LogOut();
+      window.location.href = "/";
+    }
+  }
+  //!Part B
+  shouldBeRendered() {
+    return !(
+      this.props.App.loginData.admin_data === null ||
+      this.props.App.loginData.admin_data === undefined ||
+      this.props.App.loginData.admin_data.admin_fp === null ||
+      this.props.App.loginData.admin_data.admin_fp === undefined ||
+      this.props.App.loginData.admin_data.isSuspended === true ||
+      this.props.App.loginData.admin_data.isSuspended === undefined ||
+      this.props.App.loginData.admin_data.isSuspended === null
+    );
+  }
 
   render() {
+    console.log(this.shouldBeRendered());
+
     return (
       <div
         style={{
@@ -64,9 +107,10 @@ class Home extends React.PureComponent {
           height: "100vh",
         }}
       >
-        <Header />
+        {this.shouldBeRendered() ? <Header /> : null}
+
         <div className="mainParentNode">
-          {this.props.App.loginData.isLoggedIn ? (
+          {this.shouldBeRendered() ? (
             <div className="sidebar">
               <Sidebar />
             </div>
@@ -134,6 +178,9 @@ class Home extends React.PureComponent {
 
               {/* REFERRALS PATH  */}
               <Route path="/referrals" component={Referrals} />
+
+              {/* Access not permited */}
+              <Route path="/access_restricted" component={NotPermitted} />
             </Switch>
           </div>
         </div>

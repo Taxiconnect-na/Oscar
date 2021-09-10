@@ -90,6 +90,24 @@ const STATE = {
 
   overviewData: null, //Will hold the overview data fetched
   globalOverviewData: null, //Will hold the global generic data from day 1 of TaxiConnect
+  accessPatternsDico: {
+    //Contains all the access patterns standard correspondence
+    overviewSummary: "overview",
+    registerDrivers: "driver-registration",
+    tripOverview: "trip-overview",
+    ridesTripOverview: "trip-overview/rides",
+    deliveriesTripOverview: "trip-overview/deliveries",
+    // cancelledTrips: 0, - Not a specific route
+    ridersCancelledRides: "cancelled-rides-ByPassengers",
+    driversCancelledRides: "cancelled-rides-ByDrivers",
+    cancelledDeliveries: "cancelled-deliveries",
+    viewDrivers: "drivers",
+    viewUsers: "passengers",
+    makePayment: "driver-payment",
+    statistics: "visualize",
+    driversComissionCentral: "driver-commission",
+    referralsView: "referrals",
+  },
 };
 
 export default STATE;
