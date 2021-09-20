@@ -764,6 +764,8 @@ export default function DriverDataUpdate({ location }) {
 
   let image_source = process.env.REACT_APP_TAXI_PICTURE_SRC + `/${car_image}`;
 
+  console.log(image_source);
+
   const formControlDisplay = () => {
     setInfoFormState(!info_form_state);
   };

@@ -2,7 +2,7 @@
 name: CI/CD Pipeline
 on:
   push:
-    branches: [ masterattend ]
+    branches: [ master ]
 
 jobs:
   continous-integration:

@@ -1,4 +1,4 @@
-require("newrelic");
+// require("newrelic");
 const path = require("path");
 require("dotenv").config({ path: __dirname + "/./../.env" });
 const { logger } = require("../LogService");
@@ -289,8 +289,6 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
         });
     } else if (reply) {
       if (reply !== null) {
-        //* Resolve found result
-        resolve(JSON.parse(reply));
         //!! Update cash but do not resolve anything:
         logger.info("updating driver list cache...");
         //*Update result @background in redis from Mongo with a new Promise
@@ -427,6 +425,8 @@ function getDriversInfo(DriversCollection, FilteringCollection, resolve) {
               logger.info(error);
             });
         });
+        //* Resolve found result
+        resolve(JSON.parse(reply));
       } else {
         logger.info("NO CACHE FOUND FOR DRIVERS LIST");
         //* Direct request to Mongo, Then save result
