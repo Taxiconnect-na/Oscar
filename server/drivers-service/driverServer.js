@@ -2412,7 +2412,7 @@ MongoClient.connect(
     app.post("/update-profile-picture", (req, res) => {
       // BUcket location params
       const paperCategory = "profile_picture";
-      const subdirectory = "Profiles_Pictures";
+      const subdirectory = "Profiles_pictures";
 
       // MongoDB insert
       new Promise((res) => {
