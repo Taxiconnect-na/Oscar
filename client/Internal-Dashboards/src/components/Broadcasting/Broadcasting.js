@@ -227,7 +227,7 @@ class Broadcasting extends React.Component {
           <div
             style={{
               width: "100%",
-              height: "50vh",
+              height: "90vh",
               margin: "auto",
               // border: "1px solid black",
               display: "flex",
@@ -251,43 +251,30 @@ class Broadcasting extends React.Component {
         ) : this.state.shouldShowSuccessPage ? (
           <div
             style={{
-              width: "100%",
-              height: "90vh",
-              margin: "auto",
-              // border: "1px solid black",
+              //   border: "1px solid black",
               display: "flex",
+              height: 400,
               alignItems: "center",
               justifyContent: "center",
               flexDirection: "column",
+              margin: "auto",
+              width: "70%",
+              textAlign: "center",
             }}
           >
+            <MdCheckCircle
+              style={{ width: 35, height: 35, marginBottom: 25 }}
+              color={"#09864A"}
+            />
+            The message had been successfully broadcasted.
             <div
-              style={{
-                //   border: "1px solid black",
-                display: "flex",
-                height: 400,
-                alignItems: "center",
-                justifyContent: "center",
-                flexDirection: "column",
-                margin: "auto",
-                width: "70%",
-                textAlign: "center",
+              className={classes.formBasicSubmitBttnClassicsReceiverInfos}
+              style={{ marginTop: 60, borderRadius: 3 }}
+              onClick={() => {
+                window.location.href = "/Broadcasting";
               }}
             >
-              <MdCheckCircle
-                style={{ width: 35, height: 35, marginBottom: 25 }}
-                color={"#09864A"}
-              />
-              The message had been successfully broadcasted.
-              <div
-                className={classes.formBasicSubmitBttnClassicsReceiverInfos}
-                style={{ marginTop: 60, borderRadius: 3 }}
-                onClick={() => {
-                  window.location.href = "/Broadcasting";
-                }}
-              >
-                Close
-              </div>
+              Close
             </div>
           </div>
         ) : this.state.shouldShowErrorPage ? (

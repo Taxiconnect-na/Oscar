@@ -108,6 +108,37 @@ const s3 = new AWS.S3({
 });
 
 /**
+ * Responsible for sending push notification to devices
+ */
+var sendPushUPNotification = function (data) {
+  logger.info("Notify data");
+  logger.info(data);
+  var headers = {
+    "Content-Type": "application/json; charset=utf-8",
+  };
+
+  var options = {
+    host: "onesignal.com",
+    port: 443,
+    path: "/api/v1/notifications",
+    method: "POST",
+    headers: headers,
+  };
+
+  var https = require("https");
+  var req = https.request(options, function (res) {
+    res.on("data", function (data) {
+      //logger.info("Response:");
+    });
+  });
+
+  req.on("error", function (e) {});
+
+  req.write(JSON.stringify(data));
+  req.end();
+};
+
+/**
  * @func generateUniqueFingerprint()
  * Generate unique fingerprint for any string size.
  */
@@ -2065,7 +2096,7 @@ function broadcastNotifications(requestData, resolve) {
                 text: requestData.message_text,
                 createdAt: new Date(chaineDateUTC),
                 user: {
-                  _id: "7007",
+                  _id: Math.round(new Date().getTime()),
                   name: "TaxiConnect",
                   avatar:
                     "https://ads-central-tc.s3.us-west-1.amazonaws.com/logo_ios.png",
@@ -2098,6 +2129,18 @@ function broadcastNotifications(requestData, resolve) {
                             .toUpperCase()
                             .trim(),
                           driver_fp: driver.driver_fingerprint,
+                          push_notification_token:
+                            driver.operational_state.push_notification_token !==
+                              undefined &&
+                            driver.operational_state.push_notification_token !==
+                              null &&
+                            driver.operational_state.push_notification_token
+                              .userId !== undefined &&
+                            driver.operational_state.push_notification_token
+                              .userId !== null
+                              ? driver.operational_state.push_notification_token
+                                  .userId
+                              : null,
                         };
                       });
                       //...
@@ -2109,15 +2152,23 @@ function broadcastNotifications(requestData, resolve) {
                   });
               })
                 .then((audience_array) => {
+                  //?Save the push notification array
+                  let pushNotificationArray = [];
+
                   if (audience_array !== false) {
                     //Alright
                     //Filter the audience
                     new Promise((resFilterAudience) => {
                       if (/all/i.test(requestData.recipient_type)) {
                         //All drivers
-                        audience_array = audience_array.map(
-                          (driver) => driver.driver_fp
-                        );
+                        audience_array = audience_array.map((driver) => {
+                          //...Save the push notification array
+                          pushNotificationArray.push(
+                            driver.push_notification_token
+                          );
+                          //...
+                          return driver.driver_fp;
+                        });
                         //...
                         resFilterAudience(audience_array);
                       } //Specific
@@ -2129,6 +2180,11 @@ function broadcastNotifications(requestData, resolve) {
                               driverBulk.taxi_number.trim().toUpperCase() ===
                               driverSpeci.trim().toUpperCase()
                             ) {
+                              //...Save the push notification array
+                              pushNotificationArray.push(
+                                driverBulk.push_notification_token
+                              );
+                              //...
                               tmpEndData.push(driverBulk.driver_fp);
                             }
                           });
@@ -2147,6 +2203,30 @@ function broadcastNotifications(requestData, resolve) {
                             if (err) {
                               logger.error(err);
                               resolve({ response: "error_processing" });
+                            }
+                            //...
+                            if (requestData.shouldNotifyBy_pushNotif) {
+                              //Notify by push notifications
+                              new Promise((resNotify) => {
+                                //Send the push notifications
+                                let message = {
+                                  app_id: process.env.DRIVERS_APP_ID_ONESIGNAL,
+                                  android_channel_id:
+                                    process.env
+                                      .DRIVERS_ONESIGNAL_CHANNEL_NEW_NOTIFICATION, //Ride - Auto-cancelled group
+                                  priority: 10,
+                                  contents: {
+                                    en: "You have a new notification that requires your attention, please click here and open on the Notifications tab.",
+                                  },
+                                  headings: { en: "New notification" },
+                                  content_available: true,
+                                  include_player_ids: pushNotificationArray,
+                                };
+                                sendPushUPNotification(message);
+                                resNotify(true);
+                              })
+                                .then()
+                                .catch();
                             }
                             //...
                             resolve({ response: "dispatch_successful" });
