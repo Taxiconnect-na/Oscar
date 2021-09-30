@@ -1,0 +1,180 @@
+.headerGeneric {
+  /* border: 1px solid red; */
+  font-family: "MoveBold";
+  font-size: 18px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.contentContainer {
+  border: 1px solid #d0d0d0;
+  margin-top: 20px;
+  min-height: 600px;
+  background-color: #fff;
+  margin-bottom: 100px;
+}
+
+.headerOptions {
+  border-bottom: 1px solid #096ed4;
+  padding: 10px;
+  display: flex;
+  flex-direction: row;
+  padding-bottom: 25px;
+  margin-bottom: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.headerOptions div {
+  border: 1px solid #d0d0d0;
+  width: 100px;
+  padding-left: 15px;
+  margin-right: 20px;
+  font-family: "MoveTextMedium", sans-serif;
+  height: 30px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-radius: 20px;
+  cursor: pointer;
+  background-color: #f0f0f0;
+}
+
+.typicalNotice {
+  font-size: 13px;
+  padding: 10px;
+  color: #7c6e6ebb;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.typicalLabel {
+  font-size: 15px;
+  margin-bottom: 15px;
+  color: #7c6e6ebb;
+}
+
+.recipientSelectionContainer {
+  /* border: 1px solid black; */
+  padding: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.selectBasicStyle {
+  height: 40px;
+  width: 400px;
+}
+
+.autoCompleteBasic {
+  border: 1px solid #d0d0d0;
+  width: 400px;
+  height: 45px;
+  padding-left: 15px;
+  border-radius: 3px;
+  margin-top: 15px;
+}
+
+.selectedDriversContainer {
+  /* border: 1px solid black; */
+  margin-top: 20px;
+  width: 60%;
+  display: flex;
+  flex-direction: row;
+  word-wrap: break-word;
+}
+
+.selectedDriverNode {
+  border: 1px solid #096ed4;
+  min-width: 100px;
+  display: flex;
+  flex-direction: row;
+  padding: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background-color: #096ed4;
+  color: #fff;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.taxiNoSelectedSide {
+  flex: 1;
+  padding-right: 10px;
+}
+
+.removeSelectedSide {
+  cursor: pointer;
+}
+
+.textInputMassive {
+  border: 1px solid #d0d0d0;
+  width: 400px;
+  resize: none;
+  height: 200px;
+  border-radius: 3px;
+  padding: 10px;
+  font-size: 15px;
+}
+
+.pusNotificationsAllowing {
+  /* border: 1px solid black; */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 15px;
+  margin-top: 20px;
+  margin-bottom: 80px;
+}
+
+.submitContainer {
+  /* border: 1px solid black; */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.basicInputStyleSubmit {
+  border: none;
+  border: 1px solid #000;
+  border-radius: 3px;
+  font-size: 18px;
+  padding: 10px;
+  width: 200px;
+  background-color: #000;
+  color: #fff;
+  font-family: "MoveTextMedium", sans-serif;
+  text-align: center;
+  cursor: pointer;
+}
+
+.errorMessagePart {
+  color: #b22222;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  /* border: 1px solid black; */
+  width: 400px;
+  font-size: 15px;
+}
+
+.formBasicSubmitBttnClassicsReceiverInfos {
+  font-family: "MoveTextRegular", sans-serif;
+  border: 1px solid #096ed4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  padding: 10px;
+  height: 20px;
+  background-color: #096ed4;
+  color: #fff;
+  font-family: "MoveTextBold", sans-serif;
+  cursor: pointer;
+  min-width: 100px;
+  height: 40px;
+}

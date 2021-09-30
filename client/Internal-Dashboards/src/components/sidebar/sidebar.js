@@ -28,6 +28,7 @@ import {
   ImPieChart,
   ImShare2,
 } from "react-icons/im";
+import { MdChatBubble } from "react-icons/md";
 import { icons } from "react-icons/lib";
 
 const iconStyle = {
@@ -309,13 +310,13 @@ class Sidebar extends React.PureComponent {
           )}
 
           {this.props.App.loginData.admin_data !== null &&
-          /makePayment/i.test(
+          /broadcasting/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <MenuItem className="menuItemSideBar">
-              <Link className="menuText" to="/driver-payment">
-                <ImPower style={iconStyle} />
-                <span className="menuText">Make payment </span>
+              <Link className="menuText" to="/Broadcasting">
+                <MdChatBubble style={iconStyle} />
+                <span className="menuText">Broadcasting</span>
               </Link>
             </MenuItem>
           ) : (

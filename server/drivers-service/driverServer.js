@@ -18,6 +18,8 @@ const cors = require("cors");
 const MongoClient = require("mongodb").MongoClient;
 const crypto = require("crypto");
 const AWS = require("aws-sdk");
+const moment = require("moment");
+const { promisify } = require("util");
 
 app.use(helmet());
 app.use(cors());
@@ -60,6 +62,30 @@ var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
     })
   : client;
 
+const redisGet = promisify(redisCluster.get).bind(redisCluster);
+
+function resolveDate() {
+  //Resolve date
+  var date = new Date();
+  date = moment(date.getTime()).utcOffset(2);
+
+  dateObject = date;
+  date =
+    date.year() +
+    "-" +
+    (date.month() + 1) +
+    "-" +
+    date.date() +
+    " " +
+    date.hour() +
+    ":" +
+    date.minute() +
+    ":" +
+    date.second();
+  chaineDateUTC = new Date(date).toISOString();
+}
+resolveDate();
+
 /*
  * AWS Bucket credentials
  */
@@ -81,9 +107,43 @@ const s3 = new AWS.S3({
   secretAccessKey: process.env.AWS_S3_SECRET,
 });
 
-/*app.get("/", (req, res) => {
-    res.send("All is good at Driver server")
-}) */
+/**
+ * @func generateUniqueFingerprint()
+ * Generate unique fingerprint for any string size.
+ */
+function generateUniqueFingerprint(str, encryption = false, resolve) {
+  str = str.trim();
+  let fingerprint = null;
+  if (encryption === false) {
+    fingerprint = crypto
+      .createHmac(
+        "sha512WithRSAEncryption",
+        "TAXICONNECTBASICKEYFINGERPRINTS-RIDES-DELIVERY-ACCOUNTS"
+      )
+      .update(str)
+      .digest("hex");
+    resolve(fingerprint);
+  } else if (/md5/i.test(encryption)) {
+    fingerprint = crypto
+      .createHmac(
+        "md5WithRSAEncryption",
+        "TAXICONNECTBASICKEYFINGERPRINTS-RIDES-DELIVERY-ACCOUNTS"
+      )
+      .update(str)
+      .digest("hex");
+    resolve(fingerprint);
+  } //Other - default - for creating accounts.
+  else {
+    fingerprint = crypto
+      .createHmac(
+        "sha256",
+        "TAXICONNECTBASICKEYFINGERPRINTS-RIDES-DELIVERY-ACCOUNTS"
+      )
+      .update(str)
+      .digest("hex");
+    resolve(fingerprint);
+  }
+}
 
 /**
  *
@@ -1843,6 +1903,300 @@ function getCancelledRidesDriverEvent(
   });
 }
 
+/**
+ * @func getGeneralDrivers_analytics
+ * Responsible for getting the general drivers number analytics: like total drivers, all drivers numbers, all drivers fp and so on.
+ * @param requestData: the request data containing infos like the admin fingerprint, and the op
+ * @param resolve
+ */
+function getGeneralDrivers_analytics(requestData, resolve) {
+  if (/getNumbers_andFp/i.test(requestData.op)) {
+    //Get the drivers numbers and fiingerprints
+    let redisKey = `cached_driversNumbers_and_fingerprints_generalData`;
+
+    redisGet(redisKey)
+      .then((resp) => {
+        if (resp !== null) {
+          //Found some cached data
+          try {
+            //Rehydate
+            new Promise((resCompute) => {
+              execGetGeneralDrivers_analytics(
+                requestData,
+                redisKey,
+                resCompute
+              );
+            })
+              .then()
+              .catch((error) => {
+                logger.error(error);
+              });
+            //...
+            resp = JSON.parse(resp);
+            resolve(resp);
+          } catch (error) {
+            logger.error(error);
+            //Get fresh data
+            new Promise((resCompute) => {
+              execGetGeneralDrivers_analytics(
+                requestData,
+                redisKey,
+                resCompute
+              );
+            })
+              .then((result) => {
+                resolve(result);
+              })
+              .catch((error) => {
+                logger.error(error);
+                resolve({ response: "error" });
+              });
+          }
+        } //Get fresh data
+        else {
+          new Promise((resCompute) => {
+            execGetGeneralDrivers_analytics(requestData, redisKey, resCompute);
+          })
+            .then((result) => {
+              resolve(result);
+            })
+            .catch((error) => {
+              logger.error(error);
+              resolve({ response: "error" });
+            });
+        }
+      })
+      .catch((error) => {
+        logger.error(error);
+        resolve({ response: "error" });
+      });
+  } //Invalid Data
+  else {
+    resolve({ response: "error_invalid_oop" });
+  }
+}
+
+/**
+ * @func execGetGeneralDrivers_analytics
+ * Responsible for actively getting the drivers general analytics
+ * @param requestData: the request data containing infos like the admin fingerprint, and the op
+ * @param redisKey: the specific redis key to cache the data to
+ * @param resolve
+ */
+function execGetGeneralDrivers_analytics(requestData, redisKey, resolve) {
+  if (/getNumbers_andFp/i.test(requestData.op)) {
+    //Get the drivers numbers and fiingerprints
+    collectionDrivers_profiles.find({}).toArray(function (err, driverData) {
+      if (err) {
+        logger.error(err);
+        resolve({ response: "error" });
+      }
+      //...
+      if (driverData !== undefined && driverData.length > 0) {
+        //Found some drivers
+        let filteredData = [];
+        driverData.map((driver) => {
+          let tmpData = {
+            taxi_no: driver.cars_data[0].taxi_number,
+            driver_fp: driver.driver_fingerprint,
+          };
+          //...
+          filteredData.push(tmpData);
+        });
+        //...Cache
+        let finalData = { response: "success", data: filteredData };
+        new Promise((resCache) => {
+          redisCluster.setex(
+            redisKey,
+            parseInt(process.env.REDIS_EXPIRATION_5MIN) * 1440,
+            JSON.stringify(finalData)
+          );
+          resCache(true);
+        })
+          .then()
+          .catch();
+        //...
+        resolve(finalData);
+      } //No drivers found
+      else {
+        resolve({ response: "error_no_drivers_found" });
+      }
+    });
+  } //Invalid Data
+  else {
+    resolve({ response: "error_invalid_oop" });
+  }
+}
+
+/**
+ * @func broadcastNotifications
+ * Responsible for broadcasting the notifications to the specific audiences.
+ * @param requestData: will contain all the necessary request data
+ * @param resolve
+ */
+function broadcastNotifications(requestData, resolve) {
+  resolveDate();
+  if (
+    requestData.admin_fp !== undefined &&
+    requestData.admin_fp !== null &&
+    /drivers/i.test(requestData.audience)
+  ) {
+    //Okay
+    //?Check if the admin exists
+    collectionAdminCentral
+      .find({ admin_fp: requestData.admin_fp })
+      .toArray(function (err, adminData) {
+        if (err) {
+          logger.error(err);
+          resolve({ response: "error_adm" });
+        }
+        //...
+        if (adminData !== undefined && adminData.length > 0) {
+          //Valid admin
+          //Compute the notification fingerprint
+          new Promise((resFp) => {
+            let uniqueNotifString = `${JSON.stringify(
+              requestData
+            )}-${new Date().getTime()}`;
+            generateUniqueFingerprint(uniqueNotifString, false, resFp);
+          })
+            .then((notification_fp) => {
+              let bundleData = {
+                text: requestData.message_text,
+                createdAt: new Date(chaineDateUTC),
+                user: {
+                  _id: "7007",
+                  name: "TaxiConnect",
+                  avatar:
+                    "https://ads-central-tc.s3.us-west-1.amazonaws.com/logo_ios.png",
+                },
+                notification_family: requestData.notification_type,
+                isWelcome_message: false,
+                date_sent: new Date(chaineDateUTC),
+                sender_fp: "TAXICONNECT",
+                allowed_users_see: false,
+                seen_users_log: [],
+                notification_fp: notification_fp,
+              };
+              //! Get the portion of the audience
+              new Promise((resGetAudience) => {
+                collectionDrivers_profiles
+                  .find({})
+                  .toArray(function (err, driversData) {
+                    if (err) {
+                      logger.error(err);
+                      resGetAudience(false);
+                    }
+                    //...
+                    if (driversData !== undefined && driversData.length > 0) {
+                      //Found some drivers
+                      //?Only get the drivers name, taxi_no and fingerprint
+                      let filteredData = driversData.map((driver) => {
+                        return {
+                          name: driver.name,
+                          taxi_number: driver.cars_data[0].taxi_number
+                            .toUpperCase()
+                            .trim(),
+                          driver_fp: driver.driver_fingerprint,
+                        };
+                      });
+                      //...
+                      resGetAudience(filteredData);
+                    } //No drivers found
+                    else {
+                      resGetAudience(false);
+                    }
+                  });
+              })
+                .then((audience_array) => {
+                  if (audience_array !== false) {
+                    //Alright
+                    //Filter the audience
+                    new Promise((resFilterAudience) => {
+                      if (/all/i.test(requestData.recipient_type)) {
+                        //All drivers
+                        audience_array = audience_array.map(
+                          (driver) => driver.driver_fp
+                        );
+                        //...
+                        resFilterAudience(audience_array);
+                      } //Specific
+                      else {
+                        let tmpEndData = [];
+                        audience_array = audience_array.map((driverBulk) => {
+                          requestData.selected_drivers.map((driverSpeci) => {
+                            if (
+                              driverBulk.taxi_number.trim().toUpperCase() ===
+                              driverSpeci.trim().toUpperCase()
+                            ) {
+                              tmpEndData.push(driverBulk.driver_fp);
+                            }
+                          });
+                        });
+                        //...
+                        resFilterAudience(tmpEndData);
+                      }
+                    })
+                      .then((finalAudience) => {
+                        //?Update the allowed drivers to see
+                        bundleData.allowed_users_see = finalAudience;
+                        //! Save now
+                        collectionNotificationsComm_central.insertOne(
+                          bundleData,
+                          function (err, reslt) {
+                            if (err) {
+                              logger.error(err);
+                              resolve({ response: "error_processing" });
+                            }
+                            //...
+                            resolve({ response: "dispatch_successful" });
+                          }
+                        );
+                      })
+                      .catch((error) => {
+                        logger.error(error);
+                        logger.warn(
+                          "Could not get the audience - final filter"
+                        );
+                        resolve({ response: "error_audience_get_failed" });
+                      });
+                  } //Some error occured
+                  else {
+                    resolve({ response: "error_audience_get_failed" });
+                  }
+                })
+                .catch((error) => {
+                  logger.error(error);
+                  logger.warn("Could not get the audience");
+                  resolve({ response: "error_audience_get_failed" });
+                });
+            })
+            .catch((error) => {
+              logger.error(error);
+              resolve({ response: "error_broadcasting" });
+            });
+        } //Unknown admin
+        else {
+          resolve({ response: "error_adm_u" });
+        }
+      });
+  } //Invalid data received
+  else {
+    logger.warn("Invalid admin fp received");
+    resolve({ response: "error" });
+  }
+}
+
+var collectionDrivers_profiles = null;
+var collectionRidesDeliveryData = null;
+var collectionWallet_transaction_logs = null;
+var collectionGlobalEvents = null;
+var collectionPassengers_profiles = null;
+var collectionRidesDeliveryDataCancelled = null;
+var collectionRefferalsInformationGlobal = null;
+var collectionAdminCentral = null;
+var collectionNotificationsComm_central = null;
+
 MongoClient.connect(
   process.env.URL_MONGODB,
   /production/i.test(process.env.EVIRONMENT)
@@ -1862,25 +2216,26 @@ MongoClient.connect(
     logger.info("Successful connection to Database");
 
     const dbMongo = clientMongo.db(process.env.DB_NAME);
-    const collectionDrivers_profiles = dbMongo.collection("drivers_profiles");
-    const collectionRidesDeliveryData = dbMongo.collection(
+    collectionDrivers_profiles = dbMongo.collection("drivers_profiles");
+    collectionRidesDeliveryData = dbMongo.collection(
       "rides_deliveries_requests"
     );
-    const collectionWallet_transaction_logs = dbMongo.collection(
+    collectionWallet_transaction_logs = dbMongo.collection(
       "wallet_transactions_logs"
     );
-    const collectionGlobalEvents = dbMongo.collection("global_events");
-    const collectionPassengers_profiles = dbMongo.collection(
-      "passengers_profiles"
-    );
+    collectionGlobalEvents = dbMongo.collection("global_events");
+    collectionPassengers_profiles = dbMongo.collection("passengers_profiles");
 
-    const collectionRidesDeliveryDataCancelled = dbMongo.collection(
+    collectionRidesDeliveryDataCancelled = dbMongo.collection(
       "cancelled_rides_deliveries_requests"
     );
-
-    const collectionRefferalsInformationGlobal = dbMongo.collection(
+    collectionRefferalsInformationGlobal = dbMongo.collection(
       "referrals_information_global"
     );
+    collectionAdminCentral = dbMongo.collection("administration_central");
+    collectionNotificationsComm_central = dbMongo.collection(
+      "notifications_communications_central"
+    ); //Hold all the notifications accounts data
     /*
     collectionDrivers_profiles.find({}).toArray()
     .then((result) => {
@@ -3073,6 +3428,59 @@ MongoClient.connect(
           });
         });
     });
+
+    /**
+     * Get drivers general overview data (like total number of drivers, all the taxi numbers, all the drivers fingerprints, etc)
+     */
+    app.post("/getGeneralDrivers_analytics", function (req, res) {
+      new Promise((resolve) => {
+        req = req.body;
+
+        if (
+          req.admin_fp !== undefined &&
+          req.admin_fp !== null &&
+          req.op !== undefined &&
+          req.op !== null
+        ) {
+          getGeneralDrivers_analytics(req, resolve);
+        } //Error
+        else {
+          logger.warn("Did not find an admin fingerprint.");
+          resolve({ response: "error" });
+        }
+      })
+        .then((result) => {
+          res.send(result);
+        })
+        .catch((error) => {
+          logger.error(error);
+          res.send({ response: "error" });
+        });
+    });
+
+    /**
+     * Responsible for broadcasting the notifications to users (in-app especially)
+     */
+    app.post("/broadCastNotifications_inapp", function (req, res) {
+      new Promise((resolve) => {
+        req = req.body;
+
+        if (req.admin_fp !== undefined && req.admin_fp !== null) {
+          broadcastNotifications(req, resolve);
+        } //Error
+        else {
+          logger.warn("Did not find an admin fingerprint.");
+          resolve({ response: "error" });
+        }
+      })
+        .then((result) => {
+          res.send(result);
+        })
+        .catch((error) => {
+          logger.error(error);
+          res.send({ response: "error" });
+        });
+    });
   }
 );
 
@@ -3085,31 +3493,3 @@ app.get("/test", (req, res) => {
 server.listen(PORT, () => {
   logger.info(`Driver server up and running @ port ${PORT} `);
 });
-
-/*
-
-{
-    "_id": {
-        "$oid": "60d48c19cd55e64be7cc37d0"
-    },
-    "referral_fingerprint": "bb8665fa3494badf9b525df33a26babc7ddfbd7929e8aaa6f9f037fb5dd3130ed535fc0bf4292b409ff17b53f9f5007c3bc0d347c396692831a726ca391e3d4f",
-    "driver_name": "Max",
-    "driver_phone": "264814255888",
-    "taxi_number": "K080",
-    "user_referrer": "48aecfa6a98979574c6db8a77fd0a9e09dd4f37b2e4811343c65d31a88c404f46169466ff0e03e46",
-    "user_referrer_nature": "rider",
-    "expiration_time": {
-        "$date": "2021-06-26T15:43:53.000Z"
-    },
-    "is_referralExpired": true,
-    "is_paid": true,
-    "amount_paid": false,
-    "amount_paid_percentage": 50,
-    "is_referral_rejected": false,
-    "is_official_deleted_user_side": false,
-    "date_referred": {
-        "$date": "2021-06-24T15:43:53.000Z"
-    }
-}
-
- */

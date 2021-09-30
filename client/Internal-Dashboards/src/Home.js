@@ -39,6 +39,7 @@ import Referrals from "./components/referrals/Referrals";
 import DriverRegistrationReferred from "./components/driverRegistration/driverRegistrationReferred";
 import Header from "./components/Header/Header";
 import NotPermitted from "./components/errorPage/NotPermitted";
+import Broadcasting from "./components/Broadcasting/Broadcasting";
 
 /**
  * @function App : Main function
@@ -175,6 +176,7 @@ class Home extends React.PureComponent {
                 path="/driver-commission-payment"
                 component={DriverCommissionInsert}
               />
+              <Route path="/Broadcasting" component={Broadcasting} />
 
               {/* REFERRALS PATH  */}
               <Route path="/referrals" component={Referrals} />

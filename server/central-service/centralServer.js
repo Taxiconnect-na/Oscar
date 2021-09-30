@@ -1123,6 +1123,71 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("getDriversGeneral_OverviewStatistics_io", (data) => {
+    if (data !== undefined && data !== null) {
+      axios
+        .post(
+          `${process.env.LOCAL_URL}:${process.env.DRIVER_ROOT}/getGeneralDrivers_analytics`,
+          data
+        )
+        .then((feedback) => {
+          let response = new Object(feedback.data);
+          if (response.error) {
+            socket.emit("getDriversGeneral_OverviewStatistics_io-response", {
+              response: "error",
+            });
+          } else {
+            socket.emit(
+              "getDriversGeneral_OverviewStatistics_io-response",
+              response
+            );
+          }
+        })
+        .catch((error) => {
+          logger.info(error);
+          socket.emit("getDriversGeneral_OverviewStatistics_io-response", {
+            response: "error",
+          });
+        });
+    } //Invalid data
+    else {
+      socket.emit("getDriversGeneral_OverviewStatistics_io-response", {
+        response: "error",
+      });
+    }
+  });
+
+  socket.on("broadCastNotifications_toUsers_io", (data) => {
+    if (data !== undefined && data !== null) {
+      axios
+        .post(
+          `${process.env.LOCAL_URL}:${process.env.DRIVER_ROOT}/broadCastNotifications_inapp`,
+          data
+        )
+        .then((feedback) => {
+          let response = new Object(feedback.data);
+          if (response.error) {
+            socket.emit("broadCastNotifications_toUsers_io-response", {
+              response: "error",
+            });
+          } else {
+            socket.emit("broadCastNotifications_toUsers_io-response", response);
+          }
+        })
+        .catch((error) => {
+          logger.info(error);
+          socket.emit("broadCastNotifications_toUsers_io-response", {
+            response: "error",
+          });
+        });
+    } //Invalid data
+    else {
+      socket.emit("broadCastNotifications_toUsers_io-response", {
+        response: "error",
+      });
+    }
+  });
+
   /**
    * * Test-socket
    */
