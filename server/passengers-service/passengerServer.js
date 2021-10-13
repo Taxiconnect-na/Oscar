@@ -12,6 +12,8 @@ const MongoClient = require("mongodb").MongoClient;
 const redis = require("redis");
 const fs = require("fs");
 const certFile = fs.readFileSync(String(process.env.CERT_FILE));
+const { promisify, inspect } = require("util");
+const moment = require("moment");
 
 const client = /production/i.test(String(process.env.EVIRONMENT))
   ? null
@@ -35,6 +37,7 @@ var redisCluster = /production/i.test(String(process.env.EVIRONMENT))
       },
     })
   : client;
+const redisGet = promisify(redisCluster.get).bind(redisCluster);
 
 //! Error handling redis Error
 redisCluster.on("error", function (er) {
@@ -42,18 +45,30 @@ redisCluster.on("error", function (er) {
   logger.error(er.stack);
 });
 
-const http = require("http");
-/*const https = require("https")
-const fs = require("fs")
-//Options to be passed to https server
-const sslOptions = {
-    key: fs.readFileSync(path.resolve(__dirname, "../Encryptions/key.pem")),
-    cert: fs.readFileSync(path.resolve(__dirname, "../Encryptions/cert.pem"))
+function resolveDate() {
+  //Resolve date
+  var date = new Date();
+  date = moment(date.getTime()).utcOffset(2);
+
+  dateObject = date;
+  date =
+    date.year() +
+    "-" +
+    (date.month() + 1) +
+    "-" +
+    date.date() +
+    " " +
+    date.hour() +
+    ":" +
+    date.minute() +
+    ":" +
+    date.second();
+  chaineDateUTC = new Date(date).toISOString();
 }
-const server = https.createServer(sslOptions, app) */
+resolveDate();
+
+const http = require("http");
 const server = http.createServer(app);
-//const { promisify } = require("util");
-//const getAsync = promisify(client.get).bind(client)
 
 const uri = process.env.URL_MONGODB;
 const dbName = process.env.DB_NAME;
@@ -74,12 +89,6 @@ app.use(helmet());
 
 const PORT = process.env.PASSENGER_ROOT;
 
-/*
-const clientMongo = new MongoClient(uri, {
-    useUnifiedTopology: true,
-    useNewUrlParser: true
-  }); */
-
 // For testing purpose:
 app.get("/", (req, res) => {
   res.send("All is good at Passenger server");
@@ -87,297 +96,230 @@ app.get("/", (req, res) => {
 
 /**
  * @function getPassengersInfo : Collects the passengers details from db, including total trips per user
- * @param {Database collection} IndividualsCollection
- * @param {Database collection} FilteringCollection
+ * @param requestData: contains the specification of the request
  * @param {return} resolve
  */
 
-function getPassengersInfo(
-  IndividualsCollection,
-  FilteringCollection,
-  resolve
-) {
-  //getAsync("passengers-cache").then( (reply) => {
-  redisCluster.get("passengers-cash", (err, reply) => {
-    logger.info("looking for data...");
-    if (err) {
-      // Connect to db and fetch:
-      IndividualsCollection.find({})
-        .limit(10)
-        .toArray()
-        .then((individualsList) => {
-          let passengers = individualsList.map((individual) => {
-            return new Promise((outcome) => {
-              // Get the following:
-              const name = individual.name;
-              const surname = individual.surname;
-              const gender = individual.gender;
-              const phone_number = individual.phone_number;
-              const email = individual.email;
-              const date_registered = individual.date_registered;
-              // And so on...
-
-              //Then:
-              query = {
-                client_id: individual.user_fingerprint,
-              };
-
-              FilteringCollection.find(query)
-                .toArray()
-                .then((result) => {
-                  // Initialize the individual's data Object
-                  const Individual_info = {};
-
-                  // Append data to the individual's data Object
-                  Individual_info.name = name;
-                  Individual_info.surname = surname;
-                  Individual_info.gender = gender;
-                  Individual_info.phone_number = phone_number;
-                  Individual_info.email = email;
-                  Individual_info.date_registered = date_registered;
-                  Individual_info.totaltrip = result.length;
-
-                  // append the resulting object to the passengers array
-                  outcome(Individual_info);
-                })
-                .catch((error) => {
-                  logger.info(error);
-                });
-            });
-          });
-          Promise.all(passengers).then(
-            (result) => {
-              redisCluster.setex(
-                "passengers-cash",
-                200000,
-                JSON.stringify(result),
-                redis.print
-              );
-              resolve(result);
-            },
-            (error) => {
-              logger.info(error);
-              resolve({ response: "error", flag: "Invalid_params_maybe" });
-            }
-          );
-        })
-        .catch((error) => {
-          logger.info(error);
-        });
-    } else if (reply) {
-      if (reply !== null) {
-        // Resolve reply
-        resolve(JSON.parse(reply));
-        //!! Update cash but do not resolve anything:
-        logger.info("updating passengers cache...");
-        new Promise((cashUpdateRes) => {
-          // Connect to db, do the operation and save result in redis:
-          IndividualsCollection.find({})
-            .limit(50)
-            .toArray()
-            .then((individualsList) => {
-              let passengers = individualsList.map((individual) => {
-                return new Promise((outcome) => {
-                  // Get the following:
-                  const name = individual.name;
-                  const surname = individual.surname;
-                  const gender = individual.gender;
-                  const phone_number = individual.phone_number;
-                  const email = individual.email;
-                  const date_registered = individual.date_registered;
-                  // And so on...
-
-                  //Then:
-                  query = {
-                    client_id: individual.user_fingerprint,
-                  };
-
-                  FilteringCollection.find(query)
-                    .toArray()
-                    .then((result) => {
-                      // Initialize the individual's data Object
-                      const Individual_info = {};
-
-                      // Append data to the individual's data Object
-                      Individual_info.name = name;
-                      Individual_info.surname = surname;
-                      Individual_info.gender = gender;
-                      Individual_info.phone_number = phone_number;
-                      Individual_info.email = email;
-                      Individual_info.date_registered = date_registered;
-                      Individual_info.totaltrip = result.length;
-
-                      // append the resulting object to the passengers array
-                      outcome(Individual_info);
-                    })
-                    .catch((error) => {
-                      logger.info(error);
-                    });
-                });
-              });
-              Promise.all(passengers).then(
-                (result) => {
-                  //resolve(result)
-                  // save in cache
-                  redisCluster.setex(
-                    "passengers-cash",
-                    200000,
-                    JSON.stringify(result),
-                    redis.print
-                  );
-                  logger.info("UPDATING cash in progress....");
-                },
-                (error) => {
-                  logger.info(error);
-                  resolve({ response: "error", flag: "Invalid_params_maybe" });
-                }
-              );
-            })
+function getPassengersInfo(requestData, resolve) {
+  if (requestData.lookup === "search") {
+    //For search Autocomplete
+    // load Autocomplete, pass along redisClient and prefix.
+    let Autocomplete_name = require("./Autocomplete")(
+      redisCluster,
+      "name_users"
+    );
+    let Autocomplete_surname = require("./Autocomplete")(
+      redisCluster,
+      "surname_users"
+    );
+    let Autocomplete_gender = require("./Autocomplete")(
+      redisCluster,
+      "gender_users"
+    );
+    let Autocomplete_phone = require("./Autocomplete")(
+      redisCluster,
+      "phone_users"
+    );
+    let Autocomplete_email = require("./Autocomplete")(
+      redisCluster,
+      "email_users"
+    );
+    let Autocomplete_dateSignedUp = require("./Autocomplete")(
+      redisCluster,
+      "datesignedup_users"
+    );
+    //....
+  } else if (requestData.lookup === "summary") {
+    //Get the summary information
+    let redisKey = "passengers_general_summary_information_admin";
+    //...
+    redisGet(redisKey).then((resp) => {
+      if (resp !== null) {
+        //Found some cached data
+        try {
+          logger.warn("FOUND SOME CACHED DATA");
+          //Rehydrate
+          new Promise((resCompute) => {
+            execGetPassengersInfo(requestData, redisKey, resCompute);
+          })
+            .then()
             .catch((error) => {
-              logger.info(error);
+              logger.error(error);
             });
-        }).then(
-          (result) => {
-            logger.info("Updating passengers cache complete...");
-          },
-          (error) => {
-            logger.info(error);
-            resolve({ error: "something went wrong" });
-          }
-        );
-      } else {
-        // Connect to db and fetch data
-        IndividualsCollection.find({})
-          .sort({ "date_registered.date": -1 })
-          .limit(50)
-          .toArray()
-          .then((individualsList) => {
-            let passengers = individualsList.map((individual) => {
-              return new Promise((outcome) => {
-                // Get the following:
-                const name = individual.name;
-                const surname = individual.surname;
-                const gender = individual.gender;
-                const phone_number = individual.phone_number;
-                const email = individual.email;
-                const date_registered = individual.date_registered;
-                // And so on...
-
-                //Then:
-                query = {
-                  client_id: individual.user_fingerprint,
-                };
-
-                FilteringCollection.find(query)
-                  .toArray()
-                  .then((result) => {
-                    // Initialize the individual's data Object
-                    const Individual_info = {};
-
-                    // Append data to the individual's data Object
-                    Individual_info.name = name;
-                    Individual_info.surname = surname;
-                    Individual_info.gender = gender;
-                    Individual_info.phone_number = phone_number;
-                    Individual_info.email = email;
-                    Individual_info.date_registered = date_registered;
-                    Individual_info.totaltrip = result.length;
-
-                    // append the resulting object to the passengers array
-                    outcome(Individual_info);
-                  })
-                  .catch((error) => {
-                    logger.info(error);
-                  });
-              });
-            });
-            Promise.all(passengers).then(
-              (result) => {
-                redisCluster.setex(
-                  "passengers-cash",
-                  200000,
-                  JSON.stringify(result)
-                );
-                resolve(result);
-                // save in cache
-              },
-              (error) => {
-                logger.info(error);
-                resolve({ response: "error", flag: "Invalid_params_maybe" });
-              }
-            );
+          //...Return quickly
+          resp = JSON.parse(resp);
+          resolve(resp);
+        } catch (error) {
+          logger.error(error);
+          resolve({ response: "error" });
+        }
+      } //Get fresh data
+      else {
+        new Promise((resCompute) => {
+          execGetPassengersInfo(requestData, redisKey, resCompute);
+        })
+          .then((result) => {
+            resolve(result);
           })
           .catch((error) => {
-            logger.info(error);
+            logger.error(error);
+            resolve({ response: "error" });
           });
       }
-    } else {
-      // Connect to db and fetch
-      logger.info("No cache...getting passengers data from db");
-      IndividualsCollection.find({})
-        .limit(10)
-        .toArray()
-        .then((individualsList) => {
-          let passengers = individualsList.map((individual) => {
-            return new Promise((outcome) => {
-              // Get the following:
-              const name = individual.name;
-              const surname = individual.surname;
-              const gender = individual.gender;
-              const phone_number = individual.phone_number;
-              const email = individual.email;
-              const date_registered = individual.date_registered;
-              // And so on...
+    });
+  } //Invalid lookup
+  else {
+    resolve({ response: "invalid_lookup" });
+  }
+}
 
-              //Then:
-              query = {
-                client_id: individual.user_fingerprint,
-              };
+/**
+ * @func execGetPassengersInfo
+ * Responsible for actively getting the passengers infos
+ * @param requestData: contains the specification of the request
+ * @param redisKey: the key to cache the results
+ * @param {return} resolve
+ */
+function execGetPassengersInfo(requestData, redisKey, resolve) {
+  resolveDate();
 
-              FilteringCollection.find(query)
-                .toArray()
-                .then((result) => {
-                  // Initialize the individual's data Object
-                  const Individual_info = {};
+  if (requestData.lookup === "search") {
+  } else if (requestData.lookup === "summary") {
+    let RETURN_DATA_MODEL = {
+      total_users: 0, //?Done
+      total_male_users: 0, //?Done
+      total_female_users: 0, //?Done
+      total_unknown_gender_users: 0, //?Done
+      total_new_users: 0, //?Done
+      users_whove_usedOneAtleast: 0, //?Done
+      users_whove_neverUsed: 0, //?Done
+      percentage_active_users: 0,
+      realtime_users_online: 0,
+      realtime_users_offline: 0,
+      tn_mobile_network_users: 0, //?Done
+      mtc_network_users: 0, //?Done
+      other_networks_users: 0, //?Done
+    };
+    //...
+    collectionPassengers_profiles
+      .find({})
+      .sort({ date_registered: -1 })
+      .toArray(function (err, passengersData) {
+        if (err) {
+          logger.error(err);
+          resolve({ response: "error_get" });
+        }
+        //...
+        if (passengersData !== undefined && passengersData.length > 0) {
+          //Found some data
+          RETURN_DATA_MODEL.total_users = passengersData.length; //Total users
+          //...
+          let parentPromises = passengersData.map((user) => {
+            //Get male and female users
+            if (/(male|Male|MALE|M)/.test(user.gender)) {
+              //Male users
+              RETURN_DATA_MODEL.total_male_users += 1;
+            } else if (/(female|Female|F)/.test(user.gender)) {
+              //Female users
+              RETURN_DATA_MODEL.total_female_users += 1;
+            } //Unknown gender
+            else {
+              RETURN_DATA_MODEL.total_unknown_gender_users += 1;
+            }
+            //Get the today's users
+            let diff =
+              Math.abs(
+                new Date(chaineDateUTC) - new Date(user.date_registered)
+              ) / 1000;
+            diff /= 3600; //In hours
+            if (diff < 24) {
+              //Registered today
+              RETURN_DATA_MODEL.total_new_users += 1;
+            }
+            //Get the online
+            let diffOnOff =
+              Math.abs(new Date(chaineDateUTC) - new Date(user.last_updated)) /
+              1000;
+            diffOnOff /= 60; //In minutes
+            if (diffOnOff <= 15) {
+              //15min online rule
+              RETURN_DATA_MODEL.realtime_users_online += 1;
+            } //Offline
+            else {
+              RETURN_DATA_MODEL.realtime_users_offline += 1;
+            }
 
-                  // Append data to the individual's data Object
-                  Individual_info.name = name;
-                  Individual_info.surname = surname;
-                  Individual_info.gender = gender;
-                  Individual_info.phone_number = phone_number;
-                  Individual_info.email = email;
-                  Individual_info.date_registered = date_registered;
-                  Individual_info.totaltrip = result.length;
-
-                  // append the resulting object to the passengers array
-                  outcome(Individual_info);
-                })
-                .catch((error) => {
-                  logger.info(error);
+            //Get the tn mobile, mtc and other networks
+            if (/^\+26485/i.test(user.phone_number)) {
+              //TN mobile
+              RETURN_DATA_MODEL.tn_mobile_network_users += 1;
+            } else if (/^\+26481/i.test(user.phone_number)) {
+              //MTC
+              RETURN_DATA_MODEL.mtc_network_users += 1;
+            } //An other network
+            else {
+              RETURN_DATA_MODEL.other_networks_users += 1;
+            }
+            //Get the rest of the data
+            return new Promise((resCompute) => {
+              collectionRidesDeliveryData
+                .find({ client_id: user.user_fingerprint })
+                .toArray(function (err, tmpTripData) {
+                  if (err) {
+                    resCompute(false);
+                  }
+                  //...
+                  if (tmpTripData !== undefined && tmpTripData.length > 0) {
+                    //Found some rides
+                    RETURN_DATA_MODEL.users_whove_usedOneAtleast += 1;
+                    resCompute(true);
+                  } //No rides - never used
+                  else {
+                    RETURN_DATA_MODEL.users_whove_neverUsed += 1;
+                    resCompute(true);
+                  }
                 });
             });
           });
-          Promise.all(passengers).then(
-            (result) => {
-              redisCluster.setex(
-                "passengers-cash",
-                200000,
-                JSON.stringify(result)
+
+          //...
+          Promise.all(parentPromises)
+            .then((result) => {
+              //? Get the percentage active users
+              RETURN_DATA_MODEL.percentage_active_users = Math.round(
+                (RETURN_DATA_MODEL.users_whove_usedOneAtleast * 100) /
+                  RETURN_DATA_MODEL.total_users
               );
-              resolve(result);
-              // save in cache
-            },
-            (error) => {
-              logger.info(error);
-              resolve({ response: "error", flag: "Invalid_params_maybe" });
-            }
-          );
-        })
-        .catch((error) => {
-          logger.info(error);
-        });
-    }
-  });
+              logger.info(RETURN_DATA_MODEL);
+              let finalResponse = {
+                response: RETURN_DATA_MODEL,
+              };
+              //...
+              //Cache the response
+              new Promise((resCache) => {
+                redisCluster.setex(
+                  redisKey,
+                  parseInt(process.env.REDIS_EXPIRATION_5MIN) * 1440,
+                  JSON.stringify(finalResponse)
+                );
+                resCache(true);
+              })
+                .then()
+                .catch();
+              //...
+              resolve(finalResponse);
+            })
+            .catch((error) => {
+              logger.error(error);
+              resolve({ response: "error_get" });
+            });
+        } else {
+          resolve({ response: "no_data" });
+        }
+      });
+  } else {
+    resolve({ response: "invalid_lookup" });
+  }
 }
 
 /**
@@ -1361,6 +1303,11 @@ function getCancelledDeliveries(
   });
 }
 
+var collectionPassengers_profiles = null;
+var collectionDrivers_profiles = null;
+var collectionRidesDeliveryData = null;
+var collectionRidesDeliveryDataCancelled = null;
+
 MongoClient.connect(
   process.env.URL_MONGODB,
   /production/i.test(process.env.EVIRONMENT)
@@ -1380,38 +1327,28 @@ MongoClient.connect(
       logger.info("Successful connection to Database");
 
       const dbMongo = clientMongo.db(dbName);
-      const collectionPassengers_profiles = dbMongo.collection(
-        "passengers_profiles"
-      );
-      const collectionDrivers_profiles = dbMongo.collection("drivers_profiles");
-      const collectionRidesDeliveryData = dbMongo.collection(
+      collectionPassengers_profiles = dbMongo.collection("passengers_profiles");
+      collectionDrivers_profiles = dbMongo.collection("drivers_profiles");
+      collectionRidesDeliveryData = dbMongo.collection(
         "rides_deliveries_requests"
       );
-      const collectionRidesDeliveryDataCancelled = dbMongo.collection(
+      collectionRidesDeliveryDataCancelled = dbMongo.collection(
         "cancelled_rides_deliveries_requests"
       );
       // Initialize the passenger list variable
-      let passengerDataList;
 
-      app.get("/passenger-data", (req, res) => {
-        let response = res;
-
-        new Promise((res) => {
-          getPassengersInfo(
-            collectionPassengers_profiles,
-            collectionRidesDeliveryData,
-            res
-          );
+      app.post("/getPassengersData", (req, res) => {
+        new Promise((resolve) => {
+          req = req.body;
+          getPassengersInfo(req, resolve);
         })
           .then((result) => {
-            let passengerList = result;
             logger.info("Passenger's Data API called");
-            logger.info(`Number of passengers returned: ${result.length}`);
-            response.json(passengerList);
+            res.send(result);
           })
           .catch((error) => {
             logger.info(error);
-            response.json({
+            res.json({
               error:
                 "something went wrong. Maybe no connection or wrong parameters",
             });

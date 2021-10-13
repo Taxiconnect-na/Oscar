@@ -1,152 +1,169 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import React from "react";
 import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
-import socket from "../socket";
-import "./PassengerList.css";
-import { FaUserAlt } from "react-icons/fa";
+import SOCKET_CORE from "../socket";
+import classes from "./passengers.module.css";
+import { MdSearch, MdSupervisorAccount } from "react-icons/md";
+import { FiArrowRight } from "react-icons/fi";
+import NodeTableExplainer from "../../Helpers/NodeTableExplainer";
 require("dotenv").config({ path: "../../../.env" });
 
-Date.prototype.addHours = function (h) {
-  this.setTime(this.getTime() + h * 60 * 60 * 1000);
-  return this;
-};
+class PassengerList extends React.Component {
+  constructor(props) {
+    super(props);
 
-const PassengerRow = (props) => {
-  return (
-    <tr>
-      <td>
-        <FaUserAlt size={30} />
-      </td>
-      <td>{props.passenger.name}</td>
-      <td>{props.passenger.surname}</td>
-      <td>{props.passenger.gender}</td>
-      <td>{props.passenger.phone_number}</td>
-      <td>{props.passenger.email}</td>
-      <td>{props.passenger.date_registered.date.toString().slice(0, 10)}</td>
-      <td>{props.passenger.totaltrip}</td>
-    </tr>
-  );
-};
+    this.SOCKET_CORE = SOCKET_CORE;
 
-function PassengerList() {
-  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
-  const dispatch = useDispatch();
+    this.intervalPersister = null;
 
-  if (
-    App.App.loginData.admin_data === null ||
-    App.App.loginData.admin_data === undefined
-  ) {
-    window.location.href = "/";
+    this.state = {
+      shouldShowSearch: false, //If to show the search window or not.
+      isLoading: false, //If loading or not
+      usersSummaryData: {}, //Will hold the users' summary data
+    };
   }
 
-  let [passengers, setPassengers] = useState([]);
-  let [totalNewPassengerToday, setTotalNewPassengerToday] = useState(0);
+  componentDidMount() {
+    let globalObject = this;
 
-  //let ENDPOINT = process.env.GATEWAY
+    this.getFreshSummaryData();
 
-  useEffect(
-    () => {
-      /*let socket = io(ENDPOINT, {
-                                    transports: ['websocket', 'polling', 'flashsocket'],
-                                    reconnection: true,
-                                    upgrade: true,
-                                    reconnectionAttempts: Infinity})  */
-      const interval = setInterval(() => {
-        console.log("passengerslist@taxiconnect");
-        socket.on("getPassengers-feedback", (data) => {
-          if (data !== undefined && data != null) {
-            //mydata = data
-            setPassengers(data);
-          }
-        });
-
-        socket.emit("getPassengers", { data: "getting passengers" });
-
-        // Get the statistics
-        /*socket.on("statistics-response", (data) => {
-
-                setTotalNewPassengerToday(data["totalNewPassengerToday"])
-            });
-            socket.emit("statistics", {data:'specs'}) */
-      }, 2000);
-
-      return () => {
-        clearInterval(interval);
-      };
-    },
-    [
-      // Re-render whenever any of the following variables changes
-    ]
-  );
-
-  const passengerData = () => {
-    return passengers.map((passenger) => {
-      return <PassengerRow passenger={passenger} />;
+    //Socket io handling
+    this.SOCKET_CORE.emit("getPassengers-response", function (response) {
+      if (
+        response !== undefined &&
+        response.response !== undefined &&
+        response.response.total_users !== undefined
+      ) {
+        console.log(response);
+        globalObject.setState({ usersSummaryData: response.response });
+      }
     });
-  };
-  const title_style = {
-    textAlign: "center",
-    marginTop: 10,
-    marginBottom: 15,
-  };
+  }
 
-  if (
-    App.App.loginData.admin_data === null ||
-    App.App.loginData.admin_data === undefined
-  ) {
-    return <></>;
-  } else {
+  //Responsible for getting the summary data
+  getFreshSummaryData() {
+    let globalObject = this;
+    //...
+    this.SOCKET_CORE.emit("getPassengers", {
+      lookup: "summary",
+    });
+  }
+
+  render() {
     return (
-      <div>
-        <div>
-          <div>
-            <h2 style={title_style}>Registered Users</h2>
-            <hr></hr>
-            <div id="container-driver">
-              <div>
-                <h1
-                  style={{ fontSize: "large", color: "black", width: "auto" }}
-                >
-                  {" "}
-                  Total sign up:
-                  <span style={{ fontSize: "large", color: "blue" }}>
-                    {" "}
-                    {passengers.length}{" "}
-                  </span>
-                </h1>
-              </div>
-              <div>
-                <h1
-                  style={{ fontSize: "large", color: "black", width: "auto" }}
-                >
-                  {" "}
-                  New sign up (today):
-                  <span style={{ fontSize: "large", color: "blue" }}>
-                    {" "}
-                    {totalNewPassengerToday}{" "}
-                  </span>
-                </h1>
-              </div>
-            </div>
-            <hr></hr>
-
-            <table className="table-striped" style={{ margin: 15 }}>
-              <thead className="thead-light">
-                <tr>
-                  <th>Profile</th>
-                  <th>Name</th>
-                  <th>Surname</th>
-                  <th>Genger </th>
-                  <th>Phone</th>
-                  <th>Email</th>
-                  <th>Signed up</th>
-                  <th>Total trips</th>
-                </tr>
-              </thead>
-              <tbody>{passengerData()}</tbody>
-            </table>
+      <div
+        style={{
+          padding: "10px",
+          marginTop: "10px",
+          overflowX: "hidden",
+        }}
+      >
+        <div className={classes.headerGeneric}>
+          <div>Registered users</div>
+          <div className={classes.switchView}>
+            <MdSearch
+              style={{ marginRight: 5, bottom: 1, position: "relative" }}
+            />
+            Search view
           </div>
         </div>
+        {/* Head summary */}
+        {this.state.shouldShowSearch === false ? (
+          <div
+            className={classes.globalNumbersContainer}
+            style={{ marginTop: 20 }}
+          >
+            <div className={classes.headerGBNumbers}>Quick look</div>
+            <NodeTableExplainer
+              title=""
+              left={[
+                {
+                  title: "Total users",
+                  value: 0,
+                },
+                {
+                  title: "Total male users",
+                  value: 0,
+                },
+                {
+                  title: "Total female users",
+                  value: 0,
+                },
+                {
+                  title: "New users (today)",
+                  value: 0,
+                },
+                {
+                  title: "Percentage active users",
+                  value: 0,
+                },
+              ]}
+              right={[
+                {
+                  title: "Realtime active users",
+                  value: 0,
+                },
+                {
+                  title: "TN mobile users",
+                  value: 0,
+                },
+                {
+                  title: "MTC users",
+                  value: 0,
+                },
+                {
+                  title: "Other networks",
+                  value: 0,
+                },
+              ]}
+            />
+          </div>
+        ) : (
+          <div className={classes.searchWindow}>
+            {/* Search bar */}
+            <div className={classes.searchBar}>
+              <div className={classes.inputContainer}>
+                <input
+                  type="text"
+                  placeholder="Enter the user's gender here"
+                  style={{ backgroundColor: "#fff" }}
+                  className={classes.inputSearch}
+                />
+              </div>
+              <div className={classes.selectContainer}>
+                <select className={classes.selectCriteria}>
+                  <option value="latest">Latest</option>
+                  <option value="name">Name</option>
+                  <option value="surname">Surname</option>
+                  <option value="gender">Gender</option>
+                  <option value="phone">Phone</option>
+                  <option value="email">Email</option>
+                  <option value="date_signedup">Date signed up</option>
+                </select>
+              </div>
+              <div className={classes.searchIconContainer}>
+                <FiArrowRight
+                  style={{ width: 25, height: 25, color: "#fff" }}
+                />
+              </div>
+            </div>
+            {/* Number of users found */}
+            <div className={classes.usersFoundContainer}>
+              <MdSupervisorAccount
+                style={{
+                  width: 20,
+                  height: 20,
+                  marginRight: 4,
+                  position: "relative",
+                  bottom: 1,
+                }}
+              />{" "}
+              12 users found
+            </div>
+            {/* Results container */}
+            <div className={classes.resultsContainer}>results</div>
+          </div>
+        )}
       </div>
     );
   }

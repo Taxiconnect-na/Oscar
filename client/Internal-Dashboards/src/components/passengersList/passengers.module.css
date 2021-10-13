@@ -1,0 +1,105 @@
+.headerGeneric {
+  /* border: 1px solid red; */
+  font-family: "MoveBold";
+  font-size: 18px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.globalNumbersContainer {
+  position: relative;
+  border: 1px solid #d0d0d0;
+  min-height: 280px;
+  margin-top: 50px;
+  background-color: #fff;
+  padding: 15px;
+  padding-bottom: 30px;
+  margin-bottom: 100px;
+}
+
+.headerGBNumbers {
+  font-family: "MoveMedium", sans-serif;
+  font-size: 16px;
+  margin-bottom: 0px;
+}
+
+.switchView {
+  color: #096ed4;
+  font-family: "MoveTextRegular", sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.searchWindow {
+  /* border: 1px solid red; */
+  margin-top: 15px;
+}
+
+.searchBar {
+  /* border: 1px solid black; */
+  display: flex;
+  flex-direction: row;
+}
+
+.inputContainer {
+  /* border: 1px solid black; */
+  flex: 1;
+  height: 45px;
+}
+
+.selectContainer {
+  /* border: 1px solid black; */
+  height: 45px;
+  width: 150px;
+}
+
+.searchIconContainer {
+  border: 1px solid #096ed4;
+  width: 70px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #096ed4;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+  cursor: pointer;
+}
+
+.inputSearch {
+  width: 100%;
+  height: 100%;
+  padding-left: 15px;
+  padding-right: 30px;
+  background-color: #fff;
+  border: 1px solid #d0d0d0;
+}
+.inputSearch:focus {
+  background-color: #fff;
+}
+
+.selectCriteria {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #d0d0d0;
+  font-family: "MoveTextMedium", sans-serif;
+}
+
+.usersFoundContainer {
+  position: relative;
+  /* border: 1px solid black; */
+  font-size: 14px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+.resultsContainer {
+  border: 1px solid red;
+  background-color: #fff;
+  padding: 15px;
+}

@@ -172,6 +172,10 @@ class Overview extends React.PureComponent {
     }
   }
 
+  componentWillUnmount() {
+    clearInterval(this.intervalPersister);
+  }
+
   /**
    * Responsible for returning a valid value or zero if the value does not exist
    * For the generic data

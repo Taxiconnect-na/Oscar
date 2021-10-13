@@ -1,150 +1,348 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { UpdateSuccessfullLoginDetails } from "../../Redux/HomeActionsCreators";
-import socket from "../socket";
-import "./driverCommission.css";
+import React, { Component } from "react";
+import classes from "./driverCommission.module.css";
+import SOCKET_CORE from "../socket";
+import NodeTableExplainer from "../../Helpers/NodeTableExplainer";
+import Loader from "react-loader-spinner";
 
-const isToday = (someDate) => {
-  const today = new Date();
-  return (
-    someDate.getDate() == today.getDate() &&
-    someDate.getMonth() == today.getMonth() &&
-    someDate.getFullYear() == today.getFullYear()
-  );
-};
+export default class driverCommission extends Component {
+  constructor(props) {
+    super(props);
 
-const DriverRow = (props) => {
-  const redirectDriverPayment = () => {
-    window.location = `/driver-commission-payment?driver_identifier=${props.driver.driver_fingerprint}&taxi=${props.driver.taxi_number}&&dname=${props.driver.name}&&dsurname=${props.driver.surname}`;
-  };
+    this.intervalPersister = null;
+    this.SOCKET_CORE = SOCKET_CORE;
 
-  let todayStyle;
-  let commissionStyle;
-
-  if (isToday(new Date(props.driver.scheduled_payment_date))) {
-    todayStyle = {
-      backgroundColor: "#c43737",
-    };
-  } else {
-    todayStyle = {
-      border: "solid 0.5px",
+    this.state = {
+      distilledCoreData: {}, //Will hold the core data
+      isLoading: true, //If the man window is loading
+      isSmallLoading: false, //If the perister is loading
     };
   }
 
-  if (props.driver.total_commission >= 20) {
-    commissionStyle = {
-      backgroundColor: "green",
-      color: "white",
-    };
-  }
+  componentDidMount() {
+    let globalObject = this;
 
-  return (
-    <tr
-      onClick={() => {
-        redirectDriverPayment();
-      }}
-      style={todayStyle}
-    >
-      <td>{props.driver.name}</td>
-      <td>{props.driver.surname}</td>
-      <td>
-        <strong>{props.driver.phone_number}</strong>
-      </td>
-      <td>{props.driver.taxi_number}</td>
-      <td style={commissionStyle}>
-        <strong>{props.driver.total_commission}</strong>
-      </td>
-      <td> {props.driver.wallet_balance}</td>
-      <td>
-        <strong>
-          {props.driver.scheduled_payment_date.toString().slice(0, 10)}
-        </strong>
-      </td>
-    </tr>
-  );
-};
+    this.startIntervalDataFetcher();
 
-/**
- * * MAIN FUNCTION
- * @returns
- */
-export default function DriverCommission() {
-  const App = useSelector((state) => ({ App: state.App }), shallowEqual);
-  const dispatch = useDispatch();
-
-  if (
-    App.App.loginData.admin_data === null ||
-    App.App.loginData.admin_data === undefined
-  ) {
-    window.location.href = "/";
-  }
-
-  let [drivers, setDrivers] = useState([]);
-
-  useEffect(() => {
-    //const interval = setInterval(() => {
-    ("driverslistCommission@taxiconnect");
-
-    socket.on("getDriversWithCommission-response", (data) => {
-      if (data !== undefined && data != null) {
-        //mydata = data
-        setDrivers(data);
+    //...
+    //Handle socket io responses
+    this.SOCKET_CORE.on(
+      "getDriversComissionFront-response",
+      function (response) {
+        if (
+          response !== undefined &&
+          response !== null &&
+          response.response !== undefined &&
+          response.response !== null &&
+          response.response.header !== undefined &&
+          response.stateHash !== undefined &&
+          response.stateHash !== globalObject.state.distilledCoreData.stateHash
+        ) {
+          globalObject.setState({
+            distilledCoreData: response,
+            isLoading: false,
+            isSmallLoading: false,
+          });
+        } //Close the loaders
+        else {
+          globalObject.setState({ isLoading: false, isSmallLoading: false });
+        }
       }
+    );
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.intervalPersister);
+  }
+
+  startIntervalDataFetcher() {
+    let globalObject = this;
+
+    //Starter
+    globalObject.SOCKET_CORE.emit("getDriversComissionFront", {
+      op: "getOverallData",
     });
     //...
-    socket.emit("getDriversWithCommission", {
-      data: "getting drivers commission",
-    });
-    /*}, 9000)
-        
-        return( () => {
-            clearInterval(interval)
-        }) */
-  }, [drivers]);
-
-  const driverData = () => {
-    if (drivers.length > 0) {
-      return drivers.map((driver) => {
-        return <DriverRow driver={driver} />;
+    this.intervalPersister = setInterval(function () {
+      globalObject.setState({ isSmallLoading: true });
+      globalObject.SOCKET_CORE.emit("getDriversComissionFront", {
+        op: "getOverallData",
       });
-    } else {
-    }
-  };
+    }, 10000);
+  }
 
-  if (
-    App.App.loginData.admin_data === null ||
-    App.App.loginData.admin_data === undefined
-  ) {
-    return <></>;
-  } else {
-    return (
-      <div>
-        <div className="template">
-          <div className="main-content">
-            <h1 style={{ display: "grid", placeItems: "center", margin: "2%" }}>
-              {" "}
-              DRIVERS PAYMENTS{" "}
-            </h1>
+  /**
+   * Render a single column of data
+   */
+  renderDriverRow(driverInfos, index) {
+    let hasGathered =
+      driverInfos.remaining_commission !== undefined &&
+      driverInfos.remaining_commission !== null &&
+      parseFloat(driverInfos.remaining_commission) > 0;
+    let isOverdueCommission = false;
 
-            <table
-              className="table-hover"
-              style={{ border: "solid 1px", marginBottom: "2%" }}
+    if (hasGathered) {
+      let wCommission =
+        driverInfos.remaining_commission - driverInfos.remaining_due_to_driver >
+        0
+          ? driverInfos.remaining_commission -
+            driverInfos.remaining_due_to_driver
+          : 0;
+
+      if (driverInfos.remaining_commission >= 100) {
+        return (
+          <tr
+            key={index + new Date().getTime()}
+            style={{
+              backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#fff",
+              border: "2px solid #09864A",
+            }}
+          >
+            <td style={{ backgroundColor: "#09864A", color: "#fff" }}>
+              {index}
+            </td>
+            <td style={{ textAlign: "left" }}>
+              {driverInfos.driver_infos.name}
+            </td>
+            <td style={{ textAlign: "left" }}>
+              {driverInfos.driver_infos.surname}
+            </td>
+            <td
+              style={{ textAlign: "left" }}
+              title={driverInfos.driver_infos.phone}
             >
-              <thead className="thead-light">
-                <tr>
-                  <th>Name</th>
-                  <th>Surname</th>
-                  <th>Phone </th>
-                  <th>Taxi Number</th>
-                  <th>Total commission</th>
-                  <th>Wallet Balance</th>
-                  <th>Scheduled payment date</th>
-                </tr>
-              </thead>
-              <tbody>{driverData()}</tbody>
-            </table>
+              {driverInfos.driver_infos.phone.length > 14
+                ? `${driverInfos.driver_infos.phone.substring(0, 12)}...`
+                : driverInfos.driver_infos.phone}
+            </td>
+            <td>{driverInfos.driver_infos.taxi_number}</td>
+            <td
+              style={{
+                fontWeight: "bold",
+                backgroundColor: "#d0d0d0",
+                color: "#000",
+              }}
+            >
+              {driverInfos.remaining_commission !== undefined
+                ? driverInfos.remaining_commission
+                : 0}
+            </td>
+            <td>
+              {driverInfos.remaining_due_to_driver !== undefined
+                ? driverInfos.remaining_due_to_driver
+                : 0}
+            </td>
+            <td
+              style={{
+                fontWeight: "bold",
+                backgroundColor: "#09864A",
+                color: "#fff",
+              }}
+            >
+              {wCommission}
+            </td>
+            <td>{`${new Date(driverInfos.scheduled_payment_date)
+              .toLocaleDateString()
+              .replace(/\//g, "-")} at ${new Date(
+              driverInfos.scheduled_payment_date
+            ).toLocaleTimeString()}`}</td>
+          </tr>
+        );
+      } else {
+        return (
+          <tr
+            key={index + new Date().getTime()}
+            style={{ backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#fff" }}
+          >
+            <td>{index}</td>
+            <td style={{ textAlign: "left" }}>
+              {driverInfos.driver_infos.name}
+            </td>
+            <td style={{ textAlign: "left" }}>
+              {driverInfos.driver_infos.surname}
+            </td>
+            <td
+              style={{ textAlign: "left" }}
+              title={driverInfos.driver_infos.phone}
+            >
+              {driverInfos.driver_infos.phone.length > 14
+                ? `${driverInfos.driver_infos.phone.substring(0, 12)}...`
+                : driverInfos.driver_infos.phone}
+            </td>
+            <td>{driverInfos.driver_infos.taxi_number}</td>
+            <td
+              style={{
+                fontWeight: "bold",
+              }}
+            >
+              {driverInfos.remaining_commission !== undefined
+                ? driverInfos.remaining_commission
+                : 0}
+            </td>
+            <td>
+              {driverInfos.remaining_due_to_driver !== undefined
+                ? driverInfos.remaining_due_to_driver
+                : 0}
+            </td>
+            <td>{wCommission}</td>
+            <td>{`${new Date(driverInfos.scheduled_payment_date)
+              .toLocaleDateString()
+              .replace(/\//g, "-")} at ${new Date(
+              driverInfos.scheduled_payment_date
+            ).toLocaleTimeString()}`}</td>
+          </tr>
+        );
+      }
+    } else {
+      return <></>;
+    }
+  }
+
+  render() {
+    return (
+      <div
+        style={{
+          padding: "10px",
+          marginTop: "10px",
+          overflowX: "hidden",
+        }}
+      >
+        <div className={classes.headerGeneric}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <div>Drivers commission</div>
+            {this.state.isSmallLoading && this.state.isLoading === false ? (
+              <div style={{ marginLeft: 20 }}>
+                <Loader
+                  type="TailSpin"
+                  color="#000"
+                  height={15}
+                  width={15}
+                  timeout={300000000} //3 secs
+                />
+              </div>
+            ) : (
+              <></>
+            )}
+          </div>
+          <div className={classes.switchView}>
+            {Object.keys(this.state.distilledCoreData).length > 0
+              ? this.state.distilledCoreData.response.driversData.length
+              : 0}{" "}
+            drivers
           </div>
         </div>
+
+        {/* Summary */}
+        {this.state.isLoading ? (
+          <div
+            style={{
+              width: "100%",
+              height: "60vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div>
+              <Loader
+                type="TailSpin"
+                color="#000"
+                height={40}
+                width={40}
+                timeout={300000000} //3 secs
+              />
+            </div>
+          </div>
+        ) : Object.keys(this.state.distilledCoreData).length === 0 ? (
+          <div
+            style={{
+              width: "100%",
+              height: "60vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            I was unable to find commissions data, please try refreshing the
+            page.
+          </div>
+        ) : (
+          <>
+            <div
+              className={classes.globalNumbersContainer}
+              style={{ marginTop: 20 }}
+            >
+              <div className={classes.headerGBNumbers}>Quick look</div>
+              <NodeTableExplainer
+                title=""
+                left={[
+                  {
+                    title: "Total commission pending",
+                    value: `N$ ${Math.round(
+                      this.state.distilledCoreData.response.header
+                        .total_commission
+                    )}`,
+                    color: "#09864A",
+                  },
+                  {
+                    title: "Total wallet due",
+                    value: `N$ ${Math.round(
+                      this.state.distilledCoreData.response.header
+                        .total_wallet_due
+                    )}`,
+                  },
+                ]}
+                right={[
+                  {
+                    title: "Currency",
+                    value:
+                      this.state.distilledCoreData.response.header.currency,
+                  },
+                  {
+                    title: "Last updated",
+                    value: new Date(
+                      this.state.distilledCoreData.response.header.last_date_update
+                    )
+                      .toTimeString()
+                      .split(" ")[0],
+                  },
+                ]}
+              />
+            </div>
+
+            {/* List of commission */}
+            <div className={classes.listCommissionContainer}>
+              <table>
+                <thead className={classes.headerTable}>
+                  <tr>
+                    <th style={{ width: 50 }}>#</th>
+                    <th>Name</th>
+                    <th>Surname</th>
+                    <th>Phone</th>
+                    <th>Taxi number</th>
+                    <th>Commission (N$)</th>
+                    <th>Wallet balance (N$)</th>
+                    <th>W-commission (N$)</th>
+                    <th>Scheduled payment</th>
+                  </tr>
+                </thead>
+
+                <tbody className={classes.bodyTableContainer}>
+                  {this.state.distilledCoreData.response.driversData.map(
+                    (driverInfos, index) => {
+                      return this.renderDriverRow(driverInfos, index + 1);
+                    }
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     );
   }

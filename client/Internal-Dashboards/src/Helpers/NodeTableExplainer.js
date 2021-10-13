@@ -20,14 +20,28 @@ const NodeTableExplainer = ({ title, left, right, marginTop }) => {
         <div className={classes.titleNodeInsider}>{title}</div>
         <div className={classes.podInsideInsider}>
           {/* element */}
-          {left.map((element) => {
+          {left.map((element, index) => {
             return (
-              <div className={classes.lineLabelData}>
+              <div
+                key={index}
+                className={classes.lineLabelData}
+                style={{
+                  borderBottomColor:
+                    index + 1 === left.length ? "#fff" : "#d0d0d0",
+                }}
+              >
                 <div className={classes.labelInsido}>
                   <AiTwotoneCloseSquare className={classes.squarePoint} />
                   {element.title}
                 </div>
-                <div className={classes.dataInsido}>{element.value}</div>
+                <div
+                  className={classes.dataInsido}
+                  style={{
+                    color: element.color !== undefined ? element.color : "#000",
+                  }}
+                >
+                  {element.value}
+                </div>
               </div>
             );
           })}
@@ -45,14 +59,28 @@ const NodeTableExplainer = ({ title, left, right, marginTop }) => {
         <div className={classes.titleNodeInsider}></div>
         {/* element */}
         <div className={classes.podInsideInsider}>
-          {right.map((element) => {
+          {right.map((element, index) => {
             return (
-              <div className={classes.lineLabelData}>
+              <div
+                key={index}
+                className={classes.lineLabelData}
+                style={{
+                  borderBottomColor:
+                    index + 1 === right.length ? "#fff" : "#d0d0d0",
+                }}
+              >
                 <div className={classes.labelInsido}>
                   <AiTwotoneCloseSquare className={classes.squarePoint} />
                   {element.title}
                 </div>
-                <div className={classes.dataInsido}>{element.value}</div>
+                <div
+                  className={classes.dataInsido}
+                  style={{
+                    color: element.color !== undefined ? element.color : "#000",
+                  }}
+                >
+                  {element.value}
+                </div>
               </div>
             );
           })}

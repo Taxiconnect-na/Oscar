@@ -2267,6 +2267,180 @@ function broadcastNotifications(requestData, resolve) {
   }
 }
 
+/**
+ * @func handleCommissionPageOps
+ * Responsible for handling all the driver commission page ops
+ * @param requestData: will contain all the operations related data
+ * @param resolve
+ */
+
+function handleCommissionPageOps(requestData, resolve) {
+  if (requestData.op === "getOverallData") {
+    let redisKey = "overallCommissionData_admininstration";
+    redisGet(redisKey)
+      .then((resp) => {
+        if (resp !== null) {
+          //Found some cached data
+          try {
+            //Rehydrate the data
+            new Promise((resCompute) => {
+              execHandleCommissionPageOps(requestData, redisKey, resCompute);
+            })
+              .then()
+              .catch((error) => {
+                logger.error(error);
+              });
+            //...
+            resp = JSON.parse(resp);
+            //Return quickly
+            resolve(resp);
+          } catch (error) {
+            new Promise((resCompute) => {
+              execHandleCommissionPageOps(requestData, redisKey, resCompute);
+            })
+              .then((result) => {
+                resolve(result);
+              })
+              .catch((error) => {
+                logger.error(error);
+                resolve({ response: "error" });
+              });
+          }
+        } //Get fresh data
+        else {
+          new Promise((resCompute) => {
+            execHandleCommissionPageOps(requestData, redisKey, resCompute);
+          })
+            .then((result) => {
+              resolve(result);
+            })
+            .catch((error) => {
+              logger.error(error);
+              resolve({ response: "error" });
+            });
+        }
+      })
+      .catch((error) => {
+        logger.error(error);
+        resolve({ response: "error" });
+      });
+  } //Invalid op
+  else {
+    resolve({ response: "error_invalid_op" });
+  }
+}
+
+/**
+ * @func execHandleCommissionPageOps
+ * Responsible for actively handling all the driver commission page ops
+ * @param requestData: will contain all the operations related data
+ * @param redisKey: the redis key to cache the specific result of the op to.
+ * @param resolve
+ */
+
+function execHandleCommissionPageOps(requestData, redisKey, resolve) {
+  resolveDate();
+
+  if (requestData.op === "getOverallData") {
+    //Get all the drivers
+    collectionDrivers_profiles.find({}).toArray(function (err, driversData) {
+      if (err) {
+        logger.error(err);
+        resolve({ response: "error" });
+      }
+      //...
+      if (driversData !== undefined && driversData.length > 0) {
+        logger.info(driversData.driver_fingerprint);
+        //Found some drivers data
+        let RETURN_DATA_MODEL = {
+          header: {
+            total_commission: 0,
+            total_wallet_due: 0,
+            currency: "NAD",
+            last_date_update: new Date(chaineDateUTC),
+          },
+          driversData: [],
+        };
+        //...
+        //? Get all the drivers wallet data nad pack them
+        let parentPromises = driversData.map((driver, index) => {
+          return new Promise((resCompute) => {
+            axios
+              .get(
+                `${process.env.JERRY_ACCOUNT_SERVICE}/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`
+              )
+              .then((tmpDriverWalletData) => {
+                tmpDriverWalletData = tmpDriverWalletData.data;
+                logger.info(tmpDriverWalletData.header);
+                //Update the header data
+                RETURN_DATA_MODEL.header.total_commission +=
+                  tmpDriverWalletData.header.remaining_commission !==
+                    undefined &&
+                  tmpDriverWalletData.header.remaining_commission !== null
+                    ? tmpDriverWalletData.header.remaining_commission
+                    : 0;
+                RETURN_DATA_MODEL.header.total_wallet_due +=
+                  tmpDriverWalletData.header.remaining_due_to_driver !==
+                    undefined &&
+                  tmpDriverWalletData.header.remaining_due_to_driver !== null
+                    ? tmpDriverWalletData.header.remaining_due_to_driver
+                    : 0;
+                //Save the driver record
+                //?Enrich the record with the driver details
+                tmpDriverWalletData.header["id"] = index + 1;
+                tmpDriverWalletData.header["driver_infos"] = {
+                  name: driver.name,
+                  surname: driver.surname,
+                  phone: driver.phone_number,
+                  taxi_number: driver.cars_data[0].taxi_number,
+                };
+                //...
+                RETURN_DATA_MODEL.driversData.push(tmpDriverWalletData.header);
+                //...
+                resCompute(true);
+              })
+              .catch((error) => {
+                logger.info(error);
+                resCompute(false);
+              });
+          });
+        });
+        //...
+        Promise.all(parentPromises)
+          .then((result) => {
+            logger.warn(result);
+            let finalResponse = {
+              response: RETURN_DATA_MODEL,
+            };
+            //!Cache the result
+            new Promise((resCache) => {
+              redisCluster.setex(
+                redisKey,
+                parseInt(process.env.REDIS_EXPIRATION_5MIN) * 1440,
+                JSON.stringify(finalResponse)
+              );
+              resCache(true);
+            })
+              .then()
+              .catch();
+            //...
+            resolve(finalResponse);
+          })
+          .catch((error) => {
+            logger.error(error);
+            resolve({ response: "error" });
+          });
+      } //No drivers
+      else {
+        resolve({ response: "no_driver_data" });
+      }
+    });
+  } //Invalid op
+  else {
+    resolve({ response: "error_invalid_op" });
+  }
+}
+
 var collectionDrivers_profiles = null;
 var collectionRidesDeliveryData = null;
 var collectionWallet_transaction_logs = null;
@@ -2515,81 +2689,6 @@ MongoClient.connect(
       } else {
         logger.info("Delivery provider present");
       }
-
-      /*
-        * Local setup to save files locally (replaced by s3 bucket for production)
-        const savedFiles = {}
-        profile_picture.mv(path.join(__dirname,
-            `./uploads/${profile_picture.name}`), err => {  //mv move method on file object
-            if (err) {
-                logger.error(err) 
-                return res.status(500).send(err)
-            } else {
-                savedFiles.driver_licence_doc = "Profile picture"
-            }
-            
-        })
-        driver_licence_doc.mv(path.join(__dirname,
-            `./uploads/${driver_licence_doc.name}`), err => {  //mv move method on file object
-            if (err) {
-                logger.error(err) 
-                return res.status(500).send(err)
-            } else {
-                savedFiles.driver_licence_doc = "Driver licence"
-            }
-            
-        })
-        copy_id_paper.mv(path.join(__dirname,
-            `./uploads/${copy_id_paper.name}`), err => {  //mv move method on file object
-            if (err) {
-                logger.error(err)
-                return res.status(500).send(err)
-            } else {
-                savedFiles.copy_id_paper = "Copy ID paper"
-            }
-        })
-        copy_white_paper.mv(path.join(__dirname,
-            `./uploads/${copy_white_paper.name}`), err => {  //mv move method on file object
-            if (err) {
-                logger.error(err)
-                return res.status(500).send(err)
-            } else {
-                savedFiles.copy_white_paper = "Copy white paper"
-            }
-        })
-        copy_public_permit.mv(path.join(__dirname,
-            `./uploads/${copy_public_permit.name}`), err => {  //mv move method on file object
-            if (err) {
-                logger.error(err)
-                return res.status(500).send(err)
-            } else {
-                savedFiles.copy_public_permit = "Copy public permit"
-            }
-        })
-        copy_blue_paper.mv(path.join(__dirname,
-            `./uploads/${copy_blue_paper.name}`), err => {  //mv move method on file object
-            if (err) {
-                logger.error(err)
-                return res.status(500).send(err)
-            } else {
-                savedFiles.copy_blue_paper = "Copy blue paper"
-            }
-        })
-        taxi_picture.mv(path.join(__dirname,
-            `./uploads/${taxi_picture.name}`), err => {  //mv move method on file object
-            if (err) {
-                logger.error(err)
-                return res.status(500).send(err)
-            } else {
-                savedFiles.taxi_picture = "Taxi picture"
-            }
-        })
-
-        const UploadedFiles = {
-            uploaded_files : savedFiles
-        }
-
-        */
 
       let fingerprintSource =
         req.body.name + req.body.surname + req.body.personal_id_number;
@@ -3555,6 +3654,40 @@ MongoClient.connect(
       })
         .then((result) => {
           res.send(result);
+        })
+        .catch((error) => {
+          logger.error(error);
+          res.send({ response: "error" });
+        });
+    });
+
+    /**
+     * Get the commission page data
+     */
+    app.post("/handleCommissionPageOps", function (req, res) {
+      logger.info(req);
+      new Promise((resolve) => {
+        req = req.body;
+        handleCommissionPageOps(req, resolve);
+      })
+        .then((result) => {
+          //Compute the stateHash
+          new Promise((resHash) => {
+            generateUniqueFingerprint(
+              JSON.stringify(result),
+              "sha256",
+              resHash
+            );
+          })
+            .then((stateHash) => {
+              result["stateHash"] = stateHash;
+              res.send(result);
+            })
+            .catch((error) => {
+              logger.erroer(error);
+              result["stateHash"] = "genericHash";
+              res.send(result);
+            });
         })
         .catch((error) => {
           logger.error(error);

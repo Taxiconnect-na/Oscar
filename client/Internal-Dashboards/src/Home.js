@@ -96,8 +96,6 @@ class Home extends React.PureComponent {
   }
 
   render() {
-    console.log(this.shouldBeRendered());
-
     return (
       <div
         style={{

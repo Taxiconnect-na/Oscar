@@ -34,12 +34,20 @@ class Login extends React.PureComponent {
     let globalObject = this;
 
     //?Auto redirect
-    // if (this.props.App.loginData.isLoggedIn) {
-    //   this.setState({ isLoading: true });
-    //   setTimeout(function () {
-    //     globalObject.props.history.push("/overview");
-    //   }, 2000);
-    // }
+    if (this.props.App.loginData.isLoggedIn) {
+      this.setState({ isLoading: true });
+      setTimeout(function () {
+        if (
+          /overviewSummary/i.test(
+            globalObject.props.App.loginData.admin_data.access_patterns
+          )
+        ) {
+          window.location.href = "/overview";
+        } else {
+          window.location.href = "/driver-registration";
+        }
+      }, 2000);
+    }
 
     this.props.App.SOCKET_CORE =
       this.props.App.SOCKET_CORE.on === undefined ||

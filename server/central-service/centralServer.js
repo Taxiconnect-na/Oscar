@@ -685,79 +685,23 @@ io.on("connection", (socket) => {
       });
   });
 
-  socket.on("getDriversWithCommission", function (data) {
-    logger.info(data);
-
+  /**
+   * Get the commission page related data
+   */
+  socket.on("getDriversComissionFront", function (data) {
     axios
-      .get(`${process.env.LOCAL_URL}:${process.env.DRIVER_ROOT}/driver-data`)
-      .then((feedback) => {
-        let driverList = new Object(feedback.data);
-        logger.info(
-          `NUMBER OF DRIVERS FOUND FROM DRIVER API: ${driverList.length}`
-        );
-
-        let newDriverList = driverList.map((driver) => {
-          return new Promise((future) => {
-            axios
-              .get(
-                `${process.env.JERRY_ACCOUNT_SERVICE}/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`
-              )
-              .then((data) => {
-                logger.info(data.data);
-
-                future({
-                  name: driver.name,
-                  surname: driver.surname,
-                  phone_number: driver.phone_number,
-                  taxi_number: driver.taxi_number,
-                  driver_fingerprint: driver.driver_fingerprint,
-                  total_commission: data.data.header.remaining_commission
-                    ? data.data.header.remaining_commission
-                    : "0",
-                  wallet_balance: data.data.header.remaining_due_to_driver
-                    ? data.data.header.remaining_due_to_driver
-                    : "0",
-                  scheduled_payment_date: data.data.header
-                    .scheduled_payment_date
-                    ? data.data.header.scheduled_payment_date
-                    : "N/A",
-                });
-              })
-              .catch((error) => {
-                logger.info(error);
-                socket.emit("getDriversWithCommission-response", {
-                  error: "something went wrong 1",
-                });
-              });
-          });
-        });
-
-        Promise.all(newDriverList)
-          .then((result) => {
-            // Sort result by scheduled_payment_date
-            let sortedList = result.sort(function (a, b) {
-              return (
-                new Date(b.scheduled_payment_date) -
-                new Date(a.scheduled_payment_date)
-              );
-            });
-
-            socket.emit(
-              "getDriversWithCommission-response",
-              sortedList.reverse()
-            );
-          })
-          .catch((error) => {
-            logger.info(error);
-            socket.emit("getDriversWithCommission-response", {
-              error: "something went wrong 2",
-            });
-          });
+      .post(
+        `${process.env.LOCAL_URL}:${process.env.DRIVER_ROOT}/handleCommissionPageOps`,
+        data
+      )
+      .then((response) => {
+        response = response.data;
+        socket.emit("getDriversComissionFront-response", response);
       })
       .catch((error) => {
         logger.info(error);
-        socket.emit("getDriversWithCommission-response", {
-          error: "something went wrong 3",
+        socket.emit("getDriversComissionFront-response", {
+          error: "error",
         });
       });
   });
@@ -772,13 +716,14 @@ io.on("connection", (socket) => {
   socket.on("getPassengers", function (data) {
     logger.info("Requesting passengers: ", data);
     axios
-      .get(
-        `${process.env.LOCAL_URL}:${process.env.PASSENGER_ROOT}/passenger-data`
+      .post(
+        `${process.env.LOCAL_URL}:${process.env.PASSENGER_ROOT}/getPassengersData`,
+        data
       )
       .then((feedback) => {
         let passengerList = new Object(feedback.data);
 
-        socket.emit("getPassengers-feedback", passengerList);
+        socket.emit("getPassengers-response", passengerList);
       })
       .catch((error) => {
         logger.info(error);
