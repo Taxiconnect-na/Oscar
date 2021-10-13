@@ -80,7 +80,7 @@ export default class driverCommission extends Component {
       parseFloat(driverInfos.remaining_commission) > 0;
     let isOverdueCommission = false;
 
-    if (hasGathered) {
+    if (true) {
       let wCommission =
         driverInfos.remaining_commission - driverInfos.remaining_due_to_driver >
         0
@@ -93,8 +93,8 @@ export default class driverCommission extends Component {
           <tr
             key={index + new Date().getTime()}
             style={{
-              backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#fff",
-              border: "2px solid #09864A",
+              backgroundColor: "rgba(9, 134, 74, 0.1)",
+              border: "1px solid #09864A",
             }}
           >
             <td style={{ backgroundColor: "#09864A", color: "#fff" }}>
@@ -117,10 +117,11 @@ export default class driverCommission extends Component {
             <td>{driverInfos.driver_infos.taxi_number}</td>
             <td
               style={{
-                fontWeight: "bold",
-                backgroundColor: "#d0d0d0",
+                fontFamily: "MoveTextBold",
+                backgroundColor: "#f0f0f0",
                 color: "#000",
               }}
+              title={"Commission before substracting the wallet amount."}
             >
               {driverInfos.remaining_commission !== undefined
                 ? driverInfos.remaining_commission
@@ -133,10 +134,11 @@ export default class driverCommission extends Component {
             </td>
             <td
               style={{
-                fontWeight: "bold",
+                fontFamily: "MoveTextBold",
                 backgroundColor: "#09864A",
                 color: "#fff",
               }}
+              title={"Commission after substracting the wallet amount."}
             >
               {wCommission}
             </td>
@@ -171,8 +173,9 @@ export default class driverCommission extends Component {
             <td>{driverInfos.driver_infos.taxi_number}</td>
             <td
               style={{
-                fontWeight: "bold",
+                fontFamily: "MoveTextBold",
               }}
+              title={"Commission before substracting the wallet amount."}
             >
               {driverInfos.remaining_commission !== undefined
                 ? driverInfos.remaining_commission
@@ -183,7 +186,14 @@ export default class driverCommission extends Component {
                 ? driverInfos.remaining_due_to_driver
                 : 0}
             </td>
-            <td>{wCommission}</td>
+            <td
+              style={{
+                fontFamily: "MoveTextBold",
+              }}
+              title={"Commission after substracting the wallet amount."}
+            >
+              {wCommission}
+            </td>
             <td>{`${new Date(driverInfos.scheduled_payment_date)
               .toLocaleDateString()
               .replace(/\//g, "-")} at ${new Date(

@@ -3681,10 +3681,28 @@ MongoClient.connect(
           })
             .then((stateHash) => {
               result["stateHash"] = stateHash;
+              //? Sort by remaining commission
+              result.response.driversData.sort((a, b) => {
+                let aCommission =
+                  a.remaining_commission !== undefined
+                    ? a.remaining_commission
+                    : 0;
+                let bCommission =
+                  b.remaining_commission !== undefined
+                    ? b.remaining_commission
+                    : 0;
+
+                return aCommission > bCommission
+                  ? -1
+                  : bCommission > aCommission
+                  ? 1
+                  : 0;
+              });
+              //? ---
               res.send(result);
             })
             .catch((error) => {
-              logger.erroer(error);
+              logger.error(error);
               result["stateHash"] = "genericHash";
               res.send(result);
             });
