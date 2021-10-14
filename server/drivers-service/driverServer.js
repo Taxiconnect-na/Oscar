@@ -2582,6 +2582,7 @@ function execHandleCommissionPageOps(requestData, redisKey, resolve) {
                     surname: driver.surname,
                     phone: driver.phone_number,
                     taxi_number: driver.cars_data[0].taxi_number,
+                    profile_pic: `${process.env.AWS_S3_DRIVERS_PROFILE_PICTURES_PATH}/${driver.identification_data.profile_picture}`,
                   };
                   //...
                   RETURN_DATA_MODEL.driversData.push(
@@ -2638,13 +2639,13 @@ function execHandleCommissionPageOps(requestData, redisKey, resolve) {
                 //Earning and requests
                 for (var key in dataPoint.daily_earning) {
                   let tmpDailyDataPointEarning = {
-                    x: dataPoint.daily_earning[key].earning,
-                    y: key,
+                    y: dataPoint.daily_earning[key].earning,
+                    x: key,
                   };
                   //...
                   let tmpDailyDataPointRequests = {
-                    x: dataPoint.daily_earning[key].requests,
-                    y: key,
+                    y: dataPoint.daily_earning[key].requests,
+                    x: key,
                   };
                   //...Earning
                   RETURN_DATA_MODEL.graphReadyData.daily_view.earnings_related[
@@ -2881,6 +2882,46 @@ function execHandleCommissionPageOps(requestData, redisKey, resolve) {
               //Overwrite the prev month data
               RETURN_DATA_MODEL.graphReadyData.yearly_view.requests_related =
                 tmpReducedHolder;
+
+              //? Sort the data
+              //1. Weekly data
+              //Earning
+              for (var key in RETURN_DATA_MODEL.graphReadyData.weekly_view
+                .earnings_related) {
+                RETURN_DATA_MODEL.graphReadyData.weekly_view.earnings_related[
+                  key
+                ].sort((a, b) => {
+                  return b.x > a.x ? -1 : b.x > a.x ? 1 : 0;
+                });
+              }
+              //Requests
+              for (var key in RETURN_DATA_MODEL.graphReadyData.weekly_view
+                .requests_related) {
+                RETURN_DATA_MODEL.graphReadyData.weekly_view.requests_related[
+                  key
+                ].sort((a, b) => {
+                  return b.x > a.x ? -1 : b.x > a.x ? 1 : 0;
+                });
+              }
+              //1. Monthly data
+              //Earning
+              for (var key in RETURN_DATA_MODEL.graphReadyData.montly_view
+                .earnings_related) {
+                RETURN_DATA_MODEL.graphReadyData.montly_view.earnings_related[
+                  key
+                ].sort((a, b) => {
+                  return b.x > a.x ? -1 : b.x > a.x ? 1 : 0;
+                });
+              }
+              //Requests
+              for (var key in RETURN_DATA_MODEL.graphReadyData.montly_view
+                .requests_related) {
+                RETURN_DATA_MODEL.graphReadyData.montly_view.requests_related[
+                  key
+                ].sort((a, b) => {
+                  return b.x > a.x ? -1 : b.x > a.x ? 1 : 0;
+                });
+              }
 
               //? Remove unneccessary data
               RETURN_DATA_MODEL.transactionData = undefined;
