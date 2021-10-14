@@ -34,7 +34,7 @@ import PaymentMethods from "./components/visualize/PaymentMethods";
 import MonthlyDataDetailed from "./components/visualize/MonthlyDataDetailed";
 import DriverDataUpdate from "./components/driverRegistration/driverDataUpdate";
 import DriverCommission from "./components/driverCommission/driverCommission";
-import DriverCommissionInsert from "./components/driverCommission/driverCommissionInsert";
+import driverCommissionDetailed from "./components/driverCommission/driverCommissionDetailed";
 import Referrals from "./components/referrals/Referrals";
 import DriverRegistrationReferred from "./components/driverRegistration/driverRegistrationReferred";
 import Header from "./components/Header/Header";
@@ -169,10 +169,10 @@ class Home extends React.PureComponent {
                 component={MonthlyDataDetailed}
               />
 
-              <Route path="/driver-commission" component={DriverCommission} />
+              <Route path="/Commission" component={DriverCommission} />
               <Route
-                path="/driver-commission-payment"
-                component={DriverCommissionInsert}
+                path="/CommissionDetailed"
+                component={driverCommissionDetailed}
               />
               <Route path="/Broadcasting" component={Broadcasting} />
 

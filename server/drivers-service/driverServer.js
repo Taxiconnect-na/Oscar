@@ -2324,10 +2324,79 @@ function handleCommissionPageOps(requestData, resolve) {
         logger.error(error);
         resolve({ response: "error" });
       });
-  } //Invalid op
+  } else if (
+    requestData.op === "getTargetedData" &&
+    requestData.driver_fingerprint !== undefined &&
+    requestData.driver_fingerprint !== null
+  ) {
+    let redisKey = `getTargetedData_driversCommission_admininstration-${requestData.driver_fingerprint}`;
+    redisGet(redisKey)
+      .then((resp) => {
+        if (resp !== null) {
+          //Found some cached data
+          try {
+            //Rehydrate the data
+            new Promise((resCompute) => {
+              execHandleCommissionPageOps(requestData, redisKey, resCompute);
+            })
+              .then()
+              .catch((error) => {
+                logger.error(error);
+              });
+            //...
+            resp = JSON.parse(resp);
+            //Return quickly
+            resolve(resp);
+          } catch (error) {
+            new Promise((resCompute) => {
+              execHandleCommissionPageOps(requestData, redisKey, resCompute);
+            })
+              .then((result) => {
+                resolve(result);
+              })
+              .catch((error) => {
+                logger.error(error);
+                resolve({ response: "error" });
+              });
+          }
+        } //Get fresh data
+        else {
+          new Promise((resCompute) => {
+            execHandleCommissionPageOps(requestData, redisKey, resCompute);
+          })
+            .then((result) => {
+              resolve(result);
+            })
+            .catch((error) => {
+              logger.error(error);
+              resolve({ response: "error" });
+            });
+        }
+      })
+      .catch((error) => {
+        logger.error(error);
+        resolve({ response: "error" });
+      });
+  }
+  //Invalid op
   else {
     resolve({ response: "error_invalid_op" });
   }
+}
+
+/**
+ * @func getDateOfISOWeek
+ * Compute the date from the week number and year
+ * @param w: week number
+ * @param y: year number
+ */
+function getDateOfISOWeek(w, y) {
+  var simple = new Date(y, 0, 1 + (w - 1) * 7);
+  var dow = simple.getDay();
+  var ISOweekStart = simple;
+  if (dow <= 4) ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+  else ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+  return ISOweekStart;
 }
 
 /**
@@ -2435,7 +2504,416 @@ function execHandleCommissionPageOps(requestData, redisKey, resolve) {
         resolve({ response: "no_driver_data" });
       }
     });
-  } //Invalid op
+  } else if (
+    requestData.op === "getTargetedData" &&
+    requestData.driver_fingerprint !== undefined &&
+    requestData.driver_fingerprint !== null
+  ) {
+    //Get all the drivers
+    collectionDrivers_profiles
+      .find({
+        driver_fingerprint: requestData.driver_fingerprint,
+      })
+      .toArray(function (err, driversData) {
+        if (err) {
+          logger.error(err);
+          resolve({ response: "error" });
+        }
+        //...
+        if (driversData !== undefined && driversData.length > 0) {
+          logger.info(driversData.driver_fingerprint);
+          //Found some drivers data
+          let RETURN_DATA_MODEL = {
+            header: {
+              total_commission: 0,
+              total_wallet_due: 0,
+              currency: "NAD",
+              last_date_update: new Date(chaineDateUTC),
+            },
+            driversData: [],
+            transactionData: null,
+            graphReadyData: {
+              daily_view: {
+                earnings_related: {}, //{week_no: [{x:earning, y:monday}]}
+                requests_related: {},
+              }, //?DONE
+              weekly_view: {
+                earnings_related: {}, //[{x:week_no, y:earning}]
+                requests_related: {},
+              }, //?DONE
+              montly_view: {
+                earnings_related: {}, //{month_no: [{x:month_no, y:earning}]}
+                requests_related: {},
+              }, //?DONE
+              yearly_view: {
+                earnings_related: {}, //[{x:year_no, y:earning}]
+                requests_related: {},
+              }, //?DONE
+            },
+          };
+          //...
+          //? Get all the drivers wallet data nad pack them
+          let parentPromises = driversData.map((driver, index) => {
+            return new Promise((resCompute) => {
+              axios
+                .get(
+                  `${process.env.JERRY_ACCOUNT_SERVICE}/getDrivers_walletInfosDeep?user_fingerprint=${driver.driver_fingerprint}`
+                )
+                .then((tmpDriverWalletData) => {
+                  tmpDriverWalletData = tmpDriverWalletData.data;
+                  //Update the header data
+                  RETURN_DATA_MODEL.header.total_commission +=
+                    tmpDriverWalletData.header.remaining_commission !==
+                      undefined &&
+                    tmpDriverWalletData.header.remaining_commission !== null
+                      ? tmpDriverWalletData.header.remaining_commission
+                      : 0;
+                  RETURN_DATA_MODEL.header.total_wallet_due +=
+                    tmpDriverWalletData.header.remaining_due_to_driver !==
+                      undefined &&
+                    tmpDriverWalletData.header.remaining_due_to_driver !== null
+                      ? tmpDriverWalletData.header.remaining_due_to_driver
+                      : 0;
+                  //Save the driver record
+                  //?Enrich the record with the driver details
+                  tmpDriverWalletData.header["id"] = index + 1;
+                  tmpDriverWalletData.header["driver_infos"] = {
+                    name: driver.name,
+                    surname: driver.surname,
+                    phone: driver.phone_number,
+                    taxi_number: driver.cars_data[0].taxi_number,
+                  };
+                  //...
+                  RETURN_DATA_MODEL.driversData.push(
+                    tmpDriverWalletData.header
+                  );
+                  //?Save transactions week
+                  RETURN_DATA_MODEL.transactionData =
+                    tmpDriverWalletData.weeks_view;
+                  //...
+                  resCompute(true);
+                })
+                .catch((error) => {
+                  logger.info(error);
+                  resCompute(false);
+                });
+            });
+          });
+          //...
+          Promise.all(parentPromises)
+            .then((result) => {
+              logger.warn(result);
+
+              //? Generate graph ready data
+              RETURN_DATA_MODEL.transactionData.map((dataPoint) => {
+                let dateReference = getDateOfISOWeek(
+                  dataPoint.week_number,
+                  dataPoint.year_number
+                );
+
+                //? 1. Get daily view data
+                RETURN_DATA_MODEL.graphReadyData.daily_view.earnings_related[
+                  `${dataPoint.week_number}-${dataPoint.year_number}`
+                ] =
+                  RETURN_DATA_MODEL.graphReadyData.daily_view.earnings_related[
+                    `${dataPoint.week_number}-${dataPoint.year_number}`
+                  ] !== undefined
+                    ? RETURN_DATA_MODEL.graphReadyData.daily_view
+                        .earnings_related[
+                        `${dataPoint.week_number}-${dataPoint.year_number}`
+                      ]
+                    : [];
+                RETURN_DATA_MODEL.graphReadyData.daily_view.requests_related[
+                  `${dataPoint.week_number}-${dataPoint.year_number}`
+                ] =
+                  RETURN_DATA_MODEL.graphReadyData.daily_view.requests_related[
+                    `${dataPoint.week_number}-${dataPoint.year_number}`
+                  ] !== undefined
+                    ? RETURN_DATA_MODEL.graphReadyData.daily_view
+                        .requests_related[
+                        `${dataPoint.week_number}-${dataPoint.year_number}`
+                      ]
+                    : [];
+                //prepare the data
+                //Earning and requests
+                for (var key in dataPoint.daily_earning) {
+                  let tmpDailyDataPointEarning = {
+                    x: dataPoint.daily_earning[key].earning,
+                    y: key,
+                  };
+                  //...
+                  let tmpDailyDataPointRequests = {
+                    x: dataPoint.daily_earning[key].requests,
+                    y: key,
+                  };
+                  //...Earning
+                  RETURN_DATA_MODEL.graphReadyData.daily_view.earnings_related[
+                    `${dataPoint.week_number}-${dataPoint.year_number}`
+                  ].push(tmpDailyDataPointEarning);
+                  //...Requests
+                  RETURN_DATA_MODEL.graphReadyData.daily_view.requests_related[
+                    `${dataPoint.week_number}-${dataPoint.year_number}`
+                  ].push(tmpDailyDataPointRequests);
+                }
+
+                //? 2. Get weekly view data
+                RETURN_DATA_MODEL.graphReadyData.weekly_view.earnings_related[
+                  dateReference.getFullYear()
+                ] =
+                  RETURN_DATA_MODEL.graphReadyData.weekly_view.earnings_related[
+                    dateReference.getFullYear()
+                  ] !== undefined
+                    ? RETURN_DATA_MODEL.graphReadyData.weekly_view
+                        .earnings_related[dateReference.getFullYear()]
+                    : [];
+                RETURN_DATA_MODEL.graphReadyData.weekly_view.requests_related[
+                  dateReference.getFullYear()
+                ] =
+                  RETURN_DATA_MODEL.graphReadyData.weekly_view.requests_related[
+                    dateReference.getFullYear()
+                  ] !== undefined
+                    ? RETURN_DATA_MODEL.graphReadyData.weekly_view
+                        .requests_related[dateReference.getFullYear()]
+                    : [];
+                //...
+                let tmpEarning = {
+                  x: dataPoint.week_number,
+                  y: dataPoint.total_earning,
+                };
+                //.
+                let tmpRequests = {
+                  x: dataPoint.week_number,
+                  y:
+                    parseInt(dataPoint.total_rides) +
+                    parseInt(dataPoint.total_deliveries),
+                };
+                //...Save
+                //Earning
+                RETURN_DATA_MODEL.graphReadyData.weekly_view.earnings_related[
+                  dateReference.getFullYear()
+                ].push(tmpEarning);
+                //Requests
+                RETURN_DATA_MODEL.graphReadyData.weekly_view.requests_related[
+                  dateReference.getFullYear()
+                ].push(tmpRequests);
+
+                //? 3. Get monthly view data
+                //..
+                RETURN_DATA_MODEL.graphReadyData.montly_view.earnings_related[
+                  `${
+                    dateReference.getMonth() + 1
+                  }-${dateReference.getFullYear()}`
+                ] =
+                  RETURN_DATA_MODEL.graphReadyData.montly_view.earnings_related[
+                    `${
+                      dateReference.getMonth() + 1
+                    }-${dateReference.getFullYear()}`
+                  ] !== undefined
+                    ? RETURN_DATA_MODEL.graphReadyData.montly_view
+                        .earnings_related[
+                        `${
+                          dateReference.getMonth() + 1
+                        }-${dateReference.getFullYear()}`
+                      ]
+                    : [];
+                RETURN_DATA_MODEL.graphReadyData.montly_view.requests_related[
+                  `${
+                    dateReference.getMonth() + 1
+                  }-${dateReference.getFullYear()}`
+                ] =
+                  RETURN_DATA_MODEL.graphReadyData.montly_view.requests_related[
+                    `${
+                      dateReference.getMonth() + 1
+                    }-${dateReference.getFullYear()}`
+                  ] !== undefined
+                    ? RETURN_DATA_MODEL.graphReadyData.montly_view
+                        .requests_related[
+                        `${
+                          dateReference.getMonth() + 1
+                        }-${dateReference.getFullYear()}`
+                      ]
+                    : [];
+                //...
+                tmpEarning = {
+                  x: dateReference.getMonth() + 1,
+                  y: dataPoint.total_earning,
+                };
+                //.
+                tmpRequests = {
+                  x: dateReference.getMonth() + 1,
+                  y:
+                    parseInt(dataPoint.total_rides) +
+                    parseInt(dataPoint.total_deliveries),
+                };
+                //...Save
+                //Earning
+                RETURN_DATA_MODEL.graphReadyData.montly_view.earnings_related[
+                  `${
+                    dateReference.getMonth() + 1
+                  }-${dateReference.getFullYear()}`
+                ].push(tmpEarning);
+                //Requests
+                RETURN_DATA_MODEL.graphReadyData.montly_view.requests_related[
+                  `${
+                    dateReference.getMonth() + 1
+                  }-${dateReference.getFullYear()}`
+                ].push(tmpRequests);
+
+                //? 4. Get yearly view data
+                //..
+                RETURN_DATA_MODEL.graphReadyData.yearly_view.earnings_related[
+                  dateReference.getFullYear()
+                ] =
+                  RETURN_DATA_MODEL.graphReadyData.yearly_view.earnings_related[
+                    dateReference.getFullYear()
+                  ] !== undefined
+                    ? RETURN_DATA_MODEL.graphReadyData.yearly_view
+                        .earnings_related[dateReference.getFullYear()]
+                    : [];
+                RETURN_DATA_MODEL.graphReadyData.yearly_view.requests_related[
+                  dateReference.getFullYear()
+                ] =
+                  RETURN_DATA_MODEL.graphReadyData.yearly_view.requests_related[
+                    dateReference.getFullYear()
+                  ] !== undefined
+                    ? RETURN_DATA_MODEL.graphReadyData.yearly_view
+                        .requests_related[dateReference.getFullYear()]
+                    : [];
+                //...
+                tmpEarning = {
+                  x: dateReference.getFullYear(),
+                  y: dataPoint.total_earning,
+                };
+                //.
+                tmpRequests = {
+                  x: dateReference.getFullYear(),
+                  y:
+                    parseInt(dataPoint.total_rides) +
+                    parseInt(dataPoint.total_deliveries),
+                };
+                //...Save
+                //Earning
+                RETURN_DATA_MODEL.graphReadyData.yearly_view.earnings_related[
+                  dateReference.getFullYear()
+                ].push(tmpEarning);
+                //Requests
+                RETURN_DATA_MODEL.graphReadyData.yearly_view.requests_related[
+                  dateReference.getFullYear()
+                ].push(tmpRequests);
+              });
+
+              //?Reduce monthly to single - earning
+              let tmpReducedHolder = {};
+              for (var key in RETURN_DATA_MODEL.graphReadyData.montly_view
+                .earnings_related) {
+                tmpReducedHolder[key.split("-")[1]] =
+                  tmpReducedHolder[key.split("-")[1]] !== undefined
+                    ? tmpReducedHolder[key.split("-")[1]]
+                    : [];
+                //...
+                tmpReducedHolder[key.split("-")[1]].push({
+                  x: parseInt(key),
+                  y: RETURN_DATA_MODEL.graphReadyData.montly_view.earnings_related[
+                    key
+                  ].reduce((accumulator, curr) => accumulator + curr.y, 0),
+                });
+              }
+              //Overwrite the prev month data
+              RETURN_DATA_MODEL.graphReadyData.montly_view.earnings_related =
+                tmpReducedHolder;
+
+              //?Reduce monthly to single - requests
+              tmpReducedHolder = {};
+              for (var key in RETURN_DATA_MODEL.graphReadyData.montly_view
+                .requests_related) {
+                tmpReducedHolder[key.split("-")[1]] =
+                  tmpReducedHolder[key.split("-")[1]] !== undefined
+                    ? tmpReducedHolder[key.split("-")[1]]
+                    : [];
+                //...
+                tmpReducedHolder[key.split("-")[1]].push({
+                  x: parseInt(key),
+                  y: RETURN_DATA_MODEL.graphReadyData.montly_view.requests_related[
+                    key
+                  ].reduce((accumulator, curr) => accumulator + curr.y, 0),
+                });
+              }
+              //Overwrite the prev month data
+              RETURN_DATA_MODEL.graphReadyData.montly_view.requests_related =
+                tmpReducedHolder;
+
+              // //?Reduce yearly to single - earning
+              tmpReducedHolder = {};
+              for (var key in RETURN_DATA_MODEL.graphReadyData.yearly_view
+                .earnings_related) {
+                tmpReducedHolder[key] =
+                  tmpReducedHolder[key] !== undefined
+                    ? tmpReducedHolder[key]
+                    : [];
+                //...
+                tmpReducedHolder[key].push({
+                  x: parseInt(key),
+                  y: RETURN_DATA_MODEL.graphReadyData.yearly_view.earnings_related[
+                    key
+                  ].reduce((accumulator, curr) => accumulator + curr.y, 0),
+                });
+              }
+              //Overwrite the prev month data
+              RETURN_DATA_MODEL.graphReadyData.yearly_view.earnings_related =
+                tmpReducedHolder;
+
+              // //?Reduce yearly to single - requests
+              tmpReducedHolder = {};
+              for (var key in RETURN_DATA_MODEL.graphReadyData.yearly_view
+                .requests_related) {
+                tmpReducedHolder[key] =
+                  tmpReducedHolder[key] !== undefined
+                    ? tmpReducedHolder[key]
+                    : [];
+                //...
+                tmpReducedHolder[key].push({
+                  x: parseInt(key),
+                  y: RETURN_DATA_MODEL.graphReadyData.yearly_view.requests_related[
+                    key
+                  ].reduce((accumulator, curr) => accumulator + curr.y, 0),
+                });
+              }
+              //Overwrite the prev month data
+              RETURN_DATA_MODEL.graphReadyData.yearly_view.requests_related =
+                tmpReducedHolder;
+
+              //? Remove unneccessary data
+              RETURN_DATA_MODEL.transactionData = undefined;
+
+              //?DONE _ PACK
+              let finalResponse = {
+                response: RETURN_DATA_MODEL,
+              };
+              //!Cache the result
+              new Promise((resCache) => {
+                redisCluster.setex(
+                  redisKey,
+                  parseInt(process.env.REDIS_EXPIRATION_5MIN) * 1440,
+                  JSON.stringify(finalResponse)
+                );
+                resCache(true);
+              })
+                .then()
+                .catch();
+              //...
+              resolve(finalResponse);
+            })
+            .catch((error) => {
+              logger.error(error);
+              resolve({ response: "error" });
+            });
+        } //No drivers
+        else {
+          resolve({ response: "no_driver_data" });
+        }
+      });
+  }
+  //Invalid op
   else {
     resolve({ response: "error_invalid_op" });
   }

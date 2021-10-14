@@ -5,7 +5,7 @@ module.exports = {
       script: "./server/drivers-service/driverServer.js",
       instances: 1,
       autorestart: true,
-      watch: false,
+      watch: true,
       max_memory_restart: "3G",
       env: {
         NODE_ENV: "production",
@@ -16,7 +16,7 @@ module.exports = {
       script: "./server/passengers-service/passengerServer.js",
       instances: 1,
       autorestart: true,
-      watch: false,
+      watch: true,
       max_memory_restart: "3G",
       env: {
         NODE_ENV: "production",
@@ -27,7 +27,7 @@ module.exports = {
       script: "./server/central-service/centralServer.js",
       instances: 1,
       autorestart: true,
-      watch: false,
+      watch: true,
       max_memory_restart: "3G",
       env: {
         NODE_ENV: "production",
@@ -38,7 +38,7 @@ module.exports = {
       script: "./server/main-view-service/mainViewServer.js",
       instances: 1,
       autorestart: true,
-      watch: false,
+      watch: true,
       max_memory_restart: "2G",
       env: {
         NODE_ENV: "production",
@@ -49,7 +49,7 @@ module.exports = {
       name: "Main UI Dashboard",
       script: "cd ./client/Internal-Dashboards && npm start",
       autorestart: true,
-      watch: false,
+      watch: true,
       max_memory_restart: "3G",
       env: {
         NODE_ENV: "production",
@@ -61,7 +61,7 @@ module.exports = {
       script: "./server/plot-service/plotServer.js",
       instances: 1,
       autorestart: true,
-      watch: false,
+      watch: true,
       max_memory_restart: "3G",
       env: {
         NODE_ENV: "production",

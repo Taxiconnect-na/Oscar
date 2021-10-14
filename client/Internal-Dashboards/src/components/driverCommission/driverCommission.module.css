@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .globalNumbersContainer {
@@ -50,4 +50,167 @@
 
 .bodyTableContainer > tr > td {
   border: 1px solid #d0d0d0;
+}
+
+.bodyTableContainer > tr > td:hover {
+  background-color: #d0d0d0;
+  cursor: pointer;
+}
+
+.driverNameContainer {
+  /* border: 1px solid black; */
+  display: flex;
+  flex-direction: row;
+}
+
+.driverNameText {
+  font-family: "MoveTextMedium", sans-serif;
+  margin-right: 15px;
+  font-size: 15px;
+}
+
+.driverNo {
+  font-family: "MoveTextMedium", sans-serif;
+  color: #096ed4;
+  font-size: 15px;
+}
+
+.chartContainer {
+  border: 1px solid #d0d0d0;
+  width: 100%;
+  margin-top: 15px;
+  margin-bottom: 20px;
+  height: 480px;
+  background-color: #fff;
+  padding-top: 25px;
+}
+
+.selectGenericBasic {
+  border: 1px solid #d0d0d0;
+  font-size: 15px;
+  padding: 10px;
+  width: 100px;
+  margin-right: 10px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.graphSettings {
+  /* border: 1px solid black; */
+  display: flex;
+  flex-direction: row;
+  padding-top: 20px;
+}
+
+.labelGraphSettings {
+  font-family: "MoveTextLight", sans-serif;
+  font-size: 12px;
+}
+
+.profileContainer {
+  border: 1px solid #d0d0d0;
+  margin-top: 100px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: row;
+  background-color: #fff;
+  padding: 15px;
+}
+
+.personalDetContainer {
+  /* border: 1px solid red; */
+  flex: 1;
+}
+
+.profilePicContainer {
+  border: 1px solid black;
+  width: 100px;
+  height: 100px;
+  margin-right: 20px;
+}
+
+.lineDetailInfo {
+  /* border: 1px solid black; */
+  margin-bottom: 5px;
+}
+
+.detailInfoReal {
+  font-family: "MoveTextMedium", sans-serif;
+  font-size: 14px;
+}
+
+.labelPersonalInfos {
+  font-family: "MoveTextLight", sans-serif;
+  font-size: 11px;
+}
+
+.commisionDetailsBrief {
+  /* border: 1px solid blue; */
+  flex: 1;
+}
+
+.subTitleGeneric {
+  font-family: "MoveTextBold", sans-serif;
+  margin-top: 40px;
+}
+
+.settlementContainer {
+  border: 1px solid #d0d0d0;
+  padding: 15px;
+  margin-top: 20px;
+  background-color: #fff;
+}
+
+.infoGeneric {
+  /* border: 1px solid black; */
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  font-family: "MoveTextLight", sans-serif;
+  font-size: 13px;
+  margin-bottom: 30px;
+  margin-top: 10px;
+}
+
+.inputGeneric {
+  border: 1px solid #d0d0d0;
+  padding: 10px;
+  width: 300px;
+  font-size: 15px;
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+  margin-bottom: 20px;
+}
+
+.settlementLabelBasic {
+  font-family: "MoveTextMedium", sans-serif;
+  font-size: 14px;
+  position: relative;
+  bottom: 1px;
+  margin-left: 4px;
+  color: #096ed4;
+  cursor: pointer;
+}
+
+.submitField {
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-top: 30px;
+  padding-top: 20px;
+}
+
+.genericButton {
+  border: 1px solid #096ed4;
+  width: 200px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "MoveTextMedium", sans-serif;
+  border-radius: 3px;
+  background-color: #096ed4;
+  color: #fff;
+  cursor: pointer;
 }

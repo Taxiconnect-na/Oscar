@@ -342,7 +342,7 @@ class Sidebar extends React.PureComponent {
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
             <MenuItem className="menuItemSideBar">
-              <Link className="menuText" to="/driver-commission">
+              <Link className="menuText" to="/Commission">
                 <ImPieChart style={iconStyle} />
                 <span className="menuText">Commissions</span>
               </Link>
