@@ -22,20 +22,49 @@ import {
 } from "react-vis";
 import "react-vis/dist/style.css";
 import { MdInfo, MdDescription, MdReportProblem } from "react-icons/md";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Modal from "@mui/material/Modal";
 
 const FlexibleXYPlot = makeWidthFlexible(XYPlot);
+
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  border: "1px solid #fff",
+  boxShadow: 24,
+  borderRadius: 2,
+  p: 4,
+};
 
 export class driverCommissionDetailed extends Component {
   constructor(props) {
     super(props);
 
+    if (
+      this.props.App.selectedDriverForCommissionDetails === null ||
+      (this.props.App.selectedDriverForCommissionDetails === null) ===
+        undefined ||
+      this.props.App.selectedDriverForCommissionDetails === ""
+    ) {
+      window.location.href = "/Commission";
+    }
+
     this.SOCKET_CORE = SOCKET_CORE;
+
+    this.intervalPersister = null;
 
     this.state = {
       crosshairValues: [],
       distilledCoreData: {}, //Will hold the core data
       isLoading: true, //If the man window is loading
       isSmallLoading: false, //If the perister is loading
+      isLoadingSettlement: false, //If loading for the settlement
       //...Graph settings
       yearSelected: null,
       periodSelected: "daily",
@@ -51,11 +80,35 @@ export class driverCommissionDetailed extends Component {
       shouldClearWallet: false,
       //Errors management
       showErrorWarning: false,
+      //Settlement feedbacks
+      someErrorsHappened: false, //After the settlement request is complete - false: successful, true: errored
+      showModalFeedback: false, //If to show the modal infos for success or error or not.
+      flag_errorFeedback: "error", //The error name returned
     };
+  }
+
+  componentWillMount() {
+    if (
+      this.props.App.selectedDriverForCommissionDetails === null ||
+      (this.props.App.selectedDriverForCommissionDetails === null) ===
+        undefined ||
+      this.props.App.selectedDriverForCommissionDetails === ""
+    ) {
+      window.location.href = "/Commission";
+    }
   }
 
   componentDidMount() {
     let globalObject = this;
+
+    if (
+      this.props.App.selectedDriverForCommissionDetails === null ||
+      (this.props.App.selectedDriverForCommissionDetails === null) ===
+        undefined ||
+      this.props.App.selectedDriverForCommissionDetails === ""
+    ) {
+      window.location.href = "/Commission";
+    }
 
     this.startIntervalDataFetcher();
 
@@ -64,7 +117,6 @@ export class driverCommissionDetailed extends Component {
     this.SOCKET_CORE.on(
       "getDriversComissionFront-response",
       function (response) {
-        // console.log(response);
         if (
           response !== undefined &&
           response !== null &&
@@ -85,6 +137,36 @@ export class driverCommissionDetailed extends Component {
         }
       }
     );
+
+    //1. Handle settlement events
+    this.SOCKET_CORE.on(
+      "settleCommissionOrWallet_io-response",
+      function (response) {
+        if (
+          response !== undefined &&
+          response !== null &&
+          response.response !== undefined &&
+          /error/i.test(response.response) === false
+        ) {
+          //SUCCESS
+          globalObject.setState({
+            flag_errorFeedback: "error",
+            someErrorsHappened: false,
+            showModalFeedback: true,
+            isLoadingSettlement: false,
+          });
+        } //Some error happened
+        else {
+          globalObject.setState({
+            flag_errorFeedback:
+              response.response !== undefined ? response.response : "error",
+            someErrorsHappened: true,
+            showModalFeedback: true,
+            isLoadingSettlement: false,
+          });
+        }
+      }
+    );
   }
 
   componentWillUnmount() {
@@ -97,8 +179,7 @@ export class driverCommissionDetailed extends Component {
     //Starter
     globalObject.SOCKET_CORE.emit("getDriversComissionFront", {
       op: "getTargetedData",
-      driver_fingerprint:
-        "898ee18c07a91d4f03567e7003595708db1a6e1f15d107645fc49aaf005e3aafd90b39c847a70100",
+      driver_fingerprint: this.props.App.selectedDriverForCommissionDetails,
     });
     //...
     this.intervalPersister = setInterval(function () {
@@ -106,9 +187,9 @@ export class driverCommissionDetailed extends Component {
       globalObject.SOCKET_CORE.emit("getDriversComissionFront", {
         op: "getTargetedData",
         driver_fingerprint:
-          "898ee18c07a91d4f03567e7003595708db1a6e1f15d107645fc49aaf005e3aafd90b39c847a70100",
+          globalObject.props.App.selectedDriverForCommissionDetails,
       });
-    }, 10000);
+    }, 2000);
   }
 
   /**
@@ -180,7 +261,6 @@ export class driverCommissionDetailed extends Component {
         //Daily data
         //Check for the week
         let specificKey = `${this.state.weekSelected}-${this.state.yearSelected}`;
-        console.log(specificKey);
         this.setState({
           filteredData:
             this.state.distilledCoreData.response.graphReadyData.daily_view
@@ -188,7 +268,6 @@ export class driverCommissionDetailed extends Component {
         });
       } else if (/weekly/i.test(this.state.periodSelected)) {
         //Weekly data - check for the year
-        console.log(this.state.yearSelected);
         this.setState({
           filteredData:
             this.state.distilledCoreData.response.graphReadyData.weekly_view
@@ -196,7 +275,6 @@ export class driverCommissionDetailed extends Component {
         });
       } else if (/monthly/i.test(this.state.periodSelected)) {
         //Monthly data - check for the year
-        console.log(this.state.yearSelected);
         this.setState({
           filteredData:
             this.state.distilledCoreData.response.graphReadyData.montly_view
@@ -204,7 +282,6 @@ export class driverCommissionDetailed extends Component {
         });
       } else if (/yearly/i.test(this.state.periodSelected)) {
         //Yearly data - check for the year
-        console.log(this.state.yearSelected);
         this.setState({
           filteredData:
             this.state.distilledCoreData.response.graphReadyData.yearly_view
@@ -216,13 +293,11 @@ export class driverCommissionDetailed extends Component {
         return [];
       }
     } else if (/requests/i.test(this.state.typeSelected)) {
-      console.log("Requests");
       //Requests data
       if (/daily/i.test(this.state.periodSelected)) {
         //Daily data
         //Check for the week
         let specificKey = `${this.state.weekSelected}-${this.state.yearSelected}`;
-        console.log(specificKey);
         this.setState({
           filteredData:
             this.state.distilledCoreData.response.graphReadyData.daily_view
@@ -230,7 +305,6 @@ export class driverCommissionDetailed extends Component {
         });
       } else if (/weekly/i.test(this.state.periodSelected)) {
         //Weekly data - check for the year
-        console.log(this.state.yearSelected);
         this.setState({
           filteredData:
             this.state.distilledCoreData.response.graphReadyData.weekly_view
@@ -238,7 +312,6 @@ export class driverCommissionDetailed extends Component {
         });
       } else if (/monthly/i.test(this.state.periodSelected)) {
         //Monthly data - check for the year
-        console.log(this.state.yearSelected);
         this.setState({
           filteredData:
             this.state.distilledCoreData.response.graphReadyData.montly_view
@@ -246,7 +319,6 @@ export class driverCommissionDetailed extends Component {
         });
       } else if (/yearly/i.test(this.state.periodSelected)) {
         //Yearly data - check for the year
-        console.log(this.state.yearSelected);
         this.setState({
           filteredData:
             this.state.distilledCoreData.response.graphReadyData.yearly_view
@@ -294,6 +366,7 @@ export class driverCommissionDetailed extends Component {
       this.state.shouldClearWallet
     ) {
       let bundleFinancialUpdate = {
+        driver_fingerprint: this.props.App.selectedDriverForCommissionDetails,
         settlementOption: this.state.settlementOption,
         valueSettlement: this.state.valueSettlement,
         shouldClearOutstandingCommission:
@@ -309,7 +382,17 @@ export class driverCommissionDetailed extends Component {
         },
       };
       //...
-      console.log(bundleFinancialUpdate);
+      this.setState({
+        isLoadingSettlement: true,
+        valueSettlement: 0,
+        shouldClearOutstandingCommission: false,
+        shouldClearWallet: false,
+      });
+
+      this.SOCKET_CORE.emit(
+        "settleCommissionOrWallet_io",
+        bundleFinancialUpdate
+      );
     } //Error
     else {
       this.setState({ showErrorWarning: true });
@@ -317,6 +400,15 @@ export class driverCommissionDetailed extends Component {
   }
 
   render() {
+    if (
+      this.props.App.selectedDriverForCommissionDetails === null ||
+      (this.props.App.selectedDriverForCommissionDetails === null) ===
+        undefined ||
+      this.props.App.selectedDriverForCommissionDetails === ""
+    ) {
+      window.location.href = "/Commission";
+    }
+
     let xAxisLabels = {
       daily: "Days",
       weekly: "Weeks",
@@ -333,6 +425,68 @@ export class driverCommissionDetailed extends Component {
           marginBottom: "100px",
         }}
       >
+        <Modal
+          open={this.state.showModalFeedback}
+          onClose={() =>
+            this.setState({
+              showModalFeedback: false,
+              someErrorsHappened: false,
+            })
+          }
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          {this.state.someErrorsHappened ? (
+            <Box sx={style}>
+              <Typography
+                id="modal-modal-title"
+                variant="h6"
+                component="h2"
+                style={{ fontWeight: "bold", fontSize: 15, color: "#b22222" }}
+              >
+                Unable to make the changes
+              </Typography>
+              {/error_incoherent_dataRefs/i.test(
+                this.state.flag_errorFeedback
+              ) ? (
+                <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                  It looks like you are trying to update the driver account
+                  before your previous change has taken effect, please wait for
+                  about 1 min for your previous change to take effect and try
+                  again.
+                </Typography>
+              ) : (
+                <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                  I was unable to make the desired chages due to some unexpected
+                  error, please try refreshing this window and try again, or if
+                  it persists, drop an email with a screenshot and detailed of
+                  the problem at <strong>dominique@taxiconnectna.com</strong>
+                </Typography>
+              )}
+            </Box>
+          ) : (
+            <Box sx={style}>
+              <Typography
+                id="modal-modal-title"
+                variant="h6"
+                component="h2"
+                style={{
+                  fontFamily: "MoveTextBold",
+                  fontSize: 15,
+                  color: "#09864A",
+                }}
+              >
+                Account successfully updated.
+              </Typography>
+              <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                The changes to the driver's financial account have been
+                successfully applied, and they should be visible within the next
+                2 minutes.
+              </Typography>
+            </Box>
+          )}
+        </Modal>
+
         {this.state.isLoading ? (
           <div
             style={{
@@ -389,9 +543,21 @@ export class driverCommissionDetailed extends Component {
                   </div>
                 </div>
               </div>
-              {/* <div className={classes.switchView}>
-                Graph settings for display
-              </div> */}
+              <div className={classes.switchView}>
+                {this.state.isSmallLoading && this.state.isLoading === false ? (
+                  <div style={{ marginLeft: 20 }}>
+                    <Loader
+                      type="TailSpin"
+                      color="#000"
+                      height={18}
+                      width={18}
+                      timeout={300000000} //3 secs
+                    />
+                  </div>
+                ) : (
+                  <></>
+                )}
+              </div>
             </div>
 
             <div className={classes.chartContainer}>
@@ -627,195 +793,253 @@ export class driverCommissionDetailed extends Component {
             {/* Commission ops */}
             <div className={classes.subTitleGeneric}>Settlement</div>
             <div className={classes.settlementContainer}>
-              <div className={classes.infoGeneric}>
-                <MdInfo
-                  style={{ position: "relative", top: 3, marginRight: 5 }}
-                />{" "}
-                <div>
-                  Use this tool to pay the driver's commission or to empty the
-                  wallet after settlement.
-                  <br />
-                  <strong>
-                    It might take about 2 min before the update is applied to
-                    the driver's financial records.
-                  </strong>
-                </div>
-              </div>
-              <div>
-                <input
-                  type="number"
-                  placeholder="Amount (N$)"
-                  className={classes.inputGeneric}
-                  disabled={
-                    /commissionSettlement/i.test(this.state.settlementOption)
-                      ? this.state.shouldClearOutstandingCommission
-                      : this.state.shouldClearWallet
-                  }
-                  value={
-                    /commissionSettlement/i.test(this.state.settlementOption)
-                      ? this.state.shouldClearOutstandingCommission
-                        ? this.state.distilledCoreData.response.driversData[0]
-                            .remaining_commission
-                        : this.state.valueSettlement
-                      : this.state.shouldClearWallet
-                      ? this.state.distilledCoreData.response.driversData[0]
-                          .remaining_due_to_driver
-                      : this.state.valueSettlement
-                  }
-                  onChange={(val) => {
-                    let relativeMax = /commissionSettlement/i.test(
-                      this.state.settlementOption
-                    )
-                      ? this.state.distilledCoreData.response.driversData[0]
-                          .remaining_commission
-                      : this.state.distilledCoreData.response.driversData[0]
-                          .remaining_due_to_driver;
-                    //...
-                    if (val.target.value > relativeMax) {
-                      this.setState({
-                        valueSettlement: relativeMax,
-                        showErrorWarning: false,
-                      });
-                    } else if (val.target.value < 0) {
-                      this.setState({
-                        valueSettlement: 0,
-                        showErrorWarning: false,
-                      });
-                    }
-                    //Within bounds
-                    else {
-                      this.setState({
-                        valueSettlement: parseFloat(val.target.value),
-                        showErrorWarning: false,
-                      });
-                    }
-                  }}
-                />
-                <select
-                  className={classes.selectGenericBasic}
+              {this.state.isLoadingSettlement ? (
+                <div
                   style={{
-                    width: 230,
-                    padding: 11,
-                    borderTopLeftRadius: 0,
-                    borderBottomLeftRadius: 0,
-                    backgroundColor: "#f0f0f0",
-                    position: "relative",
-                    bottom: 0.5,
-                  }}
-                  onChange={(val) => {
-                    this.state.settlementOption = val.target.value;
-                    //! Update the previous settlement values
-                    let relativeMax = /commissionSettlement/i.test(
-                      this.state.settlementOption
-                    )
-                      ? this.state.distilledCoreData.response.driversData[0]
-                          .remaining_commission
-                      : this.state.distilledCoreData.response.driversData[0]
-                          .remaining_due_to_driver;
-                    //...
-                    if (this.state.valueSettlement > relativeMax) {
-                      this.setState({
-                        valueSettlement: relativeMax,
-                        showErrorWarning: false,
-                      });
-                    } //Within bounds
-                    else {
-                      this.setState({
-                        valueSettlement: this.state.valueSettlement,
-                        showErrorWarning: false,
-                      });
-                    }
+                    width: "100%",
+                    height: 200,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  <option value="commissionSettlement">
-                    Commission settlement
-                  </option>
-                  <option value="walletSettlement">Wallet settlement</option>
-                </select>
-              </div>
-              {/* Max amount notice */}
-              <div className={classes.maxQuotasSettlements}>
-                <div className={classes.lineMaxQuotasSett}>
-                  <div className={classes.labelMaxQStt}>Max commission</div> N$
-                  {
-                    this.state.distilledCoreData.response.driversData[0]
-                      .remaining_commission
-                  }
+                  <Loader
+                    type="TailSpin"
+                    color="#000"
+                    height={25}
+                    width={25}
+                    timeout={300000000} //3 secs
+                  />
+                  <div style={{ fontSize: 15, marginTop: 25 }}>
+                    Updating the account...
+                  </div>
                 </div>
-                <div className={classes.lineMaxQuotasSett}>
-                  <div className={classes.labelMaxQStt}>Max wallet</div> N$
-                  {
-                    this.state.distilledCoreData.response.driversData[0]
-                      .remaining_due_to_driver
-                  }
-                </div>
-              </div>
-              {/* Options */}
-              <div>
-                <input
-                  type="checkbox"
-                  id="clearCommission"
-                  name="clearCommission"
-                  onChange={(val) => {
-                    this.setState({
-                      shouldClearOutstandingCommission: val.target.checked,
-                      showErrorWarning: false,
-                    });
-                  }}
-                />
-                <label
-                  htmlFor="clearCommission"
-                  className={classes.settlementLabelBasic}
-                >
-                  Clear the outstanding commission
-                </label>
-                <br />
-                <input
-                  type="checkbox"
-                  id="emptyWallet"
-                  name="emptyWallet"
-                  onChange={(val) => {
-                    this.setState({
-                      shouldClearWallet: val.target.checked,
-                      showErrorWarning: false,
-                    });
-                  }}
-                />
-                <label
-                  htmlFor="emptyWallet"
-                  className={classes.settlementLabelBasic}
-                >
-                  Clear the wallet
-                </label>
-              </div>
-
-              {/* Submit */}
-              <div className={classes.submitField}>
-                {this.state.showErrorWarning ? (
-                  <div className={classes.errorContainer}>
-                    <MdReportProblem
-                      style={{
-                        position: "relative",
-                        marginRight: 4,
-                        width: 20,
-                        height: 20,
+              ) : (
+                <>
+                  <div className={classes.infoGeneric}>
+                    <MdInfo
+                      style={{ position: "relative", top: 3, marginRight: 5 }}
+                    />{" "}
+                    <div>
+                      Use this tool to pay the driver's commission or to empty
+                      the wallet after settlement.
+                      <br />
+                      <strong>
+                        It might take about 2 min before the update is applied
+                        to the driver's financial records.
+                      </strong>
+                    </div>
+                  </div>
+                  <div>
+                    <input
+                      type="number"
+                      placeholder="Amount (N$)"
+                      className={classes.inputGeneric}
+                      disabled={
+                        /commissionSettlement/i.test(
+                          this.state.settlementOption
+                        )
+                          ? this.state.shouldClearOutstandingCommission
+                          : this.state.shouldClearWallet
+                      }
+                      value={
+                        /commissionSettlement/i.test(
+                          this.state.settlementOption
+                        )
+                          ? this.state.shouldClearOutstandingCommission
+                            ? this.state.distilledCoreData.response
+                                .driversData[0].remaining_commission
+                            : this.state.valueSettlement
+                          : this.state.shouldClearWallet
+                          ? this.state.distilledCoreData.response.driversData[0]
+                              .remaining_due_to_driver
+                          : this.state.valueSettlement
+                      }
+                      onChange={(val) => {
+                        let relativeMax = /commissionSettlement/i.test(
+                          this.state.settlementOption
+                        )
+                          ? this.state.distilledCoreData.response.driversData[0]
+                              .remaining_commission
+                          : this.state.distilledCoreData.response.driversData[0]
+                              .remaining_due_to_driver;
+                        //...
+                        if (val.target.value > relativeMax) {
+                          this.setState({
+                            valueSettlement: relativeMax,
+                            showErrorWarning: false,
+                          });
+                        } else if (val.target.value < 0) {
+                          this.setState({
+                            valueSettlement: 0,
+                            showErrorWarning: false,
+                          });
+                        }
+                        //Within bounds
+                        else {
+                          this.setState({
+                            valueSettlement: parseFloat(val.target.value),
+                            showErrorWarning: false,
+                          });
+                        }
                       }}
                     />
-                    <span>
-                      Please provide substancial information about how you would
-                      like to update the account.
-                    </span>
+                    <select
+                      className={classes.selectGenericBasic}
+                      style={{
+                        width: 230,
+                        padding: 11,
+                        borderTopLeftRadius: 0,
+                        borderBottomLeftRadius: 0,
+                        backgroundColor: "#f0f0f0",
+                        position: "relative",
+                        bottom: 0.5,
+                      }}
+                      onChange={(val) => {
+                        this.state.settlementOption = val.target.value;
+                        //! Update the previous settlement values
+                        let relativeMax = /commissionSettlement/i.test(
+                          this.state.settlementOption
+                        )
+                          ? this.state.distilledCoreData.response.driversData[0]
+                              .remaining_commission
+                          : this.state.distilledCoreData.response.driversData[0]
+                              .remaining_due_to_driver;
+                        //...
+                        if (this.state.valueSettlement > relativeMax) {
+                          this.setState({
+                            valueSettlement: relativeMax,
+                            showErrorWarning: false,
+                          });
+                        } //Within bounds
+                        else {
+                          this.setState({
+                            valueSettlement: this.state.valueSettlement,
+                            showErrorWarning: false,
+                          });
+                        }
+                      }}
+                    >
+                      <option value="commissionSettlement">
+                        Commission settlement
+                      </option>
+                      <option value="walletSettlement">
+                        Wallet settlement
+                      </option>
+                    </select>
                   </div>
-                ) : (
-                  <div></div>
-                )}
-                <div className={classes.genericButton}>
-                  <MdDescription
-                    style={{ marginRight: 5, position: "relative", bottom: 1 }}
-                  />{" "}
-                  Apply
-                </div>
-              </div>
+                  {/* Max amount notice */}
+                  <div className={classes.maxQuotasSettlements}>
+                    <div className={classes.lineMaxQuotasSett}>
+                      <div className={classes.labelMaxQStt}>Max commission</div>{" "}
+                      N$
+                      {
+                        this.state.distilledCoreData.response.driversData[0]
+                          .remaining_commission
+                      }
+                    </div>
+                    <div className={classes.lineMaxQuotasSett}>
+                      <div className={classes.labelMaxQStt}>Max wallet</div> N$
+                      {
+                        this.state.distilledCoreData.response.driversData[0]
+                          .remaining_due_to_driver
+                      }
+                    </div>
+                  </div>
+                  {/* Options */}
+                  <div>
+                    <input
+                      type="checkbox"
+                      id="clearCommission"
+                      name="clearCommission"
+                      value={this.state.shouldClearOutstandingCommission}
+                      onChange={(val) => {
+                        this.setState({
+                          shouldClearOutstandingCommission: val.target.checked,
+                          showErrorWarning: false,
+                        });
+                      }}
+                    />
+                    <label
+                      htmlFor="clearCommission"
+                      className={classes.settlementLabelBasic}
+                    >
+                      Clear the outstanding commission
+                    </label>
+                    <br />
+                    <input
+                      type="checkbox"
+                      id="emptyWallet"
+                      name="emptyWallet"
+                      value={this.state.shouldClearWallet}
+                      onChange={(val) => {
+                        this.setState({
+                          shouldClearWallet: val.target.checked,
+                          showErrorWarning: false,
+                        });
+                      }}
+                    />
+                    <label
+                      htmlFor="emptyWallet"
+                      className={classes.settlementLabelBasic}
+                    >
+                      Clear the wallet
+                    </label>
+                  </div>
+
+                  {/* Submit */}
+                  <div className={classes.submitField}>
+                    {this.state.showErrorWarning ? (
+                      <div className={classes.errorContainer}>
+                        <MdReportProblem
+                          style={{
+                            position: "relative",
+                            marginRight: 4,
+                            width: 20,
+                            height: 20,
+                          }}
+                        />
+                        <span>
+                          Please provide substancial information about how you
+                          would like to update the account.
+                        </span>
+                      </div>
+                    ) : (
+                      <div></div>
+                    )}
+                    <div
+                      className={classes.genericButton}
+                      onClick={() =>
+                        this.state.isLoadingSettlement === false
+                          ? this.updateDriverFinancialAccount()
+                          : {}
+                      }
+                    >
+                      {this.state.isLoadingSettlement ? (
+                        <Loader
+                          type="TailSpin"
+                          color="#fff"
+                          height={23}
+                          width={23}
+                          timeout={300000000} //3 secs
+                        />
+                      ) : (
+                        <>
+                          <MdDescription
+                            style={{
+                              marginRight: 5,
+                              position: "relative",
+                              bottom: 1,
+                            }}
+                          />{" "}
+                          Apply
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             <div></div>
           </>

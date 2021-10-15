@@ -20,6 +20,7 @@ const crypto = require("crypto");
 const AWS = require("aws-sdk");
 const moment = require("moment");
 const { promisify } = require("util");
+const requestAPI = require("request");
 
 app.use(helmet());
 app.use(cors());
@@ -2462,6 +2463,7 @@ function execHandleCommissionPageOps(requestData, redisKey, resolve) {
                   surname: driver.surname,
                   phone: driver.phone_number,
                   taxi_number: driver.cars_data[0].taxi_number,
+                  driver_fp: driver.driver_fingerprint,
                 };
                 //...
                 RETURN_DATA_MODEL.driversData.push(tmpDriverWalletData.header);
@@ -2994,19 +2996,21 @@ function settlementDriversAccounts_ops(requestData, resolve) {
             ? true
             : false;
         //...
+        let url =
+          `${process.env.JERRY_ACCOUNT_SERVICE}` +
+          "/getDrivers_walletInfosDeep?user_fingerprint=" +
+          requestData.driver_fingerprint;
         //! Make sure that the values within bounds
         requestAPI(url, function (error, response, body) {
           if (error === null) {
             try {
               body = JSON.parse(body);
-
               //!Check
               if (
                 parseFloat(requestData.financialBrief.remaining_commission) <=
                   parseFloat(body.header.remaining_commission) &&
-                parseFloat(
-                  requestData.financialBrief.remaining_due_to_driver
-                ) <= parseFloat(body.header.remaining_due_to_driver)
+                parseFloat(requestData.financialBrief.wallet_balance) <=
+                  parseFloat(body.header.remaining_due_to_driver)
               ) {
                 //!WITHIN BOUNDS
                 //? CLear completly commission or wallet
@@ -3095,14 +3099,15 @@ function settlementDriversAccounts_ops(requestData, resolve) {
                   requestData.shouldClearWallet === false
                 ) {
                   if (
-                    /commissionSettlement/i.test(requestData.settlementOption)
+                    /commissionSettlement/i.test(
+                      requestData.settlementOption
+                    ) &&
+                    requestData.shouldClearOutstandingCommission === false
                   ) {
                     //COMMISSION
                     let transactionBundle = {
                       transaction_nature: "commissionTCSubtracted",
-                      amount: parseFloat(
-                        requestData.financialBrief.remaining_commission
-                      ),
+                      amount: parseFloat(requestData.valueSettlement),
                       receiver: "TAXICONNECT",
                       recipient_fp: requestData.driver_fingerprint,
                       date_captured: new Date(chaineDateUTC),
@@ -3116,18 +3121,34 @@ function settlementDriversAccounts_ops(requestData, resolve) {
                           resolve({ response: "error_updating_account" });
                         }
                         //...
+                        //? Update the driver account
+                        new Promise((resUpdateFinancial) => {
+                          let url =
+                            `${process.env.JERRY_ACCOUNT_SERVICE}` +
+                            "/getRiders_walletInfos?user_fingerprint=" +
+                            requestData.driver_fingerprint +
+                            "&userType=driver&avoidCached_data=true";
+                          //! Make sure that the values within bounds
+                          requestAPI(url, function (error, response, body) {
+                            resUpdateFinancial(true);
+                          });
+                        })
+                          .then()
+                          .catch();
                         //? DONE
                         resolve({ response: "successfully" });
                       }
                     );
                   } //Wallet settlement
-                  else {
+                  else if (
+                    /walletSettlement/i.test(requestData.settlementOption) &&
+                    requestData.shouldClearWallet === false
+                  ) {
                     let transactionBundle = {
                       payment_currency: "NAD",
                       transaction_nature: "weeklyPaidDriverAutomatic",
                       user_fingerprint: requestData.driver_f,
-                      amount:
-                        requestData.financialBrief.remaining_due_to_driver,
+                      amount: requestData.valueSettlement,
                       date_captured: new Date(chaineDateUTC),
                       timestamp: Math.round(new Date(chaineDateUTC).getTime()),
                     };
@@ -3140,10 +3161,27 @@ function settlementDriversAccounts_ops(requestData, resolve) {
                           resolve({ response: "error_updating_account" });
                         }
                         //...
+                        //? Update the driver account
+                        new Promise((resUpdateFinancial) => {
+                          let url =
+                            `${process.env.JERRY_ACCOUNT_SERVICE}` +
+                            "/getRiders_walletInfos?user_fingerprint=" +
+                            requestData.driver_fingerprint +
+                            "&userType=driver&avoidCached_data=true";
+                          //! Make sure that the values within bounds
+                          requestAPI(url, function (error, response, body) {
+                            resUpdateFinancial(true);
+                          });
+                        })
+                          .then()
+                          .catch();
                         //? DONE
                         resolve({ response: "successfully" });
                       }
                     );
+                  } //Alright solved
+                  else {
+                    resolve({ response: "successfully" });
                   }
                 } //Done successfully
                 else {
@@ -4394,7 +4432,6 @@ MongoClient.connect(
      * Get the commission page data
      */
     app.post("/handleCommissionPageOps", function (req, res) {
-      logger.info(req);
       new Promise((resolve) => {
         req = req.body;
         handleCommissionPageOps(req, resolve);
@@ -4435,6 +4472,23 @@ MongoClient.connect(
               result["stateHash"] = "genericHash";
               res.send(result);
             });
+        })
+        .catch((error) => {
+          logger.error(error);
+          res.send({ response: "error" });
+        });
+    });
+
+    /**
+     * Driver settlement API responsible for handling the settlement.
+     */
+    app.post("/driverSettlementOpes", function (req, res) {
+      new Promise((resolve) => {
+        req = req.body;
+        settlementDriversAccounts_ops(req, resolve);
+      })
+        .then((result) => {
+          res.send(result);
         })
         .catch((error) => {
           logger.error(error);

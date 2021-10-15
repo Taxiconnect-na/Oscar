@@ -706,6 +706,27 @@ io.on("connection", (socket) => {
       });
   });
 
+  /**
+   * Get the commission page related data
+   */
+  socket.on("settleCommissionOrWallet_io", function (data) {
+    axios
+      .post(
+        `${process.env.LOCAL_URL}:${process.env.DRIVER_ROOT}/driverSettlementOpes`,
+        data
+      )
+      .then((response) => {
+        response = response.data;
+        socket.emit("settleCommissionOrWallet_io-response", response);
+      })
+      .catch((error) => {
+        logger.info(error);
+        socket.emit("settleCommissionOrWallet_io-response", {
+          error: "error",
+        });
+      });
+  });
+
   /*
 *===================================================================================================
 //*                 Trips related events

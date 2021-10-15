@@ -1,10 +1,13 @@
 import React, { Component } from "react";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import { UpdateSelectedDriverForCommDetails } from "../../Redux/HomeActionsCreators";
 import classes from "./driverCommission.module.css";
 import SOCKET_CORE from "../socket";
 import NodeTableExplainer from "../../Helpers/NodeTableExplainer";
 import Loader from "react-loader-spinner";
 
-export default class driverCommission extends Component {
+class driverCommission extends Component {
   constructor(props) {
     super(props);
 
@@ -91,10 +94,20 @@ export default class driverCommission extends Component {
       if (driverInfos.remaining_commission >= 100) {
         return (
           <tr
-            key={index + new Date().getTime()}
+            key={index}
             style={{
               backgroundColor: "rgba(9, 134, 74, 0.1)",
               border: "1px solid #09864A",
+            }}
+            onClick={() => {
+              //Update the selected driver
+              this.props.UpdateSelectedDriverForCommDetails(
+                driverInfos.driver_infos.driver_fp
+              );
+              //...
+              setTimeout(function () {
+                window.location.href = "/CommissionDetailed";
+              }, 200);
             }}
           >
             <td style={{ backgroundColor: "#09864A", color: "#fff" }}>
@@ -152,7 +165,7 @@ export default class driverCommission extends Component {
       } else {
         return (
           <tr
-            key={index + new Date().getTime()}
+            key={index}
             style={{ backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#fff" }}
           >
             <td>{index}</td>
@@ -357,3 +370,18 @@ export default class driverCommission extends Component {
     );
   }
 }
+
+const mapStateToProps = (state) => {
+  const { App } = state;
+  return { App };
+};
+
+const mapDispatchToProps = (dispatch) =>
+  bindActionCreators(
+    {
+      UpdateSelectedDriverForCommDetails,
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(driverCommission);

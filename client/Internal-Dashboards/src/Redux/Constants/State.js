@@ -108,6 +108,8 @@ const STATE = {
     driversComissionCentral: "driver-commission",
     referralsView: "referrals",
   },
+  //? Commission page vars
+  selectedDriverForCommissionDetails: null, //After a driver is selected to see his/her earnings
 };
 
 export default STATE;

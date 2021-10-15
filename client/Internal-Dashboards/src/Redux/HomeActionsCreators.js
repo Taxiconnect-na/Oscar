@@ -38,3 +38,9 @@ export const UpdateGlobalOverviewData = (dataReceived) => ({
 export const MakeSureAccessRoutePermitted = (dataReceived) => ({
   type: "MAKE_SURE_ACCESS_ROUTE_PERMITTED",
 });
+
+//6. Update the selected driver for commission details
+export const UpdateSelectedDriverForCommDetails = (dataReceived) => ({
+  type: "UPDATE_SELECTED_DRIVER_FOR_COMM_DETAILS",
+  payload: dataReceived,
+});

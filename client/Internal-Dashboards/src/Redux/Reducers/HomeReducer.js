@@ -127,6 +127,11 @@ const HomeReducer = (state = INIT_STATE, action) => {
         //1. Get the access patterns
         tmpVar = newState.loginData.admin_data.access_patterns.split("|");
 
+      case "UPDATE_SELECTED_DRIVER_FOR_COMM_DETAILS":
+        newState.selectedDriverForCommissionDetails = action.payload;
+
+        return { ...state, ...newState };
+
       default:
         return state;
     }

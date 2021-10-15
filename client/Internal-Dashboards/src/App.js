@@ -3,7 +3,7 @@ import { Provider } from "react-redux";
 import HomeReducer from "./Redux/Reducers/HomeReducer";
 import { createStore } from "redux";
 import { persistStore, persistReducer, createTransform } from "redux-persist";
-import hardSet from "redux-persist/lib/stateReconciler/hardSet";
+import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
 import storage from "redux-persist/lib/storage"; // defaults to localStorage for web
 import { PersistGate } from "redux-persist/integration/react";
 import { parse, stringify } from "flatted";
@@ -16,7 +16,7 @@ export const transformCircular = createTransform(
 const persistConfig = {
   key: "root",
   storage,
-  stateReconciler: hardSet,
+  stateReconciler: autoMergeLevel2,
   transforms: [transformCircular],
 };
 
