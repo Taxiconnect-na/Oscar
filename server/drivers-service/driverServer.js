@@ -2960,6 +2960,216 @@ function execHandleCommissionPageOps(requestData, redisKey, resolve) {
   }
 }
 
+/**
+ * @func settlementDriversAccounts_ops
+ * Responsible for handling all the settlement operations for the drivers.
+ * @param requestData: will contain the settlement data bundle
+ * @param resolve
+ */
+
+function settlementDriversAccounts_ops(requestData, resolve) {
+  resolveDate();
+  //!Check if the driver is authentic
+  collectionDrivers_profiles
+    .find({
+      driver_fingerprint: requestData.driver_fingerprint,
+    })
+    .toArray(function (err, driverData) {
+      if (err) {
+        logger.error(err);
+        resolve({ response: "error_checking_driver" });
+      }
+      //...
+      if (driverData !== undefined && driverData.length > 0) {
+        //Authy driver
+        //Parse the bool values
+        requestData.shouldClearOutstandingCommission =
+          /true/i.test(requestData.shouldClearOutstandingCommission) ||
+          requestData.shouldClearOutstandingCommission
+            ? true
+            : false;
+        requestData.shouldClearWallet =
+          /true/i.test(requestData.shouldClearWallet) ||
+          requestData.shouldClearWallet
+            ? true
+            : false;
+        //...
+        //! Make sure that the values within bounds
+        requestAPI(url, function (error, response, body) {
+          if (error === null) {
+            try {
+              body = JSON.parse(body);
+
+              //!Check
+              if (
+                parseFloat(requestData.financialBrief.remaining_commission) <=
+                  parseFloat(body.header.remaining_commission) &&
+                parseFloat(
+                  requestData.financialBrief.remaining_due_to_driver
+                ) <= parseFloat(body.header.remaining_due_to_driver)
+              ) {
+                //!WITHIN BOUNDS
+                //? CLear completly commission or wallet
+                new Promise((resClear) => {
+                  if (
+                    requestData.shouldClearOutstandingCommission ||
+                    requestData.shouldClearWallet
+                  ) {
+                    //Clear the comission completly
+                    let transactionBundle =
+                      requestData.shouldClearOutstandingCommission &&
+                      requestData.shouldClearWallet === false
+                        ? [
+                            {
+                              transaction_nature: "commissionTCSubtracted",
+                              amount: parseFloat(
+                                requestData.financialBrief.remaining_commission
+                              ),
+                              receiver: "TAXICONNECT",
+                              recipient_fp: requestData.driver_fingerprint,
+                              date_captured: new Date(chaineDateUTC),
+                            },
+                          ]
+                        : requestData.shouldClearOutstandingCommission ==
+                            false && requestData.shouldClearWallet
+                        ? [
+                            {
+                              payment_currency: "NAD",
+                              transaction_nature: "weeklyPaidDriverAutomatic",
+                              user_fingerprint: requestData.driver_f,
+                              amount:
+                                requestData.financialBrief
+                                  .remaining_due_to_driver,
+                              date_captured: new Date(chaineDateUTC),
+                              timestamp: Math.round(
+                                new Date(chaineDateUTC).getTime()
+                              ),
+                            },
+                          ]
+                        : [
+                            {
+                              transaction_nature: "commissionTCSubtracted",
+                              amount: parseFloat(
+                                requestData.financialBrief.remaining_commission
+                              ),
+                              receiver: "TAXICONNECT",
+                              recipient_fp: requestData.driver_fingerprint,
+                              date_captured: new Date(chaineDateUTC),
+                            },
+                            {
+                              payment_currency: "NAD",
+                              transaction_nature: "weeklyPaidDriverAutomatic",
+                              user_fingerprint: requestData.driver_f,
+                              amount:
+                                requestData.financialBrief
+                                  .remaining_due_to_driver,
+                              date_captured: new Date(chaineDateUTC),
+                              timestamp: Math.round(
+                                new Date(chaineDateUTC).getTime()
+                              ),
+                            },
+                          ];
+                    //...
+                    collectionWallet_transaction_logs.insertMany(
+                      transactionBundle,
+                      function (err, reslt) {
+                        if (err) {
+                          logger.error(err);
+                          resClear(false);
+                        }
+                        //...
+                        //? DONE
+                        resClear(true);
+                      }
+                    );
+                  } else {
+                    resClear(false);
+                  }
+                })
+                  .then()
+                  .catch((error) => logger.error(error));
+
+                //? For if any amount is statically set
+                if (
+                  requestData.shouldClearOutstandingCommission === false ||
+                  requestData.shouldClearWallet === false
+                ) {
+                  if (
+                    /commissionSettlement/i.test(requestData.settlementOption)
+                  ) {
+                    //COMMISSION
+                    let transactionBundle = {
+                      transaction_nature: "commissionTCSubtracted",
+                      amount: parseFloat(
+                        requestData.financialBrief.remaining_commission
+                      ),
+                      receiver: "TAXICONNECT",
+                      recipient_fp: requestData.driver_fingerprint,
+                      date_captured: new Date(chaineDateUTC),
+                    };
+                    //..
+                    collectionWallet_transaction_logs.insertOne(
+                      transactionBundle,
+                      function (err, reslt) {
+                        if (err) {
+                          logger.error(err);
+                          resolve({ response: "error_updating_account" });
+                        }
+                        //...
+                        //? DONE
+                        resolve({ response: "successfully" });
+                      }
+                    );
+                  } //Wallet settlement
+                  else {
+                    let transactionBundle = {
+                      payment_currency: "NAD",
+                      transaction_nature: "weeklyPaidDriverAutomatic",
+                      user_fingerprint: requestData.driver_f,
+                      amount:
+                        requestData.financialBrief.remaining_due_to_driver,
+                      date_captured: new Date(chaineDateUTC),
+                      timestamp: Math.round(new Date(chaineDateUTC).getTime()),
+                    };
+                    //..
+                    collectionWallet_transaction_logs.insertOne(
+                      transactionBundle,
+                      function (err, reslt) {
+                        if (err) {
+                          logger.error(err);
+                          resolve({ response: "error_updating_account" });
+                        }
+                        //...
+                        //? DONE
+                        resolve({ response: "successfully" });
+                      }
+                    );
+                  }
+                } //Done successfully
+                else {
+                  resolve({ response: "successfully" });
+                }
+              } //Uncoherent data
+              else {
+                resolve({ response: "error_incoherent_dataRefs" });
+              }
+            } catch (err) {
+              logger.error(err);
+              resolve({ response: "error_finding_financials" });
+            }
+          } //Some error happened
+          else {
+            console.warn(error);
+            resolve({ response: "error_finding_financials" });
+          }
+        });
+      } //Unknown Driver
+      else {
+        resolve({ response: "error_checking_driver" });
+      }
+    });
+}
+
 var collectionDrivers_profiles = null;
 var collectionRidesDeliveryData = null;
 var collectionWallet_transaction_logs = null;
