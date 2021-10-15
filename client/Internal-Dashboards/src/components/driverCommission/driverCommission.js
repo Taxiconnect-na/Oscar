@@ -167,6 +167,16 @@ class driverCommission extends Component {
           <tr
             key={index}
             style={{ backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#fff" }}
+            onClick={() => {
+              //Update the selected driver
+              this.props.UpdateSelectedDriverForCommDetails(
+                driverInfos.driver_infos.driver_fp
+              );
+              //...
+              setTimeout(function () {
+                window.location.href = "/CommissionDetailed";
+              }, 200);
+            }}
           >
             <td>{index}</td>
             <td style={{ textAlign: "left" }}>
