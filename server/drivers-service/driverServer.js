@@ -3040,10 +3040,8 @@ function settlementDriversAccounts_ops(requestData, resolve) {
                             {
                               payment_currency: "NAD",
                               transaction_nature: "weeklyPaidDriverAutomatic",
-                              user_fingerprint: requestData.driver_f,
-                              amount:
-                                requestData.financialBrief
-                                  .remaining_due_to_driver,
+                              user_fingerprint: requestData.driver_fingerprint,
+                              amount: requestData.financialBrief.wallet_balance,
                               date_captured: new Date(chaineDateUTC),
                               timestamp: Math.round(
                                 new Date(chaineDateUTC).getTime()
@@ -3063,16 +3061,16 @@ function settlementDriversAccounts_ops(requestData, resolve) {
                             {
                               payment_currency: "NAD",
                               transaction_nature: "weeklyPaidDriverAutomatic",
-                              user_fingerprint: requestData.driver_f,
-                              amount:
-                                requestData.financialBrief
-                                  .remaining_due_to_driver,
+                              user_fingerprint: requestData.driver_fingerprint,
+                              amount: requestData.financialBrief.wallet_balance,
                               date_captured: new Date(chaineDateUTC),
                               timestamp: Math.round(
                                 new Date(chaineDateUTC).getTime()
                               ),
                             },
                           ];
+
+                    logger.warn(transactionBundle);
                     //...
                     collectionWallet_transaction_logs.insertMany(
                       transactionBundle,
@@ -3147,7 +3145,7 @@ function settlementDriversAccounts_ops(requestData, resolve) {
                     let transactionBundle = {
                       payment_currency: "NAD",
                       transaction_nature: "weeklyPaidDriverAutomatic",
-                      user_fingerprint: requestData.driver_f,
+                      user_fingerprint: requestData.driver_fingerprint,
                       amount: requestData.valueSettlement,
                       date_captured: new Date(chaineDateUTC),
                       timestamp: Math.round(new Date(chaineDateUTC).getTime()),
