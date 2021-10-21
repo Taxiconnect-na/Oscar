@@ -976,7 +976,7 @@ function getCancelledRidesDriverEvent(
       collectionGlobalEvents
         .find({ event_name: "driver_cancelling_request" })
         .sort({ date: -1 })
-        .limit(150)
+        .limit(1000)
         .toArray()
         .then((events) => {
           //resolve(events)

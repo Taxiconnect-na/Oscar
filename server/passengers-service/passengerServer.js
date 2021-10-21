@@ -347,7 +347,7 @@ function getCancelledRidesPassenger(
       collectionCancelledRides
         .find({ ride_mode: "RIDE" })
         .sort({ date_requested: -1 })
-        .limit(100)
+        .limit(1000)
         .toArray()
         .then((result) => {
           // Map through all cancelled ride and return needed info/field
