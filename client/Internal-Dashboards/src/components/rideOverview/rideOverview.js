@@ -555,6 +555,8 @@ function RideOverview() {
   const App = useSelector((state) => ({ App: state.App }), shallowEqual);
   const dispatch = useDispatch();
 
+  console.log(App);
+
   if (
     App.App.loginData.admin_data === null ||
     App.App.loginData.admin_data === undefined
@@ -579,13 +581,7 @@ function RideOverview() {
   //var ENDPOINT = "http://192.168.8.151:10014/"
 
   useEffect(() => {
-    /*let socket = io(ENDPOINT, {
-                                    transports: ['websocket', 'polling', 'flashsocket'],
-                                    reconnection: true,
-                                    //upgrade: true,
-                                    reconnectionAttempts: Infinity})  */
     const interval = setInterval(() => {
-      console.log("kap@taxiconnect");
       socket.on("getRideOverview-response", (data) => {
         if (data !== undefined && data != null) {
           setRides(data);
@@ -596,7 +592,8 @@ function RideOverview() {
       });
 
       socket.on("getRideOverview-response-scatter", (future) => {
-        if (future != undefined && future != null) {
+        console.log(future);
+        if (future !== undefined && future !== null) {
           setInProgressCount(future.inprogress);
           setMoneyInProgress(future.moneyInprogress);
           setScheduledCount(future.scheduled);
@@ -607,17 +604,21 @@ function RideOverview() {
           setMoneyCompletedToday(future.moneyCompletedToday);
         }
       });
-      socket.emit("getRideOverview", { data: "Get ride-overview Data!" });
+      socket.emit("getRideOverview", {
+        data: "Get ride-overview Data!",
+        region: App.App.selectedRegion,
+      });
 
       socket.on("get-trips-in-progress-count-feedback", (data) => {
-        if (data != undefined && data != null) {
+        if (data !== undefined && data != null) {
           setRidesInProgressCountToday(data.todayRidesProgressCount);
         }
       });
       socket.emit("get-trips-in-progress-count", {
         data: "Get rides in progress count today",
+        region: App.App.selectedRegion,
       });
-    }, 15000);
+    }, 5000);
 
     return () => {
       clearInterval(interval);
@@ -674,13 +675,17 @@ function RideOverview() {
     paddingTop: "2%",
     paddingBottom: "1%",
     color: "white",
-    paddingLeft: "5.5%",
+    fontSize: 20,
   };
   const subtitle_style = {
     textAlign: "center",
-    marginTop: 5,
+    marginTop: 10,
     marginBottom: 10,
     color: "white",
+    fontSize: 20,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   };
   const card = {
     backgroundColor: "#62bbde",
@@ -692,7 +697,9 @@ function RideOverview() {
   const today = () => {
     return (
       <div style={{ backgroundColor: "#064a52", marginTop: 0, padding: 15 }}>
-        <h5 style={{ width: 35, margin: "auto", color: "white" }}>TODAY</h5>
+        <h5 style={{ width: 35, margin: "auto", color: "white", fontSize: 18 }}>
+          Today
+        </h5>
         <div id="container-low">
           <div>
             <h1
@@ -745,7 +752,9 @@ function RideOverview() {
       <div className="template">
         <div>
           <div style={{ backgroundColor: "#03162e" }}>
-            <h1 style={title_style}> RIDES OVERVIEW</h1>
+            <h1 style={title_style}>
+              {App.App.selectedRegion} - Rides overview
+            </h1>
             <hr
               style={{
                 width: "60%",
@@ -805,7 +814,7 @@ function RideOverview() {
                     <div className="col-sm">
                       <div className="card" style={card}>
                         <div className="card-header" style={card_header}>
-                          cash
+                          Cash
                         </div>
                         <div className="card-body">
                           <h3>N$ {moneyInprogress["totalCash"]}</h3>
@@ -815,7 +824,7 @@ function RideOverview() {
                     <div className="col-sm">
                       <div className="card" style={card}>
                         <div className="card-header" style={card_header}>
-                          wallet
+                          Wallet
                         </div>
                         <div className="card-body">
                           <h3>N$ {moneyInprogress["totalWallet"]}</h3>
@@ -841,7 +850,7 @@ function RideOverview() {
               {today()}
 
               <h3 style={subtitle_style}>
-                RIDES IN PROGRESS [ {RidesInProgressCountToday} ]
+                {RidesInProgressCountToday} RIDES IN PROGRESS
               </h3>
 
               <table className="table" style={{ textAlign: "center" }}>

@@ -44,3 +44,9 @@ export const UpdateSelectedDriverForCommDetails = (dataReceived) => ({
   type: "UPDATE_SELECTED_DRIVER_FOR_COMM_DETAILS",
   payload: dataReceived,
 });
+
+//7. Update the selected region for viewing
+export const UpdateSelectedRegionForViewing = (dataReceived) => ({
+  type: "UPDATE_SELECTED_REGION_FOR_VIEWING",
+  payload: dataReceived,
+});

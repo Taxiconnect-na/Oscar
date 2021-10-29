@@ -5,6 +5,7 @@ import classes from "./passengers.module.css";
 import { MdSearch, MdSupervisorAccount } from "react-icons/md";
 import { FiArrowRight } from "react-icons/fi";
 import NodeTableExplainer from "../../Helpers/NodeTableExplainer";
+import Loader from "react-loader-spinner";
 require("dotenv").config({ path: "../../../.env" });
 
 class PassengerList extends React.Component {
@@ -16,8 +17,8 @@ class PassengerList extends React.Component {
     this.intervalPersister = null;
 
     this.state = {
-      shouldShowSearch: false, //If to show the search window or not.
-      isLoading: false, //If loading or not
+      shouldShowSearch: true, //If to show the search window or not.
+      isLoading: true, //If loading or not
       usersSummaryData: {}, //Will hold the users' summary data
     };
   }
@@ -28,22 +29,23 @@ class PassengerList extends React.Component {
     this.getFreshSummaryData();
 
     //Socket io handling
-    this.SOCKET_CORE.emit("getPassengers-response", function (response) {
+    this.SOCKET_CORE.on("getPassengers-response", function (response) {
       if (
         response !== undefined &&
         response.response !== undefined &&
         response.response.total_users !== undefined
       ) {
         console.log(response);
-        globalObject.setState({ usersSummaryData: response.response });
+        globalObject.setState({
+          usersSummaryData: response.response,
+          isLoading: false,
+        });
       }
     });
   }
 
   //Responsible for getting the summary data
   getFreshSummaryData() {
-    let globalObject = this;
-    //...
     this.SOCKET_CORE.emit("getPassengers", {
       lookup: "summary",
     });
@@ -60,15 +62,49 @@ class PassengerList extends React.Component {
       >
         <div className={classes.headerGeneric}>
           <div>Registered users</div>
-          <div className={classes.switchView}>
-            <MdSearch
-              style={{ marginRight: 5, bottom: 1, position: "relative" }}
-            />
-            Search view
-          </div>
+          {this.state.shouldShowSearch === false ? (
+            <div
+              className={classes.switchView}
+              onClick={() => this.setState({ shouldShowSearch: true })}
+            >
+              <MdSearch
+                style={{ marginRight: 5, bottom: 1, position: "relative" }}
+              />
+              Search view
+            </div>
+          ) : (
+            <div
+              className={classes.switchView}
+              onClick={() => this.setState({ shouldShowSearch: false })}
+            >
+              <MdSearch
+                style={{ marginRight: 5, bottom: 1, position: "relative" }}
+              />
+              Quick look view
+            </div>
+          )}
         </div>
         {/* Head summary */}
-        {this.state.shouldShowSearch === false ? (
+        {this.state.isLoading ? (
+          <div
+            style={{
+              // border: "1px solid black",
+              width: "100%",
+              height: 400,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Loader
+              type="TailSpin"
+              color="#000"
+              height={45}
+              width={45}
+              timeout={300000000} //3 secs
+            />
+          </div>
+        ) : this.state.shouldShowSearch === false ? (
           <div
             className={classes.globalNumbersContainer}
             style={{ marginTop: 20 }}
@@ -79,41 +115,51 @@ class PassengerList extends React.Component {
               left={[
                 {
                   title: "Total users",
-                  value: 0,
+                  value: this.state.usersSummaryData.total_users,
                 },
                 {
                   title: "Total male users",
-                  value: 0,
+                  value: this.state.usersSummaryData.total_male_users,
                 },
                 {
                   title: "Total female users",
-                  value: 0,
+                  value: this.state.usersSummaryData.total_female_users,
+                },
+                {
+                  title: "Total unknown gender users",
+                  value: this.state.usersSummaryData.total_unknown_gender_users,
                 },
                 {
                   title: "New users (today)",
-                  value: 0,
+                  value: this.state.usersSummaryData.total_new_users,
+                  color: "#096ED4",
                 },
                 {
                   title: "Percentage active users",
-                  value: 0,
+                  value: this.state.usersSummaryData.percentage_active_users,
                 },
               ]}
               right={[
                 {
                   title: "Realtime active users",
-                  value: 0,
+                  value: this.state.usersSummaryData.realtime_users_online,
+                  color: "#09864A",
+                },
+                {
+                  title: "Offline users",
+                  value: this.state.usersSummaryData.realtime_users_offline,
                 },
                 {
                   title: "TN mobile users",
-                  value: 0,
+                  value: this.state.usersSummaryData.tn_mobile_network_users,
                 },
                 {
                   title: "MTC users",
-                  value: 0,
+                  value: this.state.usersSummaryData.mtc_network_users,
                 },
                 {
                   title: "Other networks",
-                  value: 0,
+                  value: this.state.usersSummaryData.other_networks_users,
                 },
               ]}
             />
@@ -158,7 +204,10 @@ class PassengerList extends React.Component {
                   bottom: 1,
                 }}
               />{" "}
-              12 users found
+              {this.state.usersSummaryData.total_users !== undefined
+                ? this.state.usersSummaryData.total_users
+                : 0}{" "}
+              users found
             </div>
             {/* Results container */}
             <div className={classes.resultsContainer}>results</div>

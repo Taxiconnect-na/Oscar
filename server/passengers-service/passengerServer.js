@@ -94,6 +94,59 @@ app.get("/", (req, res) => {
   res.send("All is good at Passenger server");
 });
 
+checkName = (name, str) => {
+  var pattern = str
+    .split("")
+    .map((x) => {
+      return `(?=.*${x})`;
+    })
+    .join("");
+  var regex = new RegExp(`${pattern}`, "g");
+  return name.match(regex);
+};
+
+function similarityCheck_locations_search(
+  arrayLocations,
+  query,
+  natureSearch = "name",
+  res
+) {
+  //The nature search can be: name , surname, gender, phone, email or date signed up
+  //logObject(arrayLocations);
+  if (arrayLocations.length > 0) {
+    arrayLocations = fastFilter(arrayLocations, function (element) {
+      let elementSearch = /name/i.test(natureSearch)
+        ? element.name
+        : /surname/i.test(natureSearch)
+        ? element.surname
+        : /gender/i.test(natureSearch)
+        ? element.gender
+        : /email/i.test(natureSearch)
+        ? element.email
+        : element.date_signed_up;
+      //...
+      if (elementSearch != undefined && elementSearch != false) {
+        return (
+          elementSearch.toLowerCase().includes(query.toLowerCase().trim()) ||
+          checkName(elementSearch.toLowerCase(), query.toLowerCase())
+        );
+      } else {
+        return false;
+      }
+    });
+    //..
+    logger.info(arrayLocations);
+    if (arrayLocations.length > 0) {
+      res(arrayLocations.sort());
+    } //Empty
+    else {
+      res(false);
+    }
+  } else {
+    res(false);
+  }
+}
+
 /**
  * @function getPassengersInfo : Collects the passengers details from db, including total trips per user
  * @param requestData: contains the specification of the request
@@ -103,32 +156,30 @@ app.get("/", (req, res) => {
 function getPassengersInfo(requestData, resolve) {
   if (requestData.lookup === "search") {
     //For search Autocomplete
-    // load Autocomplete, pass along redisClient and prefix.
-    let Autocomplete_name = require("./Autocomplete")(
-      redisCluster,
-      "name_users"
-    );
-    let Autocomplete_surname = require("./Autocomplete")(
-      redisCluster,
-      "surname_users"
-    );
-    let Autocomplete_gender = require("./Autocomplete")(
-      redisCluster,
-      "gender_users"
-    );
-    let Autocomplete_phone = require("./Autocomplete")(
-      redisCluster,
-      "phone_users"
-    );
-    let Autocomplete_email = require("./Autocomplete")(
-      redisCluster,
-      "email_users"
-    );
-    let Autocomplete_dateSignedUp = require("./Autocomplete")(
-      redisCluster,
-      "datesignedup_users"
-    );
-    //....
+    let redisKey = `autocomplete-search-${requestData.natureSearch}`;
+
+    redisGet(redisKey)
+      .then((resp) => {
+        if (resp !== null) {
+          //Has some cached data
+        } //Do fresh search
+        else {
+          new Promise((resCompute) => {
+            execGetPassengersInfo(requestData, redisKey, resCompute);
+          })
+            .then((result) => {
+              resolve(result);
+            })
+            .catch((error) => {
+              logger.error(error);
+              resolve({ response: "error" });
+            });
+        }
+      })
+      .catch((error) => {
+        logger.error(error);
+        //Do some fresh search
+      });
   } else if (requestData.lookup === "summary") {
     //Get the summary information
     let redisKey = "passengers_general_summary_information_admin";
@@ -184,6 +235,39 @@ function execGetPassengersInfo(requestData, redisKey, resolve) {
   resolveDate();
 
   if (requestData.lookup === "search") {
+    //Get all the passengers
+    redisKey = `passengersGlobalParsed-dataAdminSearch`;
+
+    redisGet(redisKey)
+      .then((resp) => {
+        if (resp !== null) {
+          //Has some cached data
+        } //Get fresh data
+        else {
+          new Promise((resCompute) => {
+            getPassengersParsed_data(requestData, redisKey, resCompute);
+          })
+            .then((result) => {
+              if (
+                result.response !== "no_passengers_data" &&
+                result.response !== "error_get"
+              ) {
+                logger.info(result);
+              } //No data
+              else {
+                resolve(result);
+              }
+            })
+            .catch((error) => {
+              logger.error(error);
+              resolve({ response: "error_get" });
+            });
+        }
+      })
+      .catch((error) => {
+        logger.error(error);
+        resolve({ response: "error_get" });
+      });
   } else if (requestData.lookup === "summary") {
     let RETURN_DATA_MODEL = {
       total_users: 0, //?Done
@@ -320,6 +404,67 @@ function execGetPassengersInfo(requestData, redisKey, resolve) {
   } else {
     resolve({ response: "invalid_lookup" });
   }
+}
+
+/**
+ * @func getPassengersParsed_data
+ * Responsible for getting the parsed list of passengers data to be used in admin search
+ * @param requestData: contains the specification of the request
+ * @param redisKey: the key to cache the results
+ * @param {return} resolve
+ */
+function getPassengersParsed_data(requestData, redisKey, resolve) {
+  collectionPassengers_profiles.find({}).toArray(function (err, passengerData) {
+    if (err) {
+      logger.error(err);
+      resolve({ response: "error_get" });
+    }
+    //...
+    if (passengerData !== undefined && passengerData.length > 0) {
+      //Found some passengers
+      let ARRAY_PASSENGERS_GLOBAL = [];
+      passengerData.map((passenger) => {
+        let tmpModelRider = {
+          name: passenger.name,
+          surname: passenger.surname,
+          gender: /^F/.test(passenger.gender)
+            ? "F"
+            : /female/i.test(passenger.gender)
+            ? "F"
+            : /^M/.test(passenger.gender)
+            ? "M"
+            : /male/i.test(passenger.gender)
+            ? "M"
+            : "Unknown",
+          phone: passenger.phone_number,
+          email: passenger.email,
+          profile_pic: `${process.env.AWS_S3_RIDERS_PROFILE_PICTURES_PATH}/${passenger.media.profile_picture}`,
+          account_verifications: passenger.account_verifications,
+          last_updated: passenger.last_updated,
+          date_registered: passenger.date_registered,
+        };
+        //? SAVE
+        ARRAY_PASSENGERS_GLOBAL.push(tmpModelRider);
+      });
+      //...
+      //! Cache the data
+      new Promise((resCache) => {
+        // redisCluster.setex(
+        //   redisKey,
+        //   parseInt(process.env.REDIS_EXPIRATION_5MIN) * 1440,
+        //   JSON.stringify({ response: ARRAY_PASSENGERS_GLOBAL })
+        // );
+        resCache(true);
+      })
+        .then()
+        .catch((error) => logger.error(error));
+      //...
+      resolve({ response: ARRAY_PASSENGERS_GLOBAL });
+    } //No passengers
+    else {
+      resolve({ response: "no_passengers_data" });
+    }
+  });
 }
 
 /**

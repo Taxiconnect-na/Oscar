@@ -239,7 +239,10 @@ io.on("connection", (socket) => {
     if (data !== undefined && data != null) {
       logger.info(`getRideOverview emitted: ${data}`);
       axios
-        .get(`${process.env.LOCAL_URL}:${process.env.STATS_ROOT}/ride-overview`)
+        .post(
+          `${process.env.LOCAL_URL}:${process.env.STATS_ROOT}/ride-overview`,
+          data
+        )
         .then((feedback) => {
           let rideOverview = feedback.data;
 
@@ -271,8 +274,9 @@ io.on("connection", (socket) => {
     if (data !== undefined && data != null) {
       logger.info("====== Getting trips in progress count======");
       axios
-        .get(
-          `${process.env.LOCAL_URL}:${process.env.STATS_ROOT}/inprogress-ride-delivery-count-today`
+        .post(
+          `${process.env.LOCAL_URL}:${process.env.STATS_ROOT}/inprogress-ride-delivery-count-today`,
+          data
         )
         .then((feedback) => {
           logger.info(feedback.data);

@@ -110,6 +110,8 @@ const STATE = {
   },
   //? Commission page vars
   selectedDriverForCommissionDetails: null, //After a driver is selected to see his/her earnings
+  //? For the selected region
+  selectedRegion: "Khomas", //The region selected for viewing
 };
 
 export default STATE;

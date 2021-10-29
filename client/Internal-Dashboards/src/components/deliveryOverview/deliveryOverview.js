@@ -301,17 +301,19 @@ function DeliveryOverview() {
 
       socket.emit("getDeliveryOverview", {
         data: "Get delivery-overview Data!",
+        region: App.App.selectedRegion,
       });
 
       socket.on("get-trips-in-progress-count-feedback", (data) => {
-        if (data != undefined && data != null) {
+        if (data !== undefined && data !== null) {
           setDeliveryInProgressCountToday(data.todayDeliveryProgressCount);
         }
       });
       socket.emit("get-trips-in-progress-count", {
         data: "Get deliveries in progress count today",
+        region: App.App.selectedRegion,
       });
-    }, 15000);
+    }, 5000);
 
     return () => {
       clearInterval(interval);
@@ -363,11 +365,16 @@ function DeliveryOverview() {
     textAlign: "center",
     marginTop: 10,
     marginBottom: 15,
+    fontSize: 20,
   };
   const subtitle_style = {
     textAlign: "center",
     marginTop: 5,
     marginBottom: 10,
+    fontSize: 20,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   };
   const card = {
     backgroundColor: "#62bbde",
@@ -379,7 +386,7 @@ function DeliveryOverview() {
   const today = () => {
     return (
       <div style={{ backgroundColor: "#cbd1d1", marginTop: 0, padding: 15 }}>
-        <h5 style={{ width: 35, margin: "auto" }}>TODAY</h5>
+        <h5 style={{ width: 35, margin: "auto" }}>Today</h5>
         <div id="container-low">
           <div>
             <h1
@@ -432,7 +439,9 @@ function DeliveryOverview() {
       <div>
         <div>
           <div>
-            <h1 style={title_style}> Deliveries Overview </h1>
+            <h1 style={title_style}>
+              {App.App.selectedRegion} - Deliveries Overview{" "}
+            </h1>
             <div style={{ marginLeft: 200, padding: 10 }}>
               <button
                 style={{ marginLeft: 25 }}
@@ -480,7 +489,7 @@ function DeliveryOverview() {
                     <div className="col-sm">
                       <div className="card" style={card}>
                         <div className="card-header" style={card_header}>
-                          cash
+                          Cash
                         </div>
                         <div className="card-body">
                           <h3>N$ {moneyInprogress["totalCash"]}</h3>
@@ -490,7 +499,7 @@ function DeliveryOverview() {
                     <div className="col-sm">
                       <div className="card" style={card}>
                         <div className="card-header" style={card_header}>
-                          wallet
+                          Wallet
                         </div>
                         <div className="card-body">
                           <h3>N$ {moneyInprogress["totalWallet"]}</h3>
@@ -516,7 +525,7 @@ function DeliveryOverview() {
               {today()}
 
               <h3 style={subtitle_style}>
-                Deliveries in progress [ {DeliveryInProgressCountToday} ]{" "}
+                {DeliveryInProgressCountToday} Deliveries in progress
               </h3>
               <table className="table" style={{ textAlign: "center" }}>
                 <thead className="thead-light">

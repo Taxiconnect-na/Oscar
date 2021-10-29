@@ -6,6 +6,7 @@ import { bindActionCreators } from "redux";
 import {
   UpdateSuccessfullLoginDetails,
   UpdateLatestAccessPatternsAndSuspInfos,
+  UpdateSelectedRegionForViewing,
   LogOut,
 } from "../../Redux/HomeActionsCreators";
 import SOCKET_CORE from "../socket";
@@ -193,13 +194,20 @@ class Sidebar extends React.PureComponent {
                 </>
               }
             >
-              <SubMenu title="Windhoek">
+              <SubMenu title="Khomas">
                 {this.props.App.loginData.admin_data !== null &&
                 /ridesTripOverview/i.test(
                   this.props.App.loginData.admin_data.access_patterns
                 ) ? (
                   <MenuItem>
-                    <Link to="/trip-overview/rides">
+                    <Link
+                      onClick={() => {
+                        let region = "Khomas";
+                        this.props.App.selectedRegion = region;
+                        this.props.UpdateSelectedRegionForViewing(region);
+                        window.location.href = "/trip-overview/rides";
+                      }}
+                    >
                       <span className="menuText">Rides</span>
                     </Link>
                   </MenuItem>
@@ -211,7 +219,14 @@ class Sidebar extends React.PureComponent {
                   this.props.App.loginData.admin_data.access_patterns
                 ) ? (
                   <MenuItem>
-                    <Link to="/trip-overview/deliveries">
+                    <Link
+                      onClick={() => {
+                        let region = "Khomas";
+                        this.props.App.selectedRegion = region;
+                        this.props.UpdateSelectedRegionForViewing(region);
+                        window.location.href = "/trip-overview/deliveries";
+                      }}
+                    >
                       <span className="menuText">Deliveries</span>
                     </Link>
                   </MenuItem>
@@ -219,8 +234,45 @@ class Sidebar extends React.PureComponent {
                   <></>
                 )}
               </SubMenu>
-              <SubMenu title="Swakopmund">
-                <MenuItem className="menuText">Not Available</MenuItem>
+              <SubMenu title="Erongo">
+                {this.props.App.loginData.admin_data !== null &&
+                /ridesTripOverview/i.test(
+                  this.props.App.loginData.admin_data.access_patterns
+                ) ? (
+                  <MenuItem>
+                    <Link
+                      onClick={() => {
+                        let region = "Erongo";
+                        this.props.App.selectedRegion = region;
+                        this.props.UpdateSelectedRegionForViewing(region);
+                        window.location.href = "/trip-overview/rides";
+                      }}
+                    >
+                      <span className="menuText">Rides</span>
+                    </Link>
+                  </MenuItem>
+                ) : (
+                  <></>
+                )}
+                {this.props.App.loginData.admin_data !== null &&
+                /deliveriesTripOverview/i.test(
+                  this.props.App.loginData.admin_data.access_patterns
+                ) ? (
+                  <MenuItem>
+                    <Link
+                      onClick={() => {
+                        let region = "Erongo";
+                        this.props.App.selectedRegion = region;
+                        this.props.UpdateSelectedRegionForViewing(region);
+                        window.location.href = "/trip-overview/deliveries";
+                      }}
+                    >
+                      <span className="menuText">Deliveries</span>
+                    </Link>
+                  </MenuItem>
+                ) : (
+                  <></>
+                )}
               </SubMenu>
             </SubMenu>
           ) : (
@@ -392,7 +444,7 @@ class Sidebar extends React.PureComponent {
                     : "#4b5158",
                 }}
               />
-              <span className="menuTextVersionNo">v2.0.071</span>
+              <span className="menuTextVersionNo">v2.0.072</span>
             </Link>
           </MenuItem>
         </Menu>
@@ -411,6 +463,7 @@ const mapDispatchToProps = (dispatch) =>
     {
       UpdateSuccessfullLoginDetails,
       UpdateLatestAccessPatternsAndSuspInfos,
+      UpdateSelectedRegionForViewing,
       LogOut,
     },
     dispatch

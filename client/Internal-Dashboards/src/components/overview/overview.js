@@ -46,7 +46,7 @@ class Overview extends React.PureComponent {
     this.state = {
       useCanvas: false,
       crosshairValues: [],
-      day_zoom: 30,
+      day_zoom: 7,
     };
   }
 

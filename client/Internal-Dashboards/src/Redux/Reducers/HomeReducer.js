@@ -132,6 +132,11 @@ const HomeReducer = (state = INIT_STATE, action) => {
 
         return { ...state, ...newState };
 
+      case "UPDATE_SELECTED_REGION_FOR_VIEWING":
+        newState.selectedRegion = action.payload;
+
+        return { ...state, ...newState };
+
       default:
         return state;
     }
