@@ -372,11 +372,16 @@ class PricesMissing extends Component {
             <select
               value={this.state.selectedTown}
               onChange={(val) => {
-                this.setState({ selectedTown: val.target.value });
+                this.setState({
+                  selectedTown: val.target.value,
+                  pricesArrayData: {},
+                  distributedStates: [],
+                });
               }}
             >
               <option value="Windhoek">Windhoek</option>
               <option value="Swakopmund">Swakopmund</option>
+              <option value="Walvis Bay">Walvis Bay</option>
             </select>
           </div>
         </div>

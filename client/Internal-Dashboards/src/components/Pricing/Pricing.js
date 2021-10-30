@@ -351,7 +351,11 @@ class Pricing extends Component {
             <select
               value={this.state.selectedRegion}
               onChange={(val) => {
-                this.setState({ selectedRegion: val.target.value });
+                this.setState({
+                  selectedRegion: val.target.value,
+                  pricesArrayData: {},
+                  distributedStates: [],
+                });
               }}
             >
               <option value="Khomas">Khomas</option>
