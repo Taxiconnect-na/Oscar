@@ -29,7 +29,6 @@ class PricesMissing extends Component {
     this.SOCKET_CORE.on(
       "handlePricingRecords_io-response",
       function (response) {
-        console.log(response);
         if (
           response !== undefined &&
           response.response !== undefined &&
@@ -58,7 +57,6 @@ class PricesMissing extends Component {
     this.SOCKET_CORE.on(
       "handlePricingRecords_io_modifyRecord-response",
       function (response) {
-        console.log(response);
         if (
           response !== undefined &&
           response.response !== undefined &&
@@ -109,12 +107,10 @@ class PricesMissing extends Component {
           edited_fare: null,
         };
         //...
-        // console.log(this.state.distributedStates[index]);
         if (
           this.state.distributedStates[index] === undefined ||
           this.state.distributedStates[index] === null
         ) {
-          console.log("RESET");
           this.state.distributedStates.push(stateTemplate);
         }
         //...
@@ -225,7 +221,6 @@ class PricesMissing extends Component {
                       stateArray[index].isLocked = stateArray[index].isLocked
                         ? false
                         : true;
-                      console.log(stateArray[index].isLocked);
                       //...
                       this.setState({ distributedStates: stateArray });
                     }}

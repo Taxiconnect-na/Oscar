@@ -4363,7 +4363,12 @@ function execHandlePricingRecordsHard_way(requestData, redisKey, resolve) {
                 .then()
                 .catch();
               //...
-              if (el.point1_suburb !== "ANY" && el.point2_suburb !== "ANY") {
+              if (
+                el.point1_suburb !== "ANY" &&
+                el.point1_suburb !== "false" &&
+                el.point2_suburb !== "ANY" &&
+                el.point2_suburb !== "false"
+              ) {
                 DATA_PRICING.push(tmpData);
               }
             });
