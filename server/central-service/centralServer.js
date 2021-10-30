@@ -690,6 +690,34 @@ io.on("connection", (socket) => {
   });
 
   /**
+   * Get, set or delete official or missing prices records from different regions.
+   */
+  socket.on("handlePricingRecords_io", function (data) {
+    logger.warn(data.action === "set" ? data : null);
+    axios
+      .post(
+        `${process.env.LOCAL_URL}:${process.env.STATS_ROOT}/handlePricingRecordsHard_way`,
+        data
+      )
+      .then((feedback) => {
+        let driverList = new Object(feedback.data);
+
+        let responseString =
+          data.action === "set" || data.action === "delete"
+            ? data.recordType === "live" || data.recordType === "missing"
+              ? "handlePricingRecords_io_modifyRecord-response"
+              : "handlePricingRecords_io-response"
+            : "handlePricingRecords_io-response";
+        //.....
+        logger.error(data.action === "set" ? responseString : null);
+        socket.emit(responseString, driverList);
+      })
+      .catch((error) => {
+        logger.info(error);
+      });
+  });
+
+  /**
    * Get the commission page related data
    */
   socket.on("getDriversComissionFront", function (data) {

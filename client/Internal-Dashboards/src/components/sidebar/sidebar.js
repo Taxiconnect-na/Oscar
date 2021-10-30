@@ -29,7 +29,7 @@ import {
   ImPieChart,
   ImShare2,
 } from "react-icons/im";
-import { MdChatBubble } from "react-icons/md";
+import { MdChatBubble, MdAccountBalance } from "react-icons/md";
 import { icons } from "react-icons/lib";
 
 const iconStyle = {
@@ -404,6 +404,48 @@ class Sidebar extends React.PureComponent {
           )}
 
           {this.props.App.loginData.admin_data !== null &&
+          /pricingSettings/i.test(
+            this.props.App.loginData.admin_data.access_patterns
+          ) ? (
+            <SubMenu
+              className="menuText menuItemSideBar"
+              title={
+                <>
+                  <MdAccountBalance style={iconStyle} />
+                  Pricing
+                </>
+              }
+            >
+              {this.props.App.loginData.admin_data !== null &&
+              /pricingSettingsDirectory/i.test(
+                this.props.App.loginData.admin_data.access_patterns
+              ) ? (
+                <MenuItem>
+                  <Link to="/Pricing">
+                    <span className="menuText">Prices directory</span>
+                  </Link>
+                </MenuItem>
+              ) : (
+                <></>
+              )}
+              {this.props.App.loginData.admin_data !== null &&
+              /pricingSettingsMissing/i.test(
+                this.props.App.loginData.admin_data.access_patterns
+              ) ? (
+                <MenuItem>
+                  <Link to="/Prices_unfound">
+                    <span className="menuText">Missing prices</span>
+                  </Link>
+                </MenuItem>
+              ) : (
+                <></>
+              )}
+            </SubMenu>
+          ) : (
+            <></>
+          )}
+
+          {this.props.App.loginData.admin_data !== null &&
           /referralsView/i.test(
             this.props.App.loginData.admin_data.access_patterns
           ) ? (
@@ -444,7 +486,7 @@ class Sidebar extends React.PureComponent {
                     : "#4b5158",
                 }}
               />
-              <span className="menuTextVersionNo">v2.0.072</span>
+              <span className="menuTextVersionNo">v2.0.073</span>
             </Link>
           </MenuItem>
         </Menu>

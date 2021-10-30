@@ -18,7 +18,7 @@ const redis = require("redis");
 var otpGenerator = require("otp-generator");
 const moment = require("moment");
 const { promisify, inspect } = require("util");
-var compression = require("compression");
+const axios = require("axios");
 
 const client = /production/i.test(String(process.env.EVIRONMENT))
   ? null
@@ -4165,12 +4165,362 @@ function makegraphReady(standardData) {
   return tmpMetaChildObject;
 }
 
+/**
+ * @func handlePricingRecordsHard_way
+ * Responsible for getting, setting and deleting pricing records
+ * @param requestData: contains the request targetted data such as region, action, etc... (recordType: live, missing)
+ * @param resolve
+ */
+function handlePricingRecordsHard_way(requestData, resolve) {
+  if (
+    requestData.action === "get" &&
+    requestData.region !== undefined &&
+    requestData.recordType !== undefined
+  ) {
+    //Get data
+    let redisKey = `pricingGetCache-${requestData.region}-${requestData.recordType}`;
+
+    redisGet(redisKey)
+      .then((resp) => {
+        if (resp !== null) {
+          try {
+            //Rehydrate
+            new Promise((resCompute) => {
+              execHandlePricingRecordsHard_way(
+                requestData,
+                redisKey,
+                resCompute
+              );
+            })
+              .then((result) => {})
+              .catch((error) => {
+                logger.error(error);
+              });
+            //...
+            resp = JSON.parse(resp);
+            resolve(resp);
+          } catch (error) {
+            logger.error(error);
+            resolve({ response: "error_get" });
+          }
+        } //Get fresh records
+        else {
+          new Promise((resCompute) => {
+            execHandlePricingRecordsHard_way(requestData, redisKey, resCompute);
+          })
+            .then((result) => {
+              resolve(result);
+            })
+            .catch((error) => {
+              logger.warn("HERE2");
+              logger.error(error);
+              resolve({ response: "error_get" });
+            });
+        }
+      })
+      .catch((error) => {
+        logger.warn("HERE");
+        logger.error(error);
+        resolve({ response: "error_get" });
+      });
+  } else if (
+    requestData.action === "set" &&
+    requestData.pricingData !== undefined
+  ) {
+    //Modify the data
+    execHandlePricingRecordsHard_way(requestData, false, resolve);
+  } else if (requestData.action === "delete") {
+    //Delete the data
+    execHandlePricingRecordsHard_way(requestData, false, resolve);
+  } //Invalid action
+  else {
+    resolve({ response: "invalid_action" });
+  }
+}
+
+/**
+ * @func execHandlePricingRecordsHard_way
+ * Responsible for getting, setting and deleting pricing records
+ * @param requestData: contains the request targetted data such as region, action, etc... (recordType: live, missing)
+ * @param redisKey
+ * @param resolve
+ */
+function execHandlePricingRecordsHard_way(requestData, redisKey, resolve) {
+  logger.warn(requestData.action === "delete" ? requestData : null);
+  if (
+    requestData.action === "get" &&
+    requestData.region !== undefined &&
+    requestData.recordType !== undefined
+  ) {
+    //Get data
+    if (requestData.recordType === "live") {
+      collectionPricesLocationsMap
+        .find({
+          region: requestData.region,
+        })
+        .toArray(function (err, pricingData) {
+          if (err) {
+            logger.error(err);
+            resolve({ response: "error_get" });
+          }
+          //...
+          if (pricingData !== undefined && pricingData.length > 0) {
+            //Has some records
+            let DATA_PRICING = [];
+            pricingData.map((el) => {
+              let tmpData = {
+                pickup_suburb: el.pickup_suburb,
+                destination_suburb: el.destination_suburb,
+                fare: el.fare,
+                city: el.city,
+                country: el.country,
+                // date: new Date().toISOString(),
+              };
+              //...
+              DATA_PRICING.push(tmpData);
+            });
+            //...
+            let finalResponse = { response: DATA_PRICING };
+            //!Cache
+            new Promise((resCache) => {
+              redisCluster.setex(
+                redisKey,
+                parseInt(process.env.REDIS_EXPIRATION_5MIN) * 1440,
+                JSON.stringify(finalResponse)
+              );
+              resCache(true);
+            })
+              .then()
+              .catch();
+            //...
+            resolve(finalResponse);
+          } //No records
+          else {
+            resolve({ response: "empty_records" });
+          }
+        });
+    } else if (requestData.recordType === "missing") {
+      collectionNotFoundSubursPricesMap
+        .find({
+          city: requestData.region,
+        })
+        .toArray(function (err, pricingData) {
+          if (err) {
+            logger.error(err);
+            resolve({ response: "error_get" });
+          }
+          //...
+          if (pricingData !== undefined && pricingData.length > 0) {
+            //Has some records
+            let DATA_PRICING = [];
+            pricingData.map((el) => {
+              let tmpData = {
+                pickup_suburb: el.point1_suburb,
+                destination_suburb: el.point2_suburb,
+                fare: 0,
+                city: el.city,
+                country: el.country,
+                date: new Date(el.date).toISOString(),
+              };
+              //!...Remove duplicates
+              new Promise((resDuplicates) => {
+                collectionNotFoundSubursPricesMap
+                  .find({
+                    point1_suburb: el.point1_suburb,
+                    point2_suburb: el.point2_suburb,
+                    city: el.city,
+                    country: el.country,
+                  })
+                  .toArray(function (err, tmpData) {
+                    if (err) {
+                      logger.error(err);
+                      resDuplicates(false);
+                    }
+                    //...
+                    if (tmpData !== undefined && tmpData.length > 1) {
+                      tmpData.map((tmpEl, index) => {
+                        if (index > 0) {
+                          collectionNotFoundSubursPricesMap.removeOne(
+                            {
+                              _id: tmpEl._id,
+                            },
+                            function (err, reslt) {
+                              if (err) {
+                                logger.error(err);
+                                resDuplicates(false);
+                              }
+                              //...
+                              resDuplicates(true);
+                            }
+                          );
+                        }
+                      });
+                    } else {
+                      resDuplicates(false);
+                    }
+                  });
+              })
+                .then()
+                .catch();
+              //...
+              if (el.point1_suburb !== "ANY" && el.point2_suburb !== "ANY") {
+                DATA_PRICING.push(tmpData);
+              }
+            });
+            //...
+            let finalResponse = { response: DATA_PRICING };
+            //!Cache
+            new Promise((resCache) => {
+              redisCluster.setex(
+                redisKey,
+                parseInt(process.env.REDIS_EXPIRATION_5MIN) * 1440,
+                JSON.stringify(finalResponse)
+              );
+              resCache(true);
+            })
+              .then()
+              .catch();
+            //...
+            resolve(finalResponse);
+          } //No records
+          else {
+            resolve({ response: "empty_records" });
+          }
+        });
+    } //Error
+    else {
+      resolve({ response: "error_get" });
+    }
+  } else if (
+    requestData.action === "set" &&
+    requestData.pricingData !== undefined &&
+    requestData.recordType !== undefined
+  ) {
+    logger.warn(requestData);
+    //Modify the data
+    if (requestData.recordType === "live") {
+      //Change live pricing
+      collectionPricesLocationsMap.updateOne(
+        {
+          pickup_suburb: requestData.pricingData.pickup_suburb,
+          destination_suburb: requestData.pricingData.destination_suburb,
+          city: requestData.pricingData.city,
+          country: requestData.pricingData.country,
+        },
+        { $set: { fare: requestData.pricingData.fare.toString() } },
+        function (err, reslt) {
+          if (err) {
+            logger.error(err);
+            resolve({ response: "error" });
+          }
+          //...
+          resolve({ response: "successful" });
+        }
+      );
+    } else if (requestData.recordType === "missing") {
+      //Process missing data - add for non duplicatas
+      axios
+        .get(
+          `http://Photon-cluster-lb-21809668.us-east-1.elb.amazonaws.com/api/?q=${requestData.pricingData.city}&limit=1`
+        )
+        .then((response) => {
+          if (response.data.features[0].properties.state !== undefined) {
+            let region = response.data.features[0].properties.state.replace(
+              / Region/i,
+              ""
+            );
+            //...
+            collectionPricesLocationsMap.updateOne(
+              {
+                pickup_suburb: requestData.pricingData.pickup_suburb,
+                destination_suburb: requestData.pricingData.destination_suburb,
+                city: requestData.pricingData.city,
+                country: requestData.pricingData.country,
+                region: region,
+              },
+              {
+                $set: {
+                  pickup_suburb: requestData.pricingData.pickup_suburb,
+                  destination_suburb:
+                    requestData.pricingData.destination_suburb,
+                  city: requestData.pricingData.city,
+                  country: requestData.pricingData.country,
+                  fare: requestData.pricingData.fare.toString(),
+                  region: region,
+                },
+              },
+              { upsert: true },
+              function (err, reslt) {
+                if (err) {
+                  logger.error(err);
+                  resolve({ response: "error" });
+                }
+                //...!Remove the missing record
+                new Promise((resRemove) => {
+                  collectionNotFoundSubursPricesMap.removeOne(
+                    {
+                      point1_suburb: requestData.pricingData.pickup_suburb,
+                      point2_suburb: requestData.pricingData.destination_suburb,
+                      city: requestData.pricingData.city,
+                      country: requestData.pricingData.country,
+                    },
+                    function (err, reslt) {
+                      if (err) {
+                        logger.error(err);
+                        resRemove(false);
+                      }
+                      //...
+                      resRemove(true);
+                    }
+                  );
+                })
+                  .then()
+                  .catch();
+                //...
+                resolve({ response: "successful" });
+              }
+            );
+          } else {
+            resolve({ response: "error" });
+          }
+        })
+        .catch((error) => {
+          logger.error(error);
+          resolve({ response: "error" });
+        });
+    }
+  } else if (requestData.action === "delete") {
+    //Delete the data
+    collectionNotFoundSubursPricesMap.removeOne(
+      {
+        point1_suburb: requestData.pricingData.pickup_suburb,
+        point2_suburb: requestData.pricingData.destination_suburb,
+        city: requestData.pricingData.city,
+        country: requestData.pricingData.country,
+      },
+      function (err, reslt) {
+        if (err) {
+          logger.error(err);
+          resolve({ response: "error" });
+        }
+        //...
+        resolve({ response: "successful" });
+      }
+    );
+  } //Invalid action
+  else {
+    resolve({ response: "invalid_action" });
+  }
+}
+
 var collectionPassengers_profiles = null;
 var collectionDrivers_profiles = null;
 var collectionRidesDeliveryData = null;
 var collectionRidesDeliveryDataCancelled = null;
 var collectionOwners = null;
 var collectionAdminUsers = null;
+var collectionPricesLocationsMap = null;
+var collectionNotFoundSubursPricesMap = null;
 
 redisCluster.on("connect", function () {
   MongoClient.connect(
@@ -4202,6 +4552,12 @@ redisCluster.on("connect", function () {
       );
       collectionOwners = dbMongo.collection("owners_profiles");
       collectionAdminUsers = dbMongo.collection("administration_central");
+      collectionPricesLocationsMap = dbMongo.collection(
+        "global_prices_to_locations_map"
+      ); //Collection containing all the prices and locations in a format
+      collectionNotFoundSubursPricesMap = dbMongo.collection(
+        "not_found_suburbs_prices_map"
+      ); //Colleciton of all suburbs prices that where not found in the global prices map.
       //? INITIALIZE EXPRESS ONCE
       app
         .use(helmet())
@@ -4271,7 +4627,6 @@ redisCluster.on("connect", function () {
        */
       app.post("/ride-overview", (req, res) => {
         req = req.body;
-        logger.info("Ride overview API called!!");
         logger.warn(req);
         new Promise((res) => {
           getRideOverview(req, res);
@@ -4507,6 +4862,39 @@ redisCluster.on("connect", function () {
         })
           .then((result) => {
             res.send({ response: result });
+          })
+          .catch((error) => {
+            logger.error(error);
+            res.send({ response: "failed_auth" });
+          });
+      });
+
+      /**
+       * Responsible for handling the pricing records (official or missing ones)
+       */
+      app.post("/handlePricingRecordsHard_way", (req, res) => {
+        new Promise((resCompute) => {
+          req = req.body;
+          handlePricingRecordsHard_way(req, resCompute);
+        })
+          .then((result) => {
+            //Compute the stateHash
+            new Promise((resHash) => {
+              generateUniqueFingerprint(
+                JSON.stringify(result),
+                "sha256",
+                resHash
+              );
+            })
+              .then((stateHash) => {
+                result["stateHash"] = stateHash;
+                //...
+                res.send(result);
+              })
+              .catch((error) => {
+                logger.error(error);
+                res.send({ response: "error" });
+              });
           })
           .catch((error) => {
             logger.error(error);

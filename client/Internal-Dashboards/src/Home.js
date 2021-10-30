@@ -40,6 +40,8 @@ import DriverRegistrationReferred from "./components/driverRegistration/driverRe
 import Header from "./components/Header/Header";
 import NotPermitted from "./components/errorPage/NotPermitted";
 import Broadcasting from "./components/Broadcasting/Broadcasting";
+import Pricing from "./components/Pricing/Pricing";
+import PricesMissing from "./components/Pricing/PricesMissing";
 
 /**
  * @function App : Main function
@@ -175,6 +177,9 @@ class Home extends React.PureComponent {
                 component={driverCommissionDetailed}
               />
               <Route path="/Broadcasting" component={Broadcasting} />
+
+              <Route path="/Pricing" component={Pricing} />
+              <Route path="/Prices_unfound" component={PricesMissing} />
 
               {/* REFERRALS PATH  */}
               <Route path="/referrals" component={Referrals} />

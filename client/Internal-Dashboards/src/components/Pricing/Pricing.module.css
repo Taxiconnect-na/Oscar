@@ -1,0 +1,121 @@
+.headerGeneric {
+  /* border: 1px solid red; */
+  font-family: "MoveBold";
+  font-size: 18px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+}
+
+.dayZoomLabel {
+  font-family: "MoveTextMedium", sans-serif;
+  font-size: 14px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.pricesNode {
+  border: 1px solid #d0d0d0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 15px;
+  background-color: #fff;
+  margin-bottom: 25px;
+  flex: 1;
+}
+
+.indexNo {
+  /* border: 1px solid black; */
+  width: 30px;
+  font-size: 13px;
+}
+
+.detailsNode {
+  /* border: 1px solid black; */
+}
+
+.locationTypical {
+  /* border: 1px solid black; */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.labelLocation {
+  font-size: 12px;
+  /* border: 1px solid black; */
+  width: 110px;
+  color: #096ed4;
+}
+
+.subTextName {
+  font-family: "MoveTextMedium";
+  font-size: 15px;
+}
+
+.inputContainerParent {
+  /* border: 1px solid red; */
+  height: 50px;
+  display: flex;
+  flex-direction: row;
+}
+.fareInput {
+  border: 1px solid #d0d0d0;
+  padding: 5px;
+  font-size: 15px;
+  height: 100%;
+  flex: 1;
+  text-align: center;
+}
+
+.unlockFareButton {
+  border: 1px solid #096ed4;
+  background-color: #096ed4;
+  color: #fff;
+  height: 100%;
+  cursor: pointer;
+  width: 50px;
+}
+
+.noticeEdit {
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.buttonsContainer {
+  /* border: 1px solid black; */
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.buttonGeneric {
+  border: 1px solid #000;
+  padding: 5px;
+  font-size: 14px;
+  min-width: 80px;
+  text-align: center;
+  font-family: "MoveTextMedium", sans-serif;
+  color: #fff;
+  background-color: #000;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.deletePrice {
+  color: #b22222;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.priceDetails {
+  border-top: 1px solid #d0d0d0;
+  padding-top: 10px;
+  font-family: "MoveTextRegular";
+}
