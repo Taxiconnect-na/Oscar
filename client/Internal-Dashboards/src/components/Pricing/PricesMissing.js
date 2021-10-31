@@ -355,7 +355,7 @@ class PricesMissing extends Component {
         {" "}
         <div className={classes.headerGeneric}>
           <div>
-            <div>Prices directory</div>
+            <div>Missing prices directory</div>
             <div style={{ fontFamily: "MoveTextRegular", fontSize: 14 }}>
               {Object.keys(this.state.pricesArrayData).length === 0
                 ? 0

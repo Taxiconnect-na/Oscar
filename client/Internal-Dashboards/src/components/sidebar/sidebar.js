@@ -421,7 +421,11 @@ class Sidebar extends React.PureComponent {
                 this.props.App.loginData.admin_data.access_patterns
               ) ? (
                 <MenuItem>
-                  <Link to="/Pricing">
+                  <Link
+                    onClick={() => {
+                      window.location.href = "/Pricing";
+                    }}
+                  >
                     <span className="menuText">Prices directory</span>
                   </Link>
                 </MenuItem>
@@ -433,7 +437,11 @@ class Sidebar extends React.PureComponent {
                 this.props.App.loginData.admin_data.access_patterns
               ) ? (
                 <MenuItem>
-                  <Link to="/Prices_unfound">
+                  <Link
+                    onClick={() => {
+                      window.location.href = "/Prices_unfound";
+                    }}
+                  >
                     <span className="menuText">Missing prices</span>
                   </Link>
                 </MenuItem>
@@ -486,7 +494,7 @@ class Sidebar extends React.PureComponent {
                     : "#4b5158",
                 }}
               />
-              <span className="menuTextVersionNo">v2.0.075</span>
+              <span className="menuTextVersionNo">v2.0.076</span>
             </Link>
           </MenuItem>
         </Menu>
