@@ -4424,16 +4424,18 @@ function execHandlePricingRecordsHard_way(requestData, redisKey, resolve) {
       );
     } else if (requestData.recordType === "missing") {
       //Process missing data - add for non duplicatas
+      logger.info(
+        `${process.env.URL_NOMINATIM_SERVICES}/search?q=${requestData.pricingData.city}&format=json&polygon_geojson=1&addressdetails=1&limit=1`
+      );
       axios
         .get(
-          `http://Photon-cluster-lb-21809668.us-east-1.elb.amazonaws.com/api/?q=${requestData.pricingData.city}&limit=1`
+          `${process.env.URL_NOMINATIM_SERVICES}/search?q=${requestData.pricingData.city}&format=json&polygon_geojson=1&addressdetails=1&limit=1`
         )
         .then((response) => {
-          if (response.data.features[0].properties.state !== undefined) {
-            let region = response.data.features[0].properties.state.replace(
-              / Region/i,
-              ""
-            );
+          //response.data = JSON.parse(response.data);
+          logger.info(response.data[0].address.state);
+          if (response.data[0].address.state !== undefined) {
+            let region = response.data[0].address.state.replace(/ Region/i, "");
             //...
             collectionPricesLocationsMap.updateOne(
               {
@@ -4485,9 +4487,10 @@ function execHandlePricingRecordsHard_way(requestData, redisKey, resolve) {
                 resolve({ response: "successful" });
               }
             );
-          } else {
-            resolve({ response: "error" });
           }
+          // else {
+          //   resolve({ response: "error" });
+          // }
         })
         .catch((error) => {
           logger.error(error);
