@@ -17,6 +17,7 @@ const CancelledRideRow = (props) => {
   return (
     <>
       <tr>
+        <td style={{ fontWeight: "bold" }}>{props.index + 1}</td>
         <td> {props.ride.passenger_name} </td>
         <td> {props.ride.origin} </td>
         <td> {dest()} </td>
@@ -65,8 +66,8 @@ export default function CancelledRides() {
   }, [cancelledRides]);
   // List of cancelled rides
   const cancelledRidesList = () => {
-    return cancelledRides.map((ride) => {
-      return <CancelledRideRow ride={ride} />;
+    return cancelledRides.map((ride, index) => {
+      return <CancelledRideRow ride={ride} index={index} />;
     });
   };
 
@@ -92,6 +93,7 @@ export default function CancelledRides() {
           <table className="table-striped" style={{ textAlign: "center" }}>
             <thead className="thead-light">
               <tr>
+                <th style={{ width: 80 }}>#</th>
                 <th>Username</th>
                 <th>Origin</th>
                 <th>Destination</th>

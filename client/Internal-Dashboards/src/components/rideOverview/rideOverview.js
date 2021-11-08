@@ -56,6 +56,7 @@ const RideRow = (props) => {
   return (
     <>
       <tr style={{ backgroundColor: "#ebd113" }}>
+        <td style={{ fontWeight: "bold" }}>{props.index + 1}</td>
         <td>
           <GrStatusWarningSmall
             style={iconStyle}
@@ -283,6 +284,7 @@ const RideRowProgress = (props) => {
   return (
     <>
       <tr style={{ backgroundColor: "#ebd113" }}>
+        <td style={{ fontWeight: "bold" }}>{props.index + 1}</td>
         <td>{props.ride.taxi_number}</td>
         <td>{props.ride.passengers_number}</td>
         <td>{props.ride.request_type}</td>
@@ -303,7 +305,7 @@ const RideRowProgress = (props) => {
         </td>
       </tr>
       <tr style={{ display: details ? "" : "none" }}>
-        <td className="data-table" colSpan={10}>
+        <td className="data-table" colSpan={11}>
           <table
             className="table"
             style={{ textAlign: "center", width: "100%", margin: "auto" }}
@@ -311,7 +313,7 @@ const RideRowProgress = (props) => {
           >
             <thead className="thead-light">
               <tr>
-                <th colSpan={10}>Passenger info</th>
+                <th colSpan={11}>Passenger info</th>
               </tr>
               <tr>
                 <th>Name</th>
@@ -321,7 +323,7 @@ const RideRowProgress = (props) => {
                 <th>Payment</th>
                 <th>Amount</th>
                 <th>Origin</th>
-                <th>Destination(s)</th>
+                <th colSpan={2}>Destination(s)</th>
                 <th>Wished pick up time</th>
                 <th>Actions</th>
               </tr>
@@ -335,7 +337,9 @@ const RideRowProgress = (props) => {
                 <td className="td-second">{props.ride.payment_method}</td>
                 <td className="td-second">N$ {props.ride.amount}</td>
                 <td className="td-second">{props.ride.origin}</td>
-                <td className="td-second">{dest()}</td>
+                <td className="td-second" colSpan={2}>
+                  {dest()}
+                </td>
                 <td className="td-second">
                   {props.ride.wished_pickup_time
                     ? props.ride.wished_pickup_time.toString().slice(0, 10)
@@ -433,6 +437,7 @@ const RideRowScheduled = (props) => {
   return (
     <>
       <tr style={{ backgroundColor: "#ebd113" }}>
+        <td style={{ fontWeight: "bold" }}>{props.index + 1}</td>
         <td>
           <GrStatusWarningSmall
             style={iconStyle}
@@ -636,9 +641,9 @@ function RideOverview() {
    */
 
   const rideListInProgress = () => {
-    return rides.map((currentRide) => {
+    return rides.map((currentRide, index) => {
       if (!currentRide.isArrivedToDestination) {
-        return <RideRowProgress ride={currentRide} />;
+        return <RideRowProgress ride={currentRide} index={index} />;
       } else {
         //! Do nothing (Do not add the ride to the list if not in progress)
       }
@@ -646,12 +651,12 @@ function RideOverview() {
   };
 
   const rideListScheduled = () => {
-    return rides.map((currentRide) => {
+    return rides.map((currentRide, index) => {
       if (
         currentRide.request_type === "scheduled" &&
         currentRide.isArrivedToDestination === false
       ) {
-        return <RideRowScheduled ride={currentRide} />;
+        return <RideRowScheduled ride={currentRide} index={index} />;
       } else {
         //! Do nothing (Do not add the ride to the list if not scheduled)
       }
@@ -659,9 +664,9 @@ function RideOverview() {
   };
 
   const rideListCompleted = () => {
-    return rides.map((currentRide) => {
+    return rides.map((currentRide, index) => {
       if (currentRide.isArrivedToDestination) {
-        return <RideRow ride={currentRide} />;
+        return <RideRow ride={currentRide} index={index} />;
       } else {
         //! Do nothing --> Do not add the ride to the list if not completed
         //! the ride is completed upon confirmation of either driver or passenger
@@ -856,6 +861,7 @@ function RideOverview() {
               <table className="table" style={{ textAlign: "center" }}>
                 <thead className="thead-light">
                   <tr>
+                    <th>#</th>
                     <th>Taxi number</th>
                     <th>Passengers</th>
                     <th>Request type</th>
