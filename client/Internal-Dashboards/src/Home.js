@@ -134,10 +134,7 @@ class Home extends React.PureComponent {
                 component={DeliveryOverview}
               />
               <Route path="/drivers" component={DriverList} />
-              <Route
-                path="/cancelled-rides-ByPassengers"
-                component={CancelledRides}
-              />
+              <Route path="/cancelledRidesRiders" component={CancelledRides} />
               <Route
                 path="/cancelled-rides-ByDrivers"
                 component={CancelledRidesDrivers}

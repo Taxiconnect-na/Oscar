@@ -8,6 +8,7 @@ const app = express();
 const helmet = require("helmet");
 const cors = require("cors");
 const MongoClient = require("mongodb").MongoClient;
+const crypto = require("crypto");
 
 const redis = require("redis");
 const fs = require("fs");
@@ -104,6 +105,44 @@ checkName = (name, str) => {
   var regex = new RegExp(`${pattern}`, "g");
   return name.match(regex);
 };
+
+/**
+ * @func generateUniqueFingerprint()
+ * Generate unique fingerprint for any string size.
+ */
+function generateUniqueFingerprint(str, encryption = false, resolve) {
+  str = str.trim();
+  let fingerprint = null;
+  if (encryption === false) {
+    fingerprint = crypto
+      .createHmac(
+        "sha512WithRSAEncryption",
+        "TAXICONNECTBASICKEYFINGERPRINTS-RIDES-DELIVERY-ACCOUNTS"
+      )
+      .update(str)
+      .digest("hex");
+    resolve(fingerprint);
+  } else if (/md5/i.test(encryption)) {
+    fingerprint = crypto
+      .createHmac(
+        "md5WithRSAEncryption",
+        "TAXICONNECTBASICKEYFINGERPRINTS-RIDES-DELIVERY-ACCOUNTS"
+      )
+      .update(str)
+      .digest("hex");
+    resolve(fingerprint);
+  } //Other - default - for creating accounts.
+  else {
+    fingerprint = crypto
+      .createHmac(
+        "sha256",
+        "TAXICONNECTBASICKEYFINGERPRINTS-RIDES-DELIVERY-ACCOUNTS"
+      )
+      .update(str)
+      .digest("hex");
+    resolve(fingerprint);
+  }
+}
 
 function similarityCheck_locations_search(
   arrayLocations,
@@ -470,494 +509,218 @@ function getPassengersParsed_data(requestData, redisKey, resolve) {
 /**
  *
  * *Returns the cancellled rides from passengers
- * @param {collection} collectionCancelledRides
- * @param {collection} collectionPassengers
- * @param {collection} collectionDrivers
+ * @param {collection} collectionRidesDeliveryDataCancelled
+ * @param {collection} collectionPassengers_profiles
+ * @param {collection} collectionDrivers_profiles
  * @param {*} resolve
  */
 
-function getCancelledRidesPassenger(
-  collectionCancelledRides,
-  collectionPassengers,
-  collectionDrivers,
-  resolve
-) {
+function getCancelledRidesPassenger(requestData, resolve) {
   // Attempt to get data from cache first
-  redisCluster.get("cancelledRides-cache", (err, reply) => {
-    logger.info("looking for data in redis...");
+  let redisKey = "cancelledRides-riders-datacached";
 
-    if (err) {
-      logger.info(err);
-      // Function to get data directly from Mongo
-      collectionCancelledRides
-        .find({ ride_mode: "RIDE" })
-        .sort({ date_requested: -1 })
-        .limit(1000)
-        .toArray()
-        .then((result) => {
-          // Map through all cancelled ride and return needed info/field
-          let allCancelled = result.map((cancelled) => {
-            return new Promise((response) => {
-              // Get the following for each ride
-              const date_requested = cancelled.date_requested;
-              const carTypeSelected = cancelled.carTypeSelected;
-              const passengers_number = cancelled.passengers_number;
-              const connect_type = cancelled.connect_type;
-              const origin = cancelled.pickup_location_infos.suburb;
-              const destination = cancelled.destinationData.map(
-                (destination) => {
-                  return destination.suburb;
-                }
-              );
-              const fare = cancelled.fare;
+  redisGet(redisKey)
+    .then((resp) => {
+      if (resp !== null) {
+        try {
+          logger.warn("Found cached cancelled data");
+          //Reehydrate
+          new Promise((resCompute) => {
+            execGetCancelledRidesPassenger(redisKey, requestData, resCompute);
+          })
+            .then(() => {})
+            .catch(() => {});
+          //...
+          resp = JSON.parse(resp);
+          //...
+          resolve(resp);
+        } catch (error) {
+          logger.error(error);
+          new Promise((resCompute) => {
+            execGetCancelledRidesPassenger(redisKey, requestData, resCompute);
+          })
+            .then((result) => {
+              resolve(result);
+            })
+            .catch((error) => {
+              logger.error(error);
+              resolve({
+                error: "something went wrong @Driver collection",
+              });
+            });
+        }
+      } //Get fresh data
+      else {
+        new Promise((resCompute) => {
+          execGetCancelledRidesPassenger(redisKey, requestData, resCompute);
+        })
+          .then((result) => {
+            resolve(result);
+          })
+          .catch((error) => {
+            logger.error(error);
+            resolve({
+              error: "something went wrong @Driver collection",
+            });
+          });
+      }
+    })
+    .catch((error) => {
+      logger.error(error);
+      resolve({
+        error: "something went wrong @Driver collection",
+      });
+    });
+}
 
-              queryPassenger = { user_fingerprint: cancelled.client_id };
-              //Get passenger Data
-              collectionPassengers
-                .findOne(queryPassenger)
-                .then((passenger) => {
-                  const passenger_name = passenger
-                    ? passenger.name
-                    : "not found";
-                  const passenger_phone_number = passenger
-                    ? passenger.phone_number
-                    : "not found";
-                  // Get the driver info in case ride was accepted before cancellation
-                  if (cancelled.taxi_id) {
-                    collectionDrivers
-                      .findOne({ driver_fingerprint: cancelled.taxi_id })
-                      .then((driver) => {
-                        const taxi_number = driver
-                          ? driver.cars_data[0]["taxi_number"]
-                          : "not found";
-                        const driver_name = driver ? driver.name : "not found";
+function execGetCancelledRidesPassenger(redisKey, requestData, resolve) {
+  collectionRidesDeliveryDataCancelled
+    .find({
+      ride_mode: "RIDE",
+      "pickup_location_infos.state": {
+        $in: [requestData.region, `${requestData.region} Region`],
+      },
+    })
+    .sort({ date_requested: -1 })
+    .limit(200)
+    .toArray(function (err, result) {
+      // Map through all cancelled ride and return needed info/field
+      let allCancelled = result.map((cancelled) => {
+        let regionReg = new RegExp(requestData.region, "i");
+        if (regionReg.test(cancelled.pickup_location_infos.state) === false) {
+          logger.error("FAILED THE TEST");
+        }
+        return new Promise((response) => {
+          // Get the following for each ride
+          const date_requested = cancelled.date_requested;
+          const date_cancelled = cancelled.date_deleted;
+          const carTypeSelected = cancelled.carTypeSelected;
+          const passengers_number = cancelled.passengers_number;
+          const connect_type = cancelled.connect_type;
+          const origin = cancelled.pickup_location_infos.suburb;
+          const destination = cancelled.destinationData.map((destination) => {
+            return destination.suburb;
+          });
+          const fare = cancelled.fare;
+          const pickupNote =
+            cancelled.pickup_location_infos.pickup_note !== "false"
+              ? cancelled.pickup_location_infos.pickup_note
+              : "None";
+          const cancellationReason =
+            cancelled.rider_cancellation_reason !== "false"
+              ? cancelled.rider_cancellation_reason
+              : "None";
 
-                        //Return the final object
-                        response({
-                          date_requested,
-                          passengers_number,
-                          connect_type,
-                          origin,
-                          destination,
-                          fare,
-                          passenger_name,
-                          passenger_phone_number,
-                          taxi_number,
-                          driver_name,
-                          carTypeSelected,
-                        });
-                      })
-                      .catch((error) => {
-                        logger.info(error);
-                        resolve({
-                          error: "something went wrong @Driver collection",
-                        });
-                      });
-                  } else {
-                    const taxi_number = "N/A";
-                    const driver_name = "N/A";
+          queryPassenger = { user_fingerprint: cancelled.client_id };
+          //Get passenger Data
+          collectionPassengers_profiles
+            .findOne(queryPassenger)
+            .then((passenger) => {
+              const passenger_name = passenger ? passenger.name : "not found";
+              const passenger_surname = passenger
+                ? passenger.surname
+                : "not found";
+              const passenger_gender = passenger
+                ? passenger.gender
+                : "not found";
+              const passenger_phone_number = passenger
+                ? passenger.phone_number
+                : "not found";
+              // Get the driver info in case ride was accepted before cancellation
+              if (cancelled.taxi_id) {
+                collectionDrivers_profiles
+                  .findOne({ driver_fingerprint: cancelled.taxi_id })
+                  .then((driver) => {
+                    const taxi_number = driver
+                      ? driver.cars_data[0]["taxi_number"]
+                      : "not found";
+                    const driver_name = driver ? driver.name : "not found";
+                    const driver_surname = driver
+                      ? driver.surname
+                      : "not found";
 
                     //Return the final object
                     response({
                       date_requested,
+                      date_cancelled,
                       passengers_number,
                       connect_type,
                       origin,
                       destination,
                       fare,
                       passenger_name,
+                      passenger_surname,
+                      passenger_gender,
                       passenger_phone_number,
                       taxi_number,
                       driver_name,
+                      driver_surname,
                       carTypeSelected,
+                      pickupNote,
+                      cancellationReason,
                     });
-                  }
-                })
-                .catch((error) => {
-                  logger.info(error);
-                  resolve({
-                    error: "something went wrong@passengerCollection",
-                  });
-                });
-            });
-          });
-          // Get all resulting cancelled rides
-          Promise.all(allCancelled).then(
-            (result) => {
-              logger.info("No cash was found for cancelled rides");
-              redisCluster.setex(
-                "cancelledRides-cache",
-                600000,
-                JSON.stringify(result),
-                redis.print
-              );
-              resolve(result);
-            },
-            (error) => {
-              logger.info(error);
-              resolve({ error: "Did not manage to get all promises" });
-            }
-          );
-        })
-        .catch((error) => {
-          logger.info(error);
-        });
-    } else if (reply) {
-      if (reply !== null) {
-        // return cached data
-        resolve(JSON.parse(reply));
-
-        //! Update cache in background
-        // Function to get data directly from Mongo
-        new Promise((cashupdateInBackground) => {
-          collectionCancelledRides
-            .find({ ride_mode: "RIDE" })
-            .sort({ date_requested: -1 })
-            .limit(1000)
-            .toArray()
-            .then((result) => {
-              // Map through all cancelled ride and return needed info/field
-              let allCancelled = result.map((cancelled) => {
-                return new Promise((response) => {
-                  // Get the following for each ride
-                  const date_requested = cancelled.date_requested;
-                  const carTypeSelected = cancelled.carTypeSelected;
-                  const passengers_number = cancelled.passengers_number;
-                  const connect_type = cancelled.connect_type;
-                  const origin = cancelled.pickup_location_infos.suburb;
-                  const destination = cancelled.destinationData.map(
-                    (destination) => {
-                      return destination.suburb;
-                    }
-                  );
-                  const fare = cancelled.fare;
-
-                  queryPassenger = { user_fingerprint: cancelled.client_id };
-                  //Get passenger Data
-                  collectionPassengers
-                    .findOne(queryPassenger)
-                    .then((passenger) => {
-                      const passenger_name = passenger
-                        ? passenger.name
-                        : "not found";
-                      const passenger_phone_number = passenger
-                        ? passenger.phone_number
-                        : "not found";
-                      // Get the driver info in case ride was accepted before cancellation
-                      if (cancelled.taxi_id) {
-                        collectionDrivers
-                          .findOne({ driver_fingerprint: cancelled.taxi_id })
-                          .then((driver) => {
-                            const taxi_number = driver
-                              ? driver.cars_data[0]["taxi_number"]
-                              : "not found";
-                            const driver_name = driver
-                              ? driver.name
-                              : "not found";
-
-                            //Return the final object
-                            response({
-                              date_requested,
-                              passengers_number,
-                              connect_type,
-                              origin,
-                              destination,
-                              fare,
-                              passenger_name,
-                              passenger_phone_number,
-                              taxi_number,
-                              driver_name,
-                              carTypeSelected,
-                            });
-                          })
-                          .catch((error) => {
-                            logger.info(error);
-                            resolve({
-                              error: "something went wrong @Driver collection",
-                            });
-                          });
-                      } else {
-                        const taxi_number = "N/A";
-                        const driver_name = "N/A";
-
-                        //Return the final object
-                        response({
-                          date_requested,
-                          passengers_number,
-                          connect_type,
-                          origin,
-                          destination,
-                          fare,
-                          passenger_name,
-                          passenger_phone_number,
-                          taxi_number,
-                          driver_name,
-                          carTypeSelected,
-                        });
-                      }
-                    })
-                    .catch((error) => {
-                      logger.info(error);
-                      resolve({
-                        error: "something went wrong@passengerCollection",
-                      });
-                    });
-                });
-              });
-              // Get all resulting cancelled rides
-              Promise.all(allCancelled).then(
-                (result) => {
-                  logger.info("No cash was found for cancelled rides");
-                  redisCluster.setex(
-                    "cancelledRides-cache",
-                    600000,
-                    JSON.stringify(result),
-                    redis.print
-                  );
-                  //! No resolve
-                },
-                (error) => {
-                  logger.info(error);
-                  resolve({ error: "Did not manage to get all promises" });
-                }
-              );
-            });
-        });
-      } else {
-        // Function to get data directly from Mongo
-        collectionCancelledRides
-          .find({ ride_mode: "RIDE" })
-          .sort({ date_requested: -1 })
-          .limit(1000)
-          .toArray()
-          .then((result) => {
-            // Map through all cancelled ride and return needed info/field
-            let allCancelled = result.map((cancelled) => {
-              return new Promise((response) => {
-                // Get the following for each ride
-                const date_requested = cancelled.date_requested;
-                const carTypeSelected = cancelled.carTypeSelected;
-                const passengers_number = cancelled.passengers_number;
-                const connect_type = cancelled.connect_type;
-                const origin = cancelled.pickup_location_infos.suburb;
-                const destination = cancelled.destinationData.map(
-                  (destination) => {
-                    return destination.suburb;
-                  }
-                );
-                const fare = cancelled.fare;
-
-                queryPassenger = { user_fingerprint: cancelled.client_id };
-                //Get passenger Data
-                collectionPassengers
-                  .findOne(queryPassenger)
-                  .then((passenger) => {
-                    const passenger_name = passenger
-                      ? passenger.name
-                      : "not found";
-                    const passenger_phone_number = passenger
-                      ? passenger.phone_number
-                      : "not found";
-                    // Get the driver info in case ride was accepted before cancellation
-                    if (cancelled.taxi_id) {
-                      collectionDrivers
-                        .findOne({ driver_fingerprint: cancelled.taxi_id })
-                        .then((driver) => {
-                          const taxi_number = driver
-                            ? driver.cars_data[0]["taxi_number"]
-                            : "not found";
-                          const driver_name = driver
-                            ? driver.name
-                            : "not found";
-
-                          //Return the final object
-                          response({
-                            date_requested,
-                            passengers_number,
-                            connect_type,
-                            origin,
-                            destination,
-                            fare,
-                            passenger_name,
-                            passenger_phone_number,
-                            taxi_number,
-                            driver_name,
-                            carTypeSelected,
-                          });
-                        })
-                        .catch((error) => {
-                          logger.info(error);
-                          resolve({
-                            error: "something went wrong @Driver collection",
-                          });
-                        });
-                    } else {
-                      const taxi_number = "N/A";
-                      const driver_name = "N/A";
-
-                      //Return the final object
-                      response({
-                        date_requested,
-                        passengers_number,
-                        connect_type,
-                        origin,
-                        destination,
-                        fare,
-                        passenger_name,
-                        passenger_phone_number,
-                        taxi_number,
-                        driver_name,
-                        carTypeSelected,
-                      });
-                    }
                   })
                   .catch((error) => {
                     logger.info(error);
                     resolve({
-                      error: "something went wrong@passengerCollection",
+                      error: "something went wrong @Driver collection",
                     });
                   });
+              } else {
+                const taxi_number = "N/A";
+                const driver_name = "N/A";
+
+                //Return the final object
+                response({
+                  date_requested,
+                  date_cancelled,
+                  passengers_number,
+                  connect_type,
+                  origin,
+                  destination,
+                  fare,
+                  passenger_name,
+                  passenger_surname,
+                  passenger_gender,
+                  passenger_phone_number,
+                  taxi_number,
+                  driver_name,
+                  carTypeSelected,
+                  pickupNote,
+                  cancellationReason,
+                });
+              }
+            })
+            .catch((error) => {
+              logger.info(error);
+              resolve({
+                error: "something went wrong@passengerCollection",
               });
             });
-            // Get all resulting cancelled rides
-            Promise.all(allCancelled).then(
-              (result) => {
-                logger.info("No cash was found for cancelled rides");
-                redisCluster.setex(
-                  "cancelledRides-cache",
-                  600000,
-                  JSON.stringify(result),
-                  redis.print
-                );
-                resolve(result);
-              },
-              (error) => {
-                logger.info(error);
-                resolve({ error: "Did not manage to get all promises" });
-              }
-            );
-          })
-          .catch((error) => {
-            logger.info(error);
-          });
-      }
-    } else {
-      // Function to get data directly from Mongo
-      collectionCancelledRides
-        .find({ ride_mode: "RIDE" })
-        .sort({ date_requested: -1 })
-        .limit(1000)
-        .toArray()
-        .then((result) => {
-          // Map through all cancelled ride and return needed info/field
-          let allCancelled = result.map((cancelled) => {
-            return new Promise((response) => {
-              // Get the following for each ride
-              const date_requested = cancelled.date_requested;
-              const carTypeSelected = cancelled.carTypeSelected;
-              const passengers_number = cancelled.passengers_number;
-              const connect_type = cancelled.connect_type;
-              const origin = cancelled.pickup_location_infos.suburb;
-              const destination = cancelled.destinationData.map(
-                (destination) => {
-                  return destination.suburb;
-                }
-              );
-              const fare = cancelled.fare;
-
-              queryPassenger = { user_fingerprint: cancelled.client_id };
-              //Get passenger Data
-              collectionPassengers
-                .findOne(queryPassenger)
-                .then((passenger) => {
-                  const passenger_name = passenger
-                    ? passenger.name
-                    : "not found";
-                  const passenger_phone_number = passenger
-                    ? passenger.phone_number
-                    : "not found";
-                  // Get the driver info in case ride was accepted before cancellation
-                  if (cancelled.taxi_id) {
-                    collectionDrivers
-                      .findOne({ driver_fingerprint: cancelled.taxi_id })
-                      .then((driver) => {
-                        const taxi_number = driver
-                          ? driver.cars_data[0]["taxi_number"]
-                          : "not found";
-                        const driver_name = driver ? driver.name : "not found";
-
-                        //Return the final object
-                        response({
-                          date_requested,
-                          passengers_number,
-                          connect_type,
-                          origin,
-                          destination,
-                          fare,
-                          passenger_name,
-                          passenger_phone_number,
-                          taxi_number,
-                          driver_name,
-                          carTypeSelected,
-                        });
-                      })
-                      .catch((error) => {
-                        logger.info(error);
-                        resolve({
-                          error: "something went wrong @Driver collection",
-                        });
-                      });
-                  } else {
-                    const taxi_number = "N/A";
-                    const driver_name = "N/A";
-
-                    //Return the final object
-                    response({
-                      date_requested,
-                      passengers_number,
-                      connect_type,
-                      origin,
-                      destination,
-                      fare,
-                      passenger_name,
-                      passenger_phone_number,
-                      taxi_number,
-                      driver_name,
-                      carTypeSelected,
-                    });
-                  }
-                })
-                .catch((error) => {
-                  logger.info(error);
-                  resolve({
-                    error: "something went wrong@passengerCollection",
-                  });
-                });
-            });
-          });
-          // Get all resulting cancelled rides
-          Promise.all(allCancelled).then(
-            (result) => {
-              logger.info("No cash was found for cancelled rides");
-              redisCluster.setex(
-                "cancelledRides-cache",
-                600000,
-                JSON.stringify(result),
-                redis.print
-              );
-              resolve(result);
-            },
-            (error) => {
-              logger.info(error);
-              resolve({ error: "Did not manage to get all promises" });
-            }
-          );
-        })
-        .catch((error) => {
-          logger.info(error);
         });
-    }
-  });
+      });
+      // Get all resulting cancelled rides
+      Promise.all(allCancelled).then(
+        (result) => {
+          logger.info("No cash was found for cancelled rides");
+          redisCluster.setex(
+            redisKey,
+            600000,
+            JSON.stringify(result),
+            redis.print
+          );
+          resolve(result);
+        },
+        (error) => {
+          logger.info(error);
+          resolve({ error: "Did not manage to get all promises" });
+        }
+      );
+    })
+    .catch((error) => {
+      logger.info(error);
+      resolve({ error: "Did not manage to get all promises" });
+    });
 }
 
 /**
@@ -965,7 +728,7 @@ function getCancelledRidesPassenger(
  */
 
 function getCancelledDeliveries(
-  collectionCancelledRides,
+  collectionRidesDeliveryDataCancelled,
   collectionPassengers,
   collectionDrivers,
   resolve
@@ -977,7 +740,7 @@ function getCancelledDeliveries(
     if (err) {
       logger.info(err);
       // Function to get data directly from Mongo
-      collectionCancelledRides
+      collectionRidesDeliveryDataCancelled
         .find({ ride_mode: "DELIVERY" })
         .sort({ date_requested: -1 })
         .limit(100)
@@ -1001,7 +764,7 @@ function getCancelledDeliveries(
 
               queryPassenger = { user_fingerprint: cancelled.client_id };
               //Get passenger Data
-              collectionPassengers
+              collectionPassengers_profiles
                 .findOne(queryPassenger)
                 .then((passenger) => {
                   const passenger_name = passenger
@@ -1012,7 +775,7 @@ function getCancelledDeliveries(
                     : "not found";
                   // Get the driver info in case ride was accepted before cancellation
                   if (cancelled.taxi_id) {
-                    collectionDrivers
+                    collectionDrivers_profiles
                       .findOne({ driver_fingerprint: cancelled.taxi_id })
                       .then((driver) => {
                         const taxi_number = driver
@@ -1098,7 +861,7 @@ function getCancelledDeliveries(
         //! Update cache in background
         // Function to get data directly from Mongo
         new Promise((cashupdateInBackground) => {
-          collectionCancelledRides
+          collectionRidesDeliveryDataCancelled
             .find({ ride_mode: "DELIVERY" })
             .sort({ date_requested: -1 })
             .limit(100)
@@ -1122,7 +885,7 @@ function getCancelledDeliveries(
 
                   queryPassenger = { user_fingerprint: cancelled.client_id };
                   //Get passenger Data
-                  collectionPassengers
+                  collectionPassengers_profiles
                     .findOne(queryPassenger)
                     .then((passenger) => {
                       const passenger_name = passenger
@@ -1133,7 +896,7 @@ function getCancelledDeliveries(
                         : "not found";
                       // Get the driver info in case ride was accepted before cancellation
                       if (cancelled.taxi_id) {
-                        collectionDrivers
+                        collectionDrivers_profiles
                           .findOne({ driver_fingerprint: cancelled.taxi_id })
                           .then((driver) => {
                             const taxi_number = driver
@@ -1213,7 +976,7 @@ function getCancelledDeliveries(
         });
       } else {
         // Function to get data directly from Mongo
-        collectionCancelledRides
+        collectionRidesDeliveryDataCancelled
           .find({ ride_mode: "DELIVERY" })
           .sort({ date_requested: -1 })
           .limit(100)
@@ -1237,7 +1000,7 @@ function getCancelledDeliveries(
 
                 queryPassenger = { user_fingerprint: cancelled.client_id };
                 //Get passenger Data
-                collectionPassengers
+                collectionPassengers_profiles
                   .findOne(queryPassenger)
                   .then((passenger) => {
                     const passenger_name = passenger
@@ -1248,7 +1011,7 @@ function getCancelledDeliveries(
                       : "not found";
                     // Get the driver info in case ride was accepted before cancellation
                     if (cancelled.taxi_id) {
-                      collectionDrivers
+                      collectionDrivers_profiles
                         .findOne({ driver_fingerprint: cancelled.taxi_id })
                         .then((driver) => {
                           const taxi_number = driver
@@ -1331,7 +1094,7 @@ function getCancelledDeliveries(
       }
     } else {
       // Function to get data directly from Mongo
-      collectionCancelledRides
+      collectionRidesDeliveryDataCancelled
         .find({ ride_mode: "DELIVERY" })
         .sort({ date_requested: -1 })
         .limit(100)
@@ -1355,7 +1118,7 @@ function getCancelledDeliveries(
 
               queryPassenger = { user_fingerprint: cancelled.client_id };
               //Get passenger Data
-              collectionPassengers
+              collectionPassengers_profiles
                 .findOne(queryPassenger)
                 .then((passenger) => {
                   const passenger_name = passenger
@@ -1366,7 +1129,7 @@ function getCancelledDeliveries(
                     : "not found";
                   // Get the driver info in case ride was accepted before cancellation
                   if (cancelled.taxi_id) {
-                    collectionDrivers
+                    collectionDrivers_profiles
                       .findOne({ driver_fingerprint: cancelled.taxi_id })
                       .then((driver) => {
                         const taxi_number = driver
@@ -1500,21 +1263,35 @@ MongoClient.connect(
           });
       });
 
-      app.get("/cancelled-ride-passenger", (req, res) => {
+      app.post("/cancelled-ride-passenger", (req, res) => {
         new Promise((res) => {
-          getCancelledRidesPassenger(
-            collectionRidesDeliveryDataCancelled,
-            collectionPassengers_profiles,
-            collectionDrivers_profiles,
-            res
-          );
+          getCancelledRidesPassenger(req.body, res);
         })
           .then((data) => {
             if (data.error) {
               res.send({ error: "could not get cancelled rides" });
             } else {
               logger.info("No error, returning cancelled rides by passenger");
-              res.send(data);
+              //Compute the stateHash
+              new Promise((resHash) => {
+                generateUniqueFingerprint(
+                  JSON.stringify(data),
+                  "sha256",
+                  resHash
+                );
+              })
+                .then((stateHash) => {
+                  let finalResponse = {
+                    stateHash: stateHash,
+                    data: data,
+                  };
+                  //...
+                  res.send(finalResponse);
+                })
+                .catch((error) => {
+                  logger.error(error);
+                  res.send({ error: "could not get cancelled rides" });
+                });
             }
           })
           .catch((error) => {

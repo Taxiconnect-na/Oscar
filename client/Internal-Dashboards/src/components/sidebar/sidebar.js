@@ -297,7 +297,7 @@ class Sidebar extends React.PureComponent {
                 this.props.App.loginData.admin_data.access_patterns
               ) ? (
                 <MenuItem>
-                  <Link to="/cancelled-rides-ByPassengers">
+                  <Link to="/cancelledRidesRiders">
                     <span className="menuText">Riders</span>
                   </Link>
                 </MenuItem>
@@ -494,7 +494,7 @@ class Sidebar extends React.PureComponent {
                     : "#4b5158",
                 }}
               />
-              <span className="menuTextVersionNo">v2.0.079</span>
+              <span className="menuTextVersionNo">v2.0.080</span>
             </Link>
           </MenuItem>
         </Menu>

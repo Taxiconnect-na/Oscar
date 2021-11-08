@@ -787,8 +787,9 @@ io.on("connection", (socket) => {
   socket.on("getCancelledRides-passenger", function (data) {
     logger.info("Requesting cancelled rides by passenger ");
     axios
-      .get(
-        `${process.env.LOCAL_URL}:${process.env.PASSENGER_ROOT}/cancelled-ride-passenger`
+      .post(
+        `${process.env.LOCAL_URL}:${process.env.PASSENGER_ROOT}/cancelled-ride-passenger`,
+        data
       )
       .then((result) => {
         // Check for an error
