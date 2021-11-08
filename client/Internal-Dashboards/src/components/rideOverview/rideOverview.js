@@ -56,7 +56,7 @@ const RideRow = (props) => {
   return (
     <>
       <tr style={{ backgroundColor: "#ebd113" }}>
-        <td style={{ fontWeight: "bold" }}>{props.index + 1}</td>
+        <td style={{ fontWeight: "bold" }}>{props.index}</td>
         <td>
           <GrStatusWarningSmall
             style={iconStyle}
@@ -284,7 +284,7 @@ const RideRowProgress = (props) => {
   return (
     <>
       <tr style={{ backgroundColor: "#ebd113" }}>
-        <td style={{ fontWeight: "bold" }}>{props.index + 1}</td>
+        <td style={{ fontWeight: "bold" }}>{props.index}</td>
         <td>{props.ride.taxi_number}</td>
         <td>{props.ride.passengers_number}</td>
         <td>{props.ride.request_type}</td>
@@ -437,7 +437,7 @@ const RideRowScheduled = (props) => {
   return (
     <>
       <tr style={{ backgroundColor: "#ebd113" }}>
-        <td style={{ fontWeight: "bold" }}>{props.index + 1}</td>
+        <td style={{ fontWeight: "bold" }}>{props.index}</td>
         <td>
           <GrStatusWarningSmall
             style={iconStyle}
@@ -641,8 +641,10 @@ function RideOverview() {
    */
 
   const rideListInProgress = () => {
-    return rides.map((currentRide, index) => {
+    let index = 0;
+    return rides.map((currentRide) => {
       if (!currentRide.isArrivedToDestination) {
+        index += 1;
         return <RideRowProgress ride={currentRide} index={index} />;
       } else {
         //! Do nothing (Do not add the ride to the list if not in progress)
@@ -651,11 +653,14 @@ function RideOverview() {
   };
 
   const rideListScheduled = () => {
-    return rides.map((currentRide, index) => {
+    let index = 0;
+
+    return rides.map((currentRide) => {
       if (
         currentRide.request_type === "scheduled" &&
         currentRide.isArrivedToDestination === false
       ) {
+        index += 1;
         return <RideRowScheduled ride={currentRide} index={index} />;
       } else {
         //! Do nothing (Do not add the ride to the list if not scheduled)
@@ -664,8 +669,11 @@ function RideOverview() {
   };
 
   const rideListCompleted = () => {
-    return rides.map((currentRide, index) => {
+    let index = 0;
+
+    return rides.map((currentRide) => {
       if (currentRide.isArrivedToDestination) {
+        index += 1;
         return <RideRow ride={currentRide} index={index} />;
       } else {
         //! Do nothing --> Do not add the ride to the list if not completed
