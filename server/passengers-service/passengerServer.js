@@ -517,7 +517,9 @@ function getPassengersParsed_data(requestData, redisKey, resolve) {
 
 function getCancelledRidesPassenger(requestData, resolve) {
   // Attempt to get data from cache first
-  let redisKey = "cancelledRides-riders-datacached";
+  let redisKey = `cancelledRides-riders-datacached-${JSON.stringify(
+    requestData
+  )}`;
 
   redisGet(redisKey)
     .then((resp) => {
@@ -574,14 +576,27 @@ function getCancelledRidesPassenger(requestData, resolve) {
 }
 
 function execGetCancelledRidesPassenger(redisKey, requestData, resolve) {
+  let basicFilter =
+    /All/.test(requestData.reason) === false
+      ? {
+          ride_mode: "RIDE",
+          "pickup_location_infos.state": {
+            $in: [requestData.region, `${requestData.region} Region`],
+          },
+          rider_cancellation_reason: requestData.reason,
+        }
+      : {
+          ride_mode: "RIDE",
+          "pickup_location_infos.state": {
+            $in: [requestData.region, `${requestData.region} Region`],
+          },
+        };
+
+  logger.warn(basicFilter);
+
   collectionRidesDeliveryDataCancelled
-    .find({
-      ride_mode: "RIDE",
-      "pickup_location_infos.state": {
-        $in: [requestData.region, `${requestData.region} Region`],
-      },
-    })
-    .sort({ date_requested: -1 })
+    .find(basicFilter)
+    .sort({ date_requested: /recentFirst/i.test(requestData.sorting) ? -1 : 1 })
     .limit(200)
     .toArray(function (err, result) {
       // Map through all cancelled ride and return needed info/field
@@ -705,7 +720,7 @@ function execGetCancelledRidesPassenger(redisKey, requestData, resolve) {
           logger.info("No cash was found for cancelled rides");
           redisCluster.setex(
             redisKey,
-            600000,
+            parseInt(process.env.REDIS_EXPIRATION_5MIN) * 3,
             JSON.stringify(result),
             redis.print
           );

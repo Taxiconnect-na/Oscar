@@ -17,6 +17,8 @@ export default class CancelledRides extends Component {
       cancelledData: { data: [] },
       region: "Khomas",
       isLoading: true,
+      reason: "All",
+      sorting: "recentFirst",
     };
   }
 
@@ -45,6 +47,8 @@ export default class CancelledRides extends Component {
       that.SOCKET_CORE.emit("getCancelledRides-passenger", {
         data: "get cancelled rides",
         region: that.state.region,
+        reason: that.state.reason,
+        sorting: that.state.sorting,
       });
     }, 2000);
   }
@@ -193,20 +197,67 @@ export default class CancelledRides extends Component {
               {this.state.cancelledData.data.length} rides shown
             </div>
           </div>
-          <div className={classes.dayZoomLabel}>
-            <select
-              value={this.state.region}
-              onChange={(val) => {
-                this.setState({
-                  region: val.target.value,
-                  isLoading: true,
-                  cancelledData: { data: [] },
-                });
-              }}
-            >
-              <option value="Khomas">Khomas</option>
-              <option value="Erongo">Erongo</option>
-            </select>
+          <div
+            style={{
+              // border: "1px solid black",
+              display: "flex",
+              flexDirection: "row",
+            }}
+          >
+            <div className={classes.dayZoomLabel} style={{ marginRight: 15 }}>
+              <div className={classes.labelDates}>Region</div>
+              <select
+                value={this.state.region}
+                onChange={(val) => {
+                  this.setState({
+                    region: val.target.value,
+                    isLoading: true,
+                    cancelledData: { data: [] },
+                  });
+                }}
+              >
+                <option value="Khomas">Khomas</option>
+                <option value="Erongo">Erongo</option>
+              </select>
+            </div>
+            {/* Cancellation reason */}
+            <div className={classes.dayZoomLabel} style={{ marginRight: 15 }}>
+              <div className={classes.labelDates}>Reason</div>
+              <select
+                value={this.state.reason}
+                onChange={(val) => {
+                  this.setState({
+                    reason: val.target.value,
+                    isLoading: true,
+                    cancelledData: { data: [] },
+                  });
+                }}
+              >
+                <option value="All">All</option>
+                <option value="No available driver">No available driver</option>
+                <option value="Driver too close">Driver too close</option>
+                <option value="Change of plans">Change of plans</option>
+                <option value="Driver too far">Driver too far</option>
+                <option value="Just testing">Just testing</option>
+              </select>
+            </div>
+            {/* Sorting */}
+            <div className={classes.dayZoomLabel}>
+              <div className={classes.labelDates}>Sorting</div>
+              <select
+                value={this.state.sorting}
+                onChange={(val) => {
+                  this.setState({
+                    sorting: val.target.value,
+                    isLoading: true,
+                    cancelledData: { data: [] },
+                  });
+                }}
+              >
+                <option value="recentFirst">Most recents first</option>
+                <option value="oldFirst">Oldest first</option>
+              </select>
+            </div>
           </div>
         </div>
         <div>
