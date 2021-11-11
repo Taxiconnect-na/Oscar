@@ -54,130 +54,146 @@ export default class CancelledRides extends Component {
   }
 
   renderCancelledNode() {
-    let that = this;
-
-    return this.state.cancelledData.data.map((trip, index) => {
-      return (
-        <div className={classes.cancelledNode}>
-          <div style={{ width: 50 }}>{index + 1}</div>
-          <div
-            style={{
-              flex: 1,
-              backgroundColor: "#fff",
-              border: "1px solid #d0d0d0",
-            }}
-          >
-            <div className={classes.stage1Details}>
-              <div className={classes.detailsNode}>
-                <div className={classes.locationTypical}>
-                  <div className={classes.labelLocation}>
-                    <AiTwotoneCompass style={{ width: 7, height: 7 }} /> Pickup
-                  </div>
-                  <div className={classes.subTextName}>
-                    {trip.origin !== false ? trip.origin : "Unknown"}
-                  </div>
-                </div>
-                <div className={classes.locationTypical}>
-                  <div className={classes.labelLocation}>
-                    <AiTwotoneCheckSquare style={{ width: 7, height: 7 }} />{" "}
-                    Dropoff
-                  </div>
-                  <div className={classes.subTextName}>
-                    {trip.destination.map((dest) => {
-                      return <div>{dest !== false ? dest : "Unknown"}</div>;
-                    })}
-                  </div>
-                </div>
-              </div>
-              {/* Dates */}
-              <div>
-                <div className={classes.labelDates}>Date requested</div>
-                <div className={classes.dateInfos}>
-                  {new Date(trip.date_requested).toLocaleDateString()} at{" "}
-                  {new Date(trip.date_requested).toLocaleTimeString()}
-                </div>
-
-                <div className={classes.labelDates}>Date cancelled</div>
-                <div className={classes.dateInfos}>
-                  {new Date(trip.date_cancelled).toLocaleDateString()} at{" "}
-                  {new Date(trip.date_cancelled).toLocaleTimeString()}
-                </div>
-              </div>
-            </div>
-            {/* Stage 2 - user and trip infos */}
-            <div className={classes.stage2Details}>
-              {/* User infos */}
-              <div>
-                <div className={classes.labelDates}>Name</div>
-                <div className={classes.dateInfos}>{trip.passenger_name}</div>
-                <div className={classes.labelDates}>Surname</div>
-                <div className={classes.dateInfos}>
-                  {trip.passenger_surname}
-                </div>
-                <div className={classes.labelDates}>Gender</div>
-                <div className={classes.dateInfos}>{trip.passenger_gender}</div>
-                <div className={classes.labelDates}>Phone</div>
-                <div className={classes.dateInfos}>
-                  {trip.passenger_phone_number}
-                </div>
-              </div>
-              {/* Trip infos */}
-              <div>
-                <div className={classes.labelDates}>Passengers</div>
-                <div className={classes.dateInfos}>
-                  {trip.passengers_number}
-                </div>
-                <div className={classes.labelDates}>Fare</div>
-                <div
-                  className={classes.dateInfos}
-                  style={{ fontFamily: "MoveBold", color: "#09864A" }}
-                >
-                  N${trip.fare}
-                </div>
-                <div className={classes.labelDates}>Connect type</div>
-                <div className={classes.dateInfos}>{trip.connect_type}</div>
-                <div className={classes.labelDates}>Car type</div>
-                <div className={classes.dateInfos}>{trip.carTypeSelected}</div>
-              </div>
-              {/* Pickup note and cancellation reason */}
-              <div>
-                <div className={classes.labelDates}>Pickup note</div>
-                <div className={classes.dateInfos}>{trip.pickupNote}</div>
-                <div className={classes.labelDates}>Cancellation reason</div>
-                <div className={classes.dateInfos} style={{ color: "#b22222" }}>
-                  {trip.cancellationReason}
-                </div>
-              </div>
-            </div>
-            {/* Stage 3 - driver infos */}
-            <div className={classes.stage3Details}>
-              <div className={classes.headerInfos}>Driver infos</div>
-              {trip.taxi_number !== "N/A" ? (
-                <div style={{ display: "flex", flexDirection: "row" }}>
-                  <div style={{ width: 150 }}>
-                    <div className={classes.labelDates}>Name</div>
-                    <div className={classes.dateInfos}>{trip.driver_name}</div>
-                    <div className={classes.labelDates}>Surname</div>
-                    <div className={classes.dateInfos}>
-                      {trip.driver_surname}
+    return this.state.cancelledData.data !== undefined &&
+      this.state.cancelledData.data !== null ? (
+      this.state.cancelledData.data.map((trip, index) => {
+        return (
+          <div className={classes.cancelledNode}>
+            <div style={{ width: 50 }}>{index + 1}</div>
+            <div
+              style={{
+                flex: 1,
+                backgroundColor: "#fff",
+                border: "1px solid #d0d0d0",
+              }}
+            >
+              <div className={classes.stage1Details}>
+                <div className={classes.detailsNode}>
+                  <div className={classes.locationTypical}>
+                    <div className={classes.labelLocation}>
+                      <AiTwotoneCompass style={{ width: 7, height: 7 }} />{" "}
+                      Pickup
+                    </div>
+                    <div className={classes.subTextName}>
+                      {trip.origin !== false ? trip.origin : "Unknown"}
                     </div>
                   </div>
-                  {/* Taxi no */}
-                  <div>
-                    <div className={classes.labelDates}>Taxi number</div>
-                    <div className={classes.dateInfos}>{trip.taxi_number}</div>
+                  <div className={classes.locationTypical}>
+                    <div className={classes.labelLocation}>
+                      <AiTwotoneCheckSquare style={{ width: 7, height: 7 }} />{" "}
+                      Dropoff
+                    </div>
+                    <div className={classes.subTextName}>
+                      {trip.destination.map((dest) => {
+                        return <div>{dest !== false ? dest : "Unknown"}</div>;
+                      })}
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <div style={{ fontFamily: "MoveTextLight", fontSize: 13 }}>
-                  No drivers was associated to this ride at the time of cancel.
+                {/* Dates */}
+                <div>
+                  <div className={classes.labelDates}>Date requested</div>
+                  <div className={classes.dateInfos}>
+                    {new Date(trip.date_requested).toLocaleDateString()} at{" "}
+                    {new Date(trip.date_requested).toLocaleTimeString()}
+                  </div>
+
+                  <div className={classes.labelDates}>Date cancelled</div>
+                  <div className={classes.dateInfos}>
+                    {new Date(trip.date_cancelled).toLocaleDateString()} at{" "}
+                    {new Date(trip.date_cancelled).toLocaleTimeString()}
+                  </div>
                 </div>
-              )}
+              </div>
+              {/* Stage 2 - user and trip infos */}
+              <div className={classes.stage2Details}>
+                {/* User infos */}
+                <div>
+                  <div className={classes.labelDates}>Name</div>
+                  <div className={classes.dateInfos}>{trip.passenger_name}</div>
+                  <div className={classes.labelDates}>Surname</div>
+                  <div className={classes.dateInfos}>
+                    {trip.passenger_surname}
+                  </div>
+                  <div className={classes.labelDates}>Gender</div>
+                  <div className={classes.dateInfos}>
+                    {trip.passenger_gender}
+                  </div>
+                  <div className={classes.labelDates}>Phone</div>
+                  <div className={classes.dateInfos}>
+                    {trip.passenger_phone_number}
+                  </div>
+                </div>
+                {/* Trip infos */}
+                <div>
+                  <div className={classes.labelDates}>Passengers</div>
+                  <div className={classes.dateInfos}>
+                    {trip.passengers_number}
+                  </div>
+                  <div className={classes.labelDates}>Fare</div>
+                  <div
+                    className={classes.dateInfos}
+                    style={{ fontFamily: "MoveBold", color: "#09864A" }}
+                  >
+                    N${trip.fare}
+                  </div>
+                  <div className={classes.labelDates}>Connect type</div>
+                  <div className={classes.dateInfos}>{trip.connect_type}</div>
+                  <div className={classes.labelDates}>Car type</div>
+                  <div className={classes.dateInfos}>
+                    {trip.carTypeSelected}
+                  </div>
+                </div>
+                {/* Pickup note and cancellation reason */}
+                <div>
+                  <div className={classes.labelDates}>Pickup note</div>
+                  <div className={classes.dateInfos}>{trip.pickupNote}</div>
+                  <div className={classes.labelDates}>Cancellation reason</div>
+                  <div
+                    className={classes.dateInfos}
+                    style={{ color: "#b22222" }}
+                  >
+                    {trip.cancellationReason}
+                  </div>
+                </div>
+              </div>
+              {/* Stage 3 - driver infos */}
+              <div className={classes.stage3Details}>
+                <div className={classes.headerInfos}>Driver infos</div>
+                {trip.taxi_number !== "N/A" ? (
+                  <div style={{ display: "flex", flexDirection: "row" }}>
+                    <div style={{ width: 150 }}>
+                      <div className={classes.labelDates}>Name</div>
+                      <div className={classes.dateInfos}>
+                        {trip.driver_name}
+                      </div>
+                      <div className={classes.labelDates}>Surname</div>
+                      <div className={classes.dateInfos}>
+                        {trip.driver_surname}
+                      </div>
+                    </div>
+                    {/* Taxi no */}
+                    <div>
+                      <div className={classes.labelDates}>Taxi number</div>
+                      <div className={classes.dateInfos}>
+                        {trip.taxi_number}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontFamily: "MoveTextLight", fontSize: 13 }}>
+                    No drivers was associated to this ride at the time of
+                    cancel.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      );
-    });
+        );
+      })
+    ) : (
+      <div></div>
+    );
   }
 
   render() {
@@ -194,7 +210,11 @@ export default class CancelledRides extends Component {
           <div>
             <div>Cancelled rides</div>
             <div style={{ fontFamily: "MoveTextRegular", fontSize: 14 }}>
-              {this.state.cancelledData.data.length} rides shown
+              {this.state.cancelledData.data !== undefined &&
+              this.state.cancelledData.data !== null
+                ? this.state.cancelledData.data.length
+                : 0}{" "}
+              rides shown
             </div>
           </div>
           <div
