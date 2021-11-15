@@ -225,7 +225,7 @@ class driverCommission extends Component {
               }}
               title={"Commission after substracting the wallet amount."}
             >
-              {wCommission}
+              {wCommission.toFixed(2)}
             </td>
             <td>{`${new Date(driverInfos.scheduled_payment_date)
               .toLocaleDateString()
