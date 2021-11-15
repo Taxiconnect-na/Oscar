@@ -195,12 +195,29 @@ function similarityCheck_locations_search(
 function getPassengersInfo(requestData, resolve) {
   if (requestData.lookup === "search") {
     //For search Autocomplete
-    let redisKey = `autocomplete-search-${requestData.natureSearch}`;
+    let redisKey = `autocomplete-search-${JSON.stringify(requestData)}`;
 
     redisGet(redisKey)
       .then((resp) => {
         if (resp !== null) {
           //Has some cached data
+          try {
+            logger.warn("FOUND SOME CACHED DATA");
+            //Rehydrate
+            new Promise((resCompute) => {
+              execGetPassengersInfo(requestData, redisKey, resCompute);
+            })
+              .then()
+              .catch((error) => {
+                logger.error(error);
+              });
+            //...Return quickly
+            resp = JSON.parse(resp);
+            resolve(resp);
+          } catch (error) {
+            logger.error(error);
+            resolve({ response: "error" });
+          }
         } //Do fresh search
         else {
           new Promise((resCompute) => {
@@ -218,6 +235,7 @@ function getPassengersInfo(requestData, resolve) {
       .catch((error) => {
         logger.error(error);
         //Do some fresh search
+        resolve({ response: "error" });
       });
   } else if (requestData.lookup === "summary") {
     //Get the summary information
@@ -227,7 +245,6 @@ function getPassengersInfo(requestData, resolve) {
       if (resp !== null) {
         //Found some cached data
         try {
-          logger.warn("FOUND SOME CACHED DATA");
           //Rehydrate
           new Promise((resCompute) => {
             execGetPassengersInfo(requestData, redisKey, resCompute);
@@ -275,12 +292,26 @@ function execGetPassengersInfo(requestData, redisKey, resolve) {
 
   if (requestData.lookup === "search") {
     //Get all the passengers
-    redisKey = `passengersGlobalParsed-dataAdminSearch`;
-
     redisGet(redisKey)
       .then((resp) => {
         if (resp !== null) {
-          //Has some cached data
+          try {
+            //Rehydrate
+            new Promise((resCompute) => {
+              getPassengersParsed_data(requestData, redisKey, resCompute);
+            })
+              .then(() => {})
+              .catch((error) => {
+                logger.error(error);
+              });
+            //Has some cached data
+            // logger.warn(resp);
+            resp = JSON.parse(resp);
+            resolve(resp);
+          } catch (error) {
+            logger.error(error);
+            resolve({ response: "error_get" });
+          }
         } //Get fresh data
         else {
           new Promise((resCompute) => {
@@ -291,7 +322,7 @@ function execGetPassengersInfo(requestData, redisKey, resolve) {
                 result.response !== "no_passengers_data" &&
                 result.response !== "error_get"
               ) {
-                logger.info(result);
+                resolve(result);
               } //No data
               else {
                 resolve(result);
@@ -413,9 +444,10 @@ function execGetPassengersInfo(requestData, redisKey, resolve) {
                 (RETURN_DATA_MODEL.users_whove_usedOneAtleast * 100) /
                   RETURN_DATA_MODEL.total_users
               );
-              logger.info(RETURN_DATA_MODEL);
+              // logger.info(RETURN_DATA_MODEL);
               let finalResponse = {
                 response: RETURN_DATA_MODEL,
+                lookup: "summary",
               };
               //...
               //Cache the response
@@ -453,57 +485,65 @@ function execGetPassengersInfo(requestData, redisKey, resolve) {
  * @param {return} resolve
  */
 function getPassengersParsed_data(requestData, redisKey, resolve) {
-  collectionPassengers_profiles.find({}).toArray(function (err, passengerData) {
-    if (err) {
-      logger.error(err);
-      resolve({ response: "error_get" });
-    }
-    //...
-    if (passengerData !== undefined && passengerData.length > 0) {
-      //Found some passengers
-      let ARRAY_PASSENGERS_GLOBAL = [];
-      passengerData.map((passenger) => {
-        let tmpModelRider = {
-          name: passenger.name,
-          surname: passenger.surname,
-          gender: /^F/.test(passenger.gender)
-            ? "F"
-            : /female/i.test(passenger.gender)
-            ? "F"
-            : /^M/.test(passenger.gender)
-            ? "M"
-            : /male/i.test(passenger.gender)
-            ? "M"
-            : "Unknown",
-          phone: passenger.phone_number,
-          email: passenger.email,
-          profile_pic: `${process.env.AWS_S3_RIDERS_PROFILE_PICTURES_PATH}/${passenger.media.profile_picture}`,
-          account_verifications: passenger.account_verifications,
-          last_updated: passenger.last_updated,
-          date_registered: passenger.date_registered,
+  collectionPassengers_profiles
+    .find({})
+    .sort({ "date_registered.date": -1 })
+    .limit(500)
+    .toArray(function (err, passengerData) {
+      if (err) {
+        logger.error(err);
+        resolve({ response: "error_get" });
+      }
+      //...
+      if (passengerData !== undefined && passengerData.length > 0) {
+        //Found some passengers
+        let ARRAY_PASSENGERS_GLOBAL = [];
+        passengerData.map((passenger) => {
+          let tmpModelRider = {
+            name: passenger.name,
+            surname: passenger.surname,
+            gender: /^F/.test(passenger.gender)
+              ? "F"
+              : /female/i.test(passenger.gender)
+              ? "F"
+              : /^M/.test(passenger.gender)
+              ? "M"
+              : /male/i.test(passenger.gender)
+              ? "M"
+              : "Unknown",
+            phone: passenger.phone_number,
+            email: passenger.email,
+            profile_pic: `${process.env.AWS_S3_RIDERS_PROFILE_PICTURES_PATH}/${passenger.media.profile_picture}`,
+            account_verifications: passenger.account_verifications,
+            last_updated: passenger.last_updated,
+            date_registered: passenger.date_registered,
+          };
+          //? SAVE
+          ARRAY_PASSENGERS_GLOBAL.push(tmpModelRider);
+        });
+        //...
+        let finalResponse = {
+          response: ARRAY_PASSENGERS_GLOBAL,
+          lookup: "search",
         };
-        //? SAVE
-        ARRAY_PASSENGERS_GLOBAL.push(tmpModelRider);
-      });
-      //...
-      //! Cache the data
-      new Promise((resCache) => {
-        // redisCluster.setex(
-        //   redisKey,
-        //   parseInt(process.env.REDIS_EXPIRATION_5MIN) * 1440,
-        //   JSON.stringify({ response: ARRAY_PASSENGERS_GLOBAL })
-        // );
-        resCache(true);
-      })
-        .then()
-        .catch((error) => logger.error(error));
-      //...
-      resolve({ response: ARRAY_PASSENGERS_GLOBAL });
-    } //No passengers
-    else {
-      resolve({ response: "no_passengers_data" });
-    }
-  });
+        //! Cache the data
+        new Promise((resCache) => {
+          redisCluster.setex(
+            redisKey,
+            parseInt(process.env.REDIS_EXPIRATION_5MIN) * 1440,
+            JSON.stringify(finalResponse)
+          );
+          resCache(true);
+        })
+          .then()
+          .catch((error) => logger.error(error));
+        //...
+        resolve(finalResponse);
+      } //No passengers
+      else {
+        resolve({ response: "no_passengers_data" });
+      }
+    });
 }
 
 /**
@@ -1266,7 +1306,7 @@ MongoClient.connect(
           getPassengersInfo(req, resolve);
         })
           .then((result) => {
-            logger.info("Passenger's Data API called");
+            // logger.info(result);
             res.send(result);
           })
           .catch((error) => {

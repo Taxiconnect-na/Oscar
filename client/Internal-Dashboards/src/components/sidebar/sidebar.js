@@ -30,7 +30,7 @@ import {
   ImShare2,
 } from "react-icons/im";
 import { MdChatBubble, MdAccountBalance } from "react-icons/md";
-import { icons } from "react-icons/lib";
+import BetaBadge from "../BetaBadge/BetaBadge";
 
 const iconStyle = {
   width: 30,
@@ -137,7 +137,7 @@ class Sidebar extends React.PureComponent {
                   : 0,
             }
           );
-        }, 2000);
+        }, 5000);
       } catch (error) {
         clearInterval(this.intervalPersister);
       }
@@ -162,6 +162,7 @@ class Sidebar extends React.PureComponent {
               <Link to="/">
                 <AiFillAppstore style={iconStyle} />
                 <span className="menuText">Summary</span>
+                <BetaBadge />
               </Link>
             </MenuItem>
           ) : (
@@ -355,6 +356,7 @@ class Sidebar extends React.PureComponent {
               <Link className="menuText" to="/passengers">
                 <ImUsers style={iconStyle} />
                 <span className="menuText">Users </span>
+                <BetaBadge />
               </Link>
             </MenuItem>
           ) : (
@@ -397,6 +399,7 @@ class Sidebar extends React.PureComponent {
               <Link className="menuText" to="/Commission">
                 <ImPieChart style={iconStyle} />
                 <span className="menuText">Commissions</span>
+                <BetaBadge />
               </Link>
             </MenuItem>
           ) : (
@@ -494,7 +497,7 @@ class Sidebar extends React.PureComponent {
                     : "#4b5158",
                 }}
               />
-              <span className="menuTextVersionNo">v2.0.082</span>
+              <span className="menuTextVersionNo">v2.0.083</span>
             </Link>
           </MenuItem>
         </Menu>

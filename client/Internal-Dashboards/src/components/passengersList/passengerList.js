@@ -17,38 +17,114 @@ class PassengerList extends React.Component {
     this.intervalPersister = null;
 
     this.state = {
-      shouldShowSearch: true, //If to show the search window or not.
+      shouldShowSearch: false, //If to show the search window or not.
       isLoading: true, //If loading or not
       usersSummaryData: {}, //Will hold the users' summary data
+      searchData: [], //Will hold all the users search related data
     };
   }
 
   componentDidMount() {
-    let globalObject = this;
+    let that = this;
 
     this.getFreshSummaryData();
 
     //Socket io handling
     this.SOCKET_CORE.on("getPassengers-response", function (response) {
-      if (
-        response !== undefined &&
-        response.response !== undefined &&
-        response.response.total_users !== undefined
-      ) {
-        console.log(response);
-        globalObject.setState({
-          usersSummaryData: response.response,
-          isLoading: false,
-        });
+      if (response !== undefined && response.response !== undefined) {
+        if (response.lookup === "summary") {
+          if (
+            response.response.total_users !==
+            that.state.usersSummaryData.total_users
+          ) {
+            that.setState({
+              usersSummaryData: response.response,
+              isLoading: false,
+            });
+          }
+        } else if (response.lookup === "search") {
+          that.setState({
+            searchData: response.response,
+            isLoading: false,
+          });
+        }
       }
     });
   }
 
   //Responsible for getting the summary data
   getFreshSummaryData() {
-    this.SOCKET_CORE.emit("getPassengers", {
-      lookup: "summary",
-    });
+    let that = this;
+
+    this.intervalPersister = setInterval(function () {
+      that.SOCKET_CORE.emit("getPassengers", {
+        lookup: "summary",
+      });
+    }, 7000);
+  }
+
+  renderPassengersRowNode() {
+    if (this.state.searchData.length > 0) {
+      return this.state.searchData.map((user, index) => {
+        return (
+          <tr className={classes.rowSingleData}>
+            <td style={{ fontFamily: "MoveTextBold" }}>{index}</td>
+            <td
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  width: "80px",
+                  height: "60px",
+                  backgroundColor: "#d0d0d0",
+                }}
+              >
+                <img
+                  src={user.profile_pic}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              </div>
+            </td>
+            <td>{user.name}</td>
+            <td>{user.surname.lengtd > 0 ? user.surname : "-"}</td>
+            <td>{user.phone}</td>
+            <td>{user.email}</td>
+            <td
+              style={{
+                color: user.account_verifications.is_accountVerified
+                  ? "green"
+                  : "#b22222",
+                fontFamily: "MoveTextBold",
+              }}
+            >
+              {user.account_verifications.is_accountVerified
+                ? "Verified"
+                : "Not verified"}
+            </td>
+            <td>{`${new Date(
+              user.date_registered.date
+            ).toLocaleDateString()} at ${new Date(
+              user.date_registered.date
+            ).toLocaleTimeString()}`}</td>
+            <td>{`${new Date(
+              user.last_updated
+            ).toLocaleDateString()} at ${new Date(
+              user.last_updated
+            ).toLocaleTimeString()}`}</td>
+          </tr>
+        );
+      });
+    } else {
+      return (
+        <tr>
+          <td>No data to show</td>
+        </tr>
+      );
+    }
   }
 
   render() {
@@ -65,7 +141,13 @@ class PassengerList extends React.Component {
           {this.state.shouldShowSearch === false ? (
             <div
               className={classes.switchView}
-              onClick={() => this.setState({ shouldShowSearch: true })}
+              onClick={() => {
+                //....For Search
+                this.SOCKET_CORE.emit("getPassengers", {
+                  lookup: "search",
+                });
+                this.setState({ shouldShowSearch: true });
+              }}
             >
               <MdSearch
                 style={{ marginRight: 5, bottom: 1, position: "relative" }}
@@ -172,8 +254,9 @@ class PassengerList extends React.Component {
                 <input
                   type="text"
                   placeholder="Enter the user's gender here"
-                  style={{ backgroundColor: "#fff" }}
+                  style={{ backgroundColor: "#d0d0d0" }}
                   className={classes.inputSearch}
+                  disabled
                 />
               </div>
               <div className={classes.selectContainer}>
@@ -210,7 +293,37 @@ class PassengerList extends React.Component {
               users found
             </div>
             {/* Results container */}
-            <div className={classes.resultsContainer}>results</div>
+            <div className={classes.resultsContainer}>
+              <div
+                style={{
+                  color: "#096ED4",
+                  // paddingLeft: "15px",
+                  fontSize: "13px",
+                  marginBottom: 25,
+                }}
+              >
+                {this.state.searchData.length} results retrieved
+              </div>
+              <table style={{ backgroundColor: "#fff" }}>
+                <thead className={classes.headerTable}>
+                  <tr>
+                    <th style={{ width: "60px" }}>#</th>
+                    <th>Profile</th>
+                    <th>Name</th>
+                    <th>Surname</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Date registered</th>
+                    <th>Last updated</th>
+                  </tr>
+                </thead>
+                {/* Content node */}
+                <tbody className={classes.bodyTableContainer}>
+                  {this.renderPassengersRowNode()}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

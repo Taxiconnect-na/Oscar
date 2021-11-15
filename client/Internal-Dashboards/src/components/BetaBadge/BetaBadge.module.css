@@ -1,0 +1,14 @@
+.betaContainer {
+  border: 1px solid #b22222;
+  display: inline;
+  margin-left: 10px;
+  background-color: #b22222;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-radius: 2px;
+  position: relative;
+  bottom: 1px;
+}

@@ -99,7 +99,28 @@
 }
 
 .resultsContainer {
-  border: 1px solid red;
-  background-color: #fff;
-  padding: 15px;
+  /* border: 1px solid red; */
+  /* background-color: #fff; */
+  padding-top: 15px;
+  margin-bottom: 100px;
+}
+
+.headerTable > tr > th {
+  font-size: 13px;
+  font-family: "MoveTextMedium", sans-serif;
+  border: 1px solid #d0d0d0;
+}
+
+.bodyTableContainer > tr > td {
+  border: 1px solid #d0d0d0;
+}
+
+.bodyTableContainer > tr > td:hover {
+  background-color: #d0d0d0;
+  cursor: pointer;
+}
+
+.rowSingleData > td {
+  font-size: 14px;
+  word-wrap: break-word;
 }

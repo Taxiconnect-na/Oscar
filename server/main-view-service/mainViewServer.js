@@ -3111,6 +3111,8 @@ function getAdminSummaryData(params, resolve) {
 
   let redisKey = `admininstrationSummaryData-${params.day_zoom}`; //Cache based on the day zoom
 
+  logger.info(redisKey);
+
   redisGet(redisKey)
     .then((resp) => {
       if (resp !== null) {
@@ -3125,6 +3127,7 @@ function getAdminSummaryData(params, resolve) {
               logger.error(error);
             });
           //...
+          logger.info(resp);
           resp = JSON.parse(resp);
           resolve(resp);
         } catch (error) {

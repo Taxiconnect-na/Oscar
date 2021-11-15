@@ -43,10 +43,15 @@ class Overview extends React.PureComponent {
 
     this.intervalPersister = null;
 
+    this.SOCKET_CORE = SOCKET_CORE;
+
     this.state = {
       useCanvas: false,
       crosshairValues: [],
       day_zoom: 7,
+      globalOverviewData: null,
+      overviewData: null,
+      isLoading: true,
     };
   }
 
@@ -66,17 +71,17 @@ class Overview extends React.PureComponent {
    */
   _onNearestX = (value, { index }) => {
     let DATA = [
-      this.props.App.overviewData !== null &&
-      this.props.App.overviewData !== undefined &&
-      this.props.App.overviewData.response !== undefined &&
-      this.props.App.overviewData.response.daily_view !== undefined
-        ? this.props.App.overviewData.response.daily_view.total_trips
+      this.state.overviewData !== null &&
+      this.state.overviewData !== undefined &&
+      this.state.overviewData.response !== undefined &&
+      this.state.overviewData.response.daily_view !== undefined
+        ? this.state.overviewData.response.daily_view.total_trips
         : [],
-      this.props.App.overviewData !== null &&
-      this.props.App.overviewData !== undefined &&
-      this.props.App.overviewData.response !== undefined &&
-      this.props.App.overviewData.response.daily_view !== undefined
-        ? this.props.App.overviewData.response.daily_view.total_successful_trips
+      this.state.overviewData !== null &&
+      this.state.overviewData !== undefined &&
+      this.state.overviewData.response !== undefined &&
+      this.state.overviewData.response.daily_view !== undefined
+        ? this.state.overviewData.response.daily_view.total_successful_trips
         : [],
     ];
     //....
@@ -84,37 +89,36 @@ class Overview extends React.PureComponent {
   };
 
   componentDidMount() {
-    let globalObject = this;
-
-    this.props.App.SOCKET_CORE =
-      this.props.App.SOCKET_CORE.on === undefined ||
-      this.props.App.SOCKET_CORE.on === null
-        ? SOCKET_CORE
-        : this.props.App.SOCKET_CORE;
+    let that = this;
 
     this.getOverviewDataStats();
 
     //Handle socket events
-    this.props.App.SOCKET_CORE.on(
-      "getMastiff_insightData-response",
-      function (response) {
+    this.SOCKET_CORE.on("getMastiff_insightData-response", function (response) {
+      if (
+        response !== undefined &&
+        response !== null &&
+        response.response !== undefined &&
+        response.response !== null &&
+        /error/i.test(response.response) === false &&
+        /error/i.test(response) === false
+      ) {
         if (
-          response !== undefined &&
-          response !== null &&
-          response.response !== undefined &&
-          response.response !== null &&
-          /error/i.test(response.response) === false &&
-          /error/i.test(response) === false
+          that.state.overviewData === null ||
+          that.state.overviewData.stateHash !== response.stateHash
         ) {
-          globalObject.props.UpdateOverviewData(response);
+          console.error("Graph data");
+          console.log(response);
+          that.setState({ overviewData: response, isLoading: false });
         }
       }
-    );
+    });
 
     //2. For global day 1 data
-    this.props.App.SOCKET_CORE.on(
+    this.SOCKET_CORE.on(
       "getMastiff_insightData-parallel-response",
       function (response) {
+        // console.log(response);
         if (
           response !== undefined &&
           response !== null &&
@@ -123,7 +127,13 @@ class Overview extends React.PureComponent {
           /error/i.test(response.response) === false &&
           /error/i.test(response) === false
         ) {
-          globalObject.props.UpdateGlobalOverviewData(response);
+          if (
+            that.state.globalOverviewData === null ||
+            that.state.globalOverviewData.stateHash !== response.stateHash
+          ) {
+            console.log(response);
+            that.setState({ globalOverviewData: response });
+          }
         }
       }
     );
@@ -133,36 +143,42 @@ class Overview extends React.PureComponent {
    *  Responsible for getting periodically the overview data
    */
   getOverviewDataStats() {
-    let globalObject = this;
+    let that = this;
 
     if (this.props.App.loginData.admin_data !== null) {
       try {
-        globalObject.props.App.SOCKET_CORE.emit("getMastiff_insightData", {
+        that.SOCKET_CORE.emit("getMastiff_insightData", {
           isolation_factor: "generic_view|daily_view",
-          day_zoom: this.state.day_zoom,
+          day_zoom:
+            this.state.day_zoom === null || this.state.day_zoom === undefined
+              ? 0
+              : this.state.day_zoom,
           make_graphReady: true,
         });
         //!Parallel for global overview
-        globalObject.props.App.SOCKET_CORE.emit("getMastiff_insightData", {
+        that.SOCKET_CORE.emit("getMastiff_insightData", {
           isolation_factor: "generic_view|daily_view",
           day_zoom: 300000,
           parallel: true,
         });
         //...
         this.intervalPersister = setInterval(function () {
-          globalObject.props.App.SOCKET_CORE.emit("getMastiff_insightData", {
+          that.SOCKET_CORE.emit("getMastiff_insightData", {
             isolation_factor: "generic_view|daily_view",
-            day_zoom: globalObject.state.day_zoom,
+            day_zoom:
+              that.state.day_zoom === null || that.state.day_zoom === undefined
+                ? 0
+                : that.state.day_zoom,
             make_graphReady: true,
           });
           console.log("Clock on updated");
           //!Parallel for global overview
-          globalObject.props.App.SOCKET_CORE.emit("getMastiff_insightData", {
+          that.SOCKET_CORE.emit("getMastiff_insightData", {
             isolation_factor: "generic_view|daily_view",
             day_zoom: 300000,
             parallel: true,
           });
-        }, 25000);
+        }, 10000);
       } catch (error) {
         clearInterval(this.intervalPersister);
       }
@@ -182,9 +198,7 @@ class Overview extends React.PureComponent {
    */
   returnValidValueOrZero(value) {
     try {
-      return this.props.App.globalOverviewData.response.genericGlobalStats[
-        value
-      ];
+      return this.state.globalOverviewData.response.genericGlobalStats[value];
     } catch (error) {
       return 0;
     }
@@ -205,85 +219,171 @@ class Overview extends React.PureComponent {
             <AiTwotoneCalendar
               style={{ marginRight: 5, bottom: 1, position: "relative" }}
             />
-            For the last {this.state.day_zoom} days
+            For the last (days)
+            <input
+              type="number"
+              placeholder="Time frame"
+              value={
+                this.state.day_zoom === null ||
+                this.state.day_zoom === undefined
+                  ? ""
+                  : this.state.day_zoom
+              }
+              style={{
+                width: "100px",
+                textAlign: "center",
+                marginLeft: "10px",
+              }}
+              onChange={(val) => {
+                let newVal = parseInt(val.target.value);
+                console.log(newVal);
+                if (newVal <= 1825) {
+                  this.setState({
+                    day_zoom: newVal,
+                    isLoading: true,
+                    overviewData: null,
+                  });
+                } else if (isNaN(newVal)) {
+                  this.setState({
+                    day_zoom: null,
+                    isLoading: true,
+                    overviewData: null,
+                  });
+                }
+                //Defaults to 7 days
+                else {
+                  this.setState({
+                    day_zoom: 7,
+                    isLoading: true,
+                    overviewData: null,
+                  });
+                }
+              }}
+            />
           </div>
         </div>
         <div className={classes.chartContainer}>
-          <FlexibleXYPlot xType="ordinal" height={400} stackBy="y">
-            <VerticalGridLines />
-            <HorizontalGridLines />
-            <XAxis title="Days" />
-            <YAxis tickFormat={(v) => (/\./i.test(String(v)) ? null : v)} />
-            <DiscreteColorLegend
-              style={{ position: "relative", left: "20px", bottom: "0px" }}
-              orientation="horizontal"
-              items={[
-                {
-                  title: "Successful trips",
-                  color: "#3EA37C",
-                },
-                {
-                  title: "Cancelled trips",
-                  color: "#a13d63",
-                },
-              ]}
-            />
-
-            <VerticalBarSeries
-              data={
-                this.props.App.overviewData !== null &&
-                this.props.App.overviewData !== undefined &&
-                this.props.App.overviewData.response !== undefined &&
-                this.props.App.overviewData.response.daily_view !== undefined
-                  ? this.props.App.overviewData.response.daily_view
-                      .total_successful_trips
-                  : []
-              }
-              curve={"curveMonotoneX"}
+          {this.state.isLoading ? (
+            <div
               style={{
-                strokeLinejoin: "round",
-                strokeWidth: 2,
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-              color={"#3EA37C"}
-              onNearestX={this._onNearestX}
-              onValueMouseOut={this._onMouseLeave}
-            />
-
-            {/* Show cancelled total trips */}
-            <VerticalBarSeries
-              data={
-                this.props.App.overviewData !== null &&
-                this.props.App.overviewData !== undefined &&
-                this.props.App.overviewData.response !== undefined &&
-                this.props.App.overviewData.response.daily_view !== undefined
-                  ? this.props.App.overviewData.response.daily_view
-                      .total_cancelled_trips
-                  : []
-              }
-              curve={"curveMonotoneX"}
+            >
+              <Loader
+                type="TailSpin"
+                color="#000"
+                height={40}
+                width={40}
+                timeout={300000000} //3 secs
+              />
+            </div>
+          ) : Object.keys(this.state.overviewData.response.daily_view).length <=
+            0 ? (
+            <div
               style={{
-                strokeLinejoin: "round",
-                strokeWidth: 2,
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-              color={"#a13d63"}
-              onNearestX={this._onNearestX}
-              onValueMouseOut={this._onMouseLeave}
-            />
+            >
+              No data to show
+            </div>
+          ) : (
+            <FlexibleXYPlot
+              xType="ordinal"
+              height={400}
+              margin={{ bottom: 100 }}
+              stackBy="y"
+            >
+              <VerticalGridLines />
+              <HorizontalGridLines />
+              <XAxis title="Days" tickLabelAngle={90} tickPadding={60} />
+              <YAxis tickFormat={(v) => (/\./i.test(String(v)) ? null : v)} />
+              <DiscreteColorLegend
+                style={{ position: "relative", left: "20px", bottom: "0px" }}
+                orientation="horizontal"
+                items={[
+                  {
+                    title: "Successful trips",
+                    color: "#3EA37C",
+                  },
+                  {
+                    title: "Cancelled trips",
+                    color: "#a13d63",
+                  },
+                ]}
+              />
 
-            {/* Crosshair */}
-            <Crosshair
-              values={this.state.crosshairValues}
-              className={"test-class-name"}
-              titleFormat={(d) => ({ title: "Trips", value: d[0].y + d[1].y })}
-              itemsFormat={(d) => [
-                { title: "Successful", value: d[1].y },
-                { title: "Cancelled", value: d[0].y },
-              ]}
-            />
-          </FlexibleXYPlot>
+              <VerticalBarSeries
+                data={
+                  this.state.overviewData !== null &&
+                  this.state.overviewData !== undefined &&
+                  this.state.overviewData.response !== undefined &&
+                  this.state.overviewData.response.daily_view !== undefined
+                    ? this.state.overviewData.response.daily_view
+                        .total_successful_trips
+                    : []
+                }
+                curve={"curveMonotoneX"}
+                style={{
+                  strokeLinejoin: "round",
+                  strokeWidth: 2,
+                }}
+                color={"#3EA37C"}
+                onNearestX={this._onNearestX}
+                onValueMouseOut={this._onMouseLeave}
+              />
+
+              {/* Show cancelled total trips */}
+              <VerticalBarSeries
+                data={
+                  this.state.overviewData !== null &&
+                  this.state.overviewData !== undefined &&
+                  this.state.overviewData.response !== undefined &&
+                  this.state.overviewData.response.daily_view !== undefined
+                    ? this.state.overviewData.response.daily_view
+                        .total_cancelled_trips
+                    : []
+                }
+                curve={"curveMonotoneX"}
+                style={{
+                  strokeLinejoin: "round",
+                  strokeWidth: 2,
+                }}
+                color={"#a13d63"}
+                onNearestX={this._onNearestX}
+                onValueMouseOut={this._onMouseLeave}
+              />
+
+              {/* Crosshair */}
+              <Crosshair
+                values={this.state.crosshairValues}
+                className={"test-class-name"}
+                titleFormat={(d) => ({
+                  title: "Trips",
+                  value: d[0].y + d[1].y,
+                })}
+                itemsFormat={(d) => [
+                  { title: "Successful", value: d[1].y },
+                  { title: "Cancelled", value: d[0].y },
+                ]}
+              />
+            </FlexibleXYPlot>
+          )}
         </div>
         <div className={classes.globalNumbersContainer}>
-          <div className={classes.headerGBNumbers}>Global numbers</div>
+          <div className={classes.headerGBNumbers}>
+            Global numbers{" "}
+            <span style={{ fontSize: "12px", color: "#096ED4" }}>
+              - From day 1
+            </span>
+          </div>
 
           <NodeTableExplainer
             title="Trips related"
@@ -340,19 +440,28 @@ class Overview extends React.PureComponent {
               },
               {
                 title: "Percentage trip handling",
-                value: `${parseFloat(
-                  (100 *
-                    parseInt(
-                      this.returnValidValueOrZero("total_successful_trips")
-                    )) /
-                    parseInt(
-                      this.returnValidValueOrZero("total_cancelled_trips")
-                    )
-                ).toFixed(2)}%`,
+                value:
+                  parseInt(
+                    this.returnValidValueOrZero("total_cancelled_trips")
+                  ) !== 0
+                    ? `${parseFloat(
+                        (100 *
+                          parseInt(
+                            this.returnValidValueOrZero(
+                              "total_successful_trips"
+                            )
+                          )) /
+                          parseInt(
+                            this.returnValidValueOrZero("total_cancelled_trips")
+                          )
+                      ).toFixed(2)}%`
+                    : "0%",
               },
             ]}
           />
+        </div>
 
+        <div className={classes.globalNumbersContainer}>
           <NodeTableExplainer
             marginTop={50}
             title="Sales related (N$)"
@@ -430,7 +539,9 @@ class Overview extends React.PureComponent {
               },
             ]}
           />
+        </div>
 
+        <div className={classes.globalNumbersContainer}>
           <NodeTableExplainer
             marginTop={50}
             title="Users related"
@@ -469,7 +580,9 @@ class Overview extends React.PureComponent {
               },
             ]}
           />
+        </div>
 
+        <div className={classes.globalNumbersContainer}>
           <NodeTableExplainer
             marginTop={50}
             title="Commission related (N$)"

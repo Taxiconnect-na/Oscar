@@ -114,6 +114,7 @@ const HomeReducer = (state = INIT_STATE, action) => {
           newState.globalOverviewData === undefined ||
           newState.globalOverviewData.stateHash !== action.payload.stateHash
         ) {
+          console.log(action.payload);
           //New data
           newState.globalOverviewData = action.payload;
           //..
