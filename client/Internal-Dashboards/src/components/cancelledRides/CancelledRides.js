@@ -95,13 +95,21 @@ export default class CancelledRides extends Component {
                   <div className={classes.labelDates}>Date requested</div>
                   <div className={classes.dateInfos}>
                     {new Date(trip.date_requested).toLocaleDateString()} at{" "}
-                    {new Date(trip.date_requested).toLocaleTimeString()}
+                    {`${new Date(trip.date_requested).getUTCHours()}:${new Date(
+                      trip.date_requested
+                    ).getUTCMinutes()}:${new Date(
+                      trip.date_requested
+                    ).getUTCSeconds()}`}
                   </div>
 
                   <div className={classes.labelDates}>Date cancelled</div>
                   <div className={classes.dateInfos}>
                     {new Date(trip.date_cancelled).toLocaleDateString()} at{" "}
-                    {new Date(trip.date_cancelled).toLocaleTimeString()}
+                    {`${new Date(trip.date_cancelled).getUTCHours()}:${new Date(
+                      trip.date_cancelled
+                    ).getUTCMinutes()}:${new Date(
+                      trip.date_cancelled
+                    ).getUTCSeconds()}`}
                   </div>
                 </div>
               </div>
@@ -117,7 +125,11 @@ export default class CancelledRides extends Component {
                   </div>
                   <div className={classes.labelDates}>Gender</div>
                   <div className={classes.dateInfos}>
-                    {trip.passenger_gender}
+                    {/^F/i.test(trip.passenger_gender)
+                      ? "Female"
+                      : /^M/i.test(trip.passenger_gender)
+                      ? "Male"
+                      : "Unknown"}
                   </div>
                   <div className={classes.labelDates}>Phone</div>
                   <div className={classes.dateInfos}>
