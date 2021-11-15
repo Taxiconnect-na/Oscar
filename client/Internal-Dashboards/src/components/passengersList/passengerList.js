@@ -63,6 +63,10 @@ class PassengerList extends React.Component {
     }, 7000);
   }
 
+  componentWillUnmount() {
+    clearInterval(this.intervalPersister);
+  }
+
   renderPassengersRowNode() {
     if (this.state.searchData.length > 0) {
       return this.state.searchData.map((user, index) => {
