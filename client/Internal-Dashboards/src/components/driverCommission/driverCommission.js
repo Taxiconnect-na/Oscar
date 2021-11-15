@@ -153,13 +153,23 @@ class driverCommission extends Component {
               }}
               title={"Commission after substracting the wallet amount."}
             >
-              {wCommission}
+              {wCommission.toFixed(2)}
             </td>
             <td>{`${new Date(driverInfos.scheduled_payment_date)
               .toLocaleDateString()
               .replace(/\//g, "-")} at ${new Date(
               driverInfos.scheduled_payment_date
             ).toLocaleTimeString()}`}</td>
+            <td
+              style={{
+                backgroundColor: driverInfos.driver_infos.is_suspended
+                  ? "red"
+                  : "#fff",
+                color: driverInfos.driver_infos.is_suspended ? "#fff" : "#000",
+              }}
+            >
+              {driverInfos.driver_infos.is_suspended ? "Suspended" : "Active"}
+            </td>
           </tr>
         );
       } else {
@@ -222,6 +232,16 @@ class driverCommission extends Component {
               .replace(/\//g, "-")} at ${new Date(
               driverInfos.scheduled_payment_date
             ).toLocaleTimeString()}`}</td>
+            <td
+              style={{
+                backgroundColor: driverInfos.driver_infos.is_suspended
+                  ? "red"
+                  : "#fff",
+                color: driverInfos.driver_infos.is_suspended ? "#fff" : "#000",
+              }}
+            >
+              {driverInfos.driver_infos.is_suspended ? "Suspended" : "Active"}
+            </td>
           </tr>
         );
       }
@@ -362,6 +382,7 @@ class driverCommission extends Component {
                     <th>Wallet balance (N$)</th>
                     <th>W-commission (N$)</th>
                     <th>Scheduled payment</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
 

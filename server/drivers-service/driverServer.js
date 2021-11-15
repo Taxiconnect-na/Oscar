@@ -2464,6 +2464,7 @@ function execHandleCommissionPageOps(requestData, redisKey, resolve) {
                   phone: driver.phone_number,
                   taxi_number: driver.cars_data[0].taxi_number,
                   driver_fp: driver.driver_fingerprint,
+                  is_suspended: driver.isDriverSuspended,
                 };
                 //...
                 RETURN_DATA_MODEL.driversData.push(tmpDriverWalletData.header);
