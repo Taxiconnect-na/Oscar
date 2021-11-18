@@ -385,6 +385,7 @@ class Sidebar extends React.PureComponent {
               <Link className="menuText" to="/visualize">
                 <AiFillSignal style={iconStyle} />
                 <span className="menuText">Statistics</span>
+                <BetaBadge />
               </Link>
             </MenuItem>
           ) : (
