@@ -400,6 +400,15 @@ class Visualizer extends Component {
   getContentData() {
     let that = this;
 
+    if (this.state.isLoading === true) {
+      this.SOCKET_CORE.emit("getMastiff_insightData", {
+        isolation_factor: this.props.App.statisticsBundleData.dataframe,
+        day_zoom: 300000,
+        targetData: this.props.App.statisticsBundleData.targetData,
+        make_graphReady: true,
+      });
+    }
+
     this.intervalPersister = setInterval(function () {
       that.setState({
         isSmallLoading: that.state.isLoading === false ? true : false,
