@@ -483,11 +483,11 @@ io.on("connection", (socket) => {
         `${process.env.LOCAL_URL}` +
         ":" +
         process.env.STATS_ROOT +
-        `/getSummaryAdminGlobal_data?isolation_factor=${data.isolation_factor}&day_zoom=${data.day_zoom}&make_graphReady=${data.make_graphReady}$parallal=${data.parallel}`;
+        `/getSummaryAdminGlobal_data`;
 
       // logger.warn(url);
 
-      requestAPI(url, function (error, response, body) {
+      requestAPI.post({ url, form: data }, function (error, response, body) {
         if (error === null) {
           try {
             body = JSON.parse(body);

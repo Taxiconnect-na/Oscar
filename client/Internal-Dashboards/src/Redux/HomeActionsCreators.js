@@ -50,3 +50,9 @@ export const UpdateSelectedRegionForViewing = (dataReceived) => ({
   type: "UPDATE_SELECTED_REGION_FOR_VIEWING",
   payload: dataReceived,
 });
+
+//8. Update the statistical bundle data
+export const UpdateStatisticalBundleData = (dataReceived) => ({
+  type: "UPDATE_STATISTICAL_BUNDLE_DATA",
+  payload: dataReceived,
+});

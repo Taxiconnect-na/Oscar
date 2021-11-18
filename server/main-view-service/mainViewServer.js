@@ -3127,7 +3127,7 @@ function getAdminSummaryData(params, resolve) {
               logger.error(error);
             });
           //...
-          logger.info(resp);
+          // logger.info(resp);
           resp = JSON.parse(resp);
           resolve(resp);
         } catch (error) {
@@ -4976,10 +4976,9 @@ redisCluster.on("connect", function () {
       /**
        * Responsible for getting the summary data
        */
-      app.get("/getSummaryAdminGlobal_data", (req, res) => {
+      app.post("/getSummaryAdminGlobal_data", (req, res) => {
         new Promise((resCompute) => {
-          let params = urlParser.parse(req.url, true);
-          req = params.query;
+          req = req.body;
           //Check for graph readiness - default - false
           req.make_graphReady =
             req.make_graphReady !== undefined && req.make_graphReady !== null
@@ -5007,6 +5006,19 @@ redisCluster.on("connect", function () {
                     ? req.isolation_factor
                     : "generic_view";
                 //?...
+                //! Only isolate to the target data if any specified
+                //! Do not allow the targetData to take effect when the generic_view data is requested in the isolation factor.
+                // if (
+                //   req.targetData !== undefined &&
+                //   req.targetData !== null &&
+                //   /generic_view/i.test(req.isolation_factor) === false
+                // ) {
+                //   let savedState = result;
+                //   // result = {};
+                //   // result[req.targetData] = savedState[req.targetData];
+                //   logger.info(result[req.isolation_factor]);
+                // }
+                //....
                 if (req.isolation_factor === "req.isolation_factor") {
                   res.send({
                     stateHash: dataStateHash,
@@ -5099,6 +5111,44 @@ redisCluster.on("connect", function () {
                       yearly_view: req.make_graphReady
                         ? makegraphReady(result.yearly_view)
                         : result.yearly_view,
+                    },
+                  });
+                } else if (req.isolation_factor === "busiest_pickup_suburbs") {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      busiest_pickup_suburbs: req.make_graphReady
+                        ? makegraphReady(result.busiest_pickup_suburbs)
+                        : result.busiest_pickup_suburbs,
+                    },
+                  });
+                } else if (
+                  req.isolation_factor === "busiest_destination_suburbs"
+                ) {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      busiest_destination_suburbs: req.make_graphReady
+                        ? makegraphReady(result.busiest_destination_suburbs)
+                        : result.busiest_destination_suburbs,
+                    },
+                  });
+                } else if (req.isolation_factor === "drivers_view") {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      drivers_view: req.make_graphReady
+                        ? makegraphReady(result.drivers_view)
+                        : result.drivers_view,
+                    },
+                  });
+                } else if (req.isolation_factor === "riders_view") {
+                  res.send({
+                    stateHash: dataStateHash,
+                    response: {
+                      riders_view: req.make_graphReady
+                        ? makegraphReady(result.riders_view)
+                        : result.riders_view,
                     },
                   });
                 } else if (req.isolation_factor === "all") {

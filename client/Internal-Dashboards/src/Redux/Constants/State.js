@@ -112,6 +112,8 @@ const STATE = {
   selectedDriverForCommissionDetails: null, //After a driver is selected to see his/her earnings
   //? For the selected region
   selectedRegion: "Khomas", //The region selected for viewing
+  //? Statistical bundle data
+  statisticsBundleData: {}, //Bundle data for the statistical data fetch
 };
 
 export default STATE;

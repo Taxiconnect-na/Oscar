@@ -138,6 +138,11 @@ const HomeReducer = (state = INIT_STATE, action) => {
 
         return { ...state, ...newState };
 
+      case "UPDATE_STATISTICAL_BUNDLE_DATA":
+        newState.statisticsBundleData = action.payload;
+
+        return { ...state, ...newState };
+
       default:
         return state;
     }

@@ -19,19 +19,14 @@ import SuccessPage from "./components/successPage/SuccessPage";
 import CancelledRides from "./components/cancelledRides/CancelledRides";
 import CancelledRidesDrivers from "./components/cancelledRides/CancelledRidesDrivers";
 import Graph from "./components/Graphs/Graph";
-import RideCounts from "./components/visualize/RideCounts";
-import DataVisualizerRoutesList from "./components/DataVisualizerRoutesList/DataVisualizerRoutesList";
+import Visualize from "./components/Statistics/Visualize";
+import Visualizer from "./components/Statistics/Visualizer";
 //import LoginButton from "./components/LoginButton"
 //import LogoutButton from "./components/LogoutButton"
 //import Profile from "./components/Profile"
 import "./App.css";
 import { VscLoading } from "react-icons/vsc";
 import CancelledDeliveries from "./components/cancelledRides/CancelledDeliveries";
-import GrossSales from "./components/visualize/GrossSales";
-import Revenues from "./components/visualize/Revenues";
-import ConnectTypes from "./components/visualize/ConnectTypes";
-import PaymentMethods from "./components/visualize/PaymentMethods";
-import MonthlyDataDetailed from "./components/visualize/MonthlyDataDetailed";
 import DriverDataUpdate from "./components/driverRegistration/driverDataUpdate";
 import DriverCommission from "./components/driverCommission/driverCommission";
 import driverCommissionDetailed from "./components/driverCommission/driverCommissionDetailed";
@@ -154,19 +149,8 @@ class Home extends React.PureComponent {
 
               <Route path="/graph" component={Graph} />
 
-              <Route path="/visualize" component={DataVisualizerRoutesList} />
-              <Route path="/visualize-ride-counts" component={RideCounts} />
-              <Route path="/visualize-gross-sales" component={GrossSales} />
-              <Route path="/visualize-revenues" component={Revenues} />
-              <Route path="/visualize-connect-types" component={ConnectTypes} />
-              <Route
-                path="/visualize-payment-methods"
-                component={PaymentMethods}
-              />
-              <Route
-                path="/monthly-data-detailed"
-                component={MonthlyDataDetailed}
-              />
+              <Route path="/visualize" component={Visualize} />
+              <Route path="/Visualizer" component={Visualizer} />
 
               <Route path="/Commission" component={DriverCommission} />
               <Route
