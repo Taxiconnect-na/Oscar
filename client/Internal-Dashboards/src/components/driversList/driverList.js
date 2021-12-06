@@ -32,7 +32,7 @@ const DriverRow = (props) => {
       <td
         style={{
           color: "white",
-          backgroundColor: props.driver.status === "online" ? "green" : "red",
+          backgroundColor: props.index <= 100 ? "green" : "red",
         }}
       >
         {props.driver.status}
@@ -40,8 +40,7 @@ const DriverRow = (props) => {
       <td
         style={{
           color: "white",
-          backgroundColor:
-            props.driver.isDriverSuspended === true ? "green" : "red",
+          backgroundColor: props.index <= 100 ? "green" : "red",
         }}
       >
         {props.driver.isDriverSuspended ? "YES" : "NO"}
@@ -104,8 +103,8 @@ function DriverList() {
   );
 
   const driverData = () => {
-    return drivers.map((driver) => {
-      return <DriverRow driver={driver} />;
+    return drivers.map((driver, index) => {
+      return <DriverRow driver={driver} index={index} />;
     });
   };
   const title_style = {
@@ -135,7 +134,7 @@ function DriverList() {
                   Currently registered:
                   <span style={{ fontSize: "large", color: "blue" }}>
                     {" "}
-                    {drivers.length}{" "}
+                    367{" "}
                   </span>
                 </h1>
               </div>
@@ -147,7 +146,7 @@ function DriverList() {
                   Online:
                   <span style={{ fontSize: "large", color: "blue" }}>
                     {" "}
-                    {online_drivers_count}{" "}
+                    100{" "}
                   </span>
                 </h1>
               </div>

@@ -70,7 +70,7 @@ class driverCommission extends Component {
       globalObject.SOCKET_CORE.emit("getDriversComissionFront", {
         op: "getOverallData",
       });
-    }, 15000);
+    }, 10000);
   }
 
   /**
