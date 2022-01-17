@@ -290,7 +290,7 @@ class Visualizer extends Component {
       filteredData: [], //Will contain all the targeted data only!
       isLoading: true, //To indicate the loading state
       isSmallLoading: true,
-      year_selected: 2021, //The selected year
+      year_selected: 2022, //The selected year
       rangeDate_selected: {
         startDate: new Date(),
         endDate: new Date(),

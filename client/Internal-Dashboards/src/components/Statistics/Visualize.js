@@ -258,7 +258,7 @@ class Visualize extends Component {
       optionsForTargetData: [],
       optionsForDataframe: [],
       //...
-      year_selected: 2021,
+      year_selected: 2022,
       dataframe: "",
       week_selected: 1,
       targetData: "",
@@ -379,6 +379,7 @@ class Visualize extends Component {
                   : "#d0d0d0",
               }}
             >
+              <option value="2022">2022</option>
               <option value="2021">2021</option>
               <option value="2020">2020</option>
             </select>
