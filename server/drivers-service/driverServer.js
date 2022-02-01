@@ -2426,6 +2426,7 @@ function execHandleCommissionPageOps(requestData, redisKey, resolve) {
           header: {
             total_commission: 0,
             total_wallet_due: 0,
+            average_daily_income: 0,
             currency: "NAD",
             last_date_update: new Date(chaineDateUTC),
           },
@@ -2441,7 +2442,7 @@ function execHandleCommissionPageOps(requestData, redisKey, resolve) {
               )
               .then((tmpDriverWalletData) => {
                 tmpDriverWalletData = tmpDriverWalletData.data;
-                logger.info(tmpDriverWalletData.header);
+                // logger.info(tmpDriverWalletData.header);
                 //Update the header data
                 RETURN_DATA_MODEL.header.total_commission +=
                   tmpDriverWalletData.header.remaining_commission !==
@@ -2466,10 +2467,116 @@ function execHandleCommissionPageOps(requestData, redisKey, resolve) {
                   driver_fp: driver.driver_fingerprint,
                   is_suspended: driver.isDriverSuspended,
                 };
-                //...
-                RETURN_DATA_MODEL.driversData.push(tmpDriverWalletData.header);
-                //...
-                resCompute(true);
+                //? Add the average daily income for only the days where he worked
+                tmpDriverWalletData.header["total_trips"] = 0;
+                tmpDriverWalletData.header["average_daily_income"] = 0;
+                collectionRidesDeliveryData
+                  .find({ taxi_id: driver.driver_fingerprint })
+                  .toArray(function (err, rideInfos) {
+                    if (err) {
+                      logger.error(err);
+                      resCompute(false);
+                    }
+                    //...
+                    if (rideInfos !== undefined && rideInfos.length > 0) {
+                      //Has some rides
+                      tmpDriverWalletData.header["total_trips"] =
+                        rideInfos.length;
+                      rideInfos.map((data) => {
+                        tmpDriverWalletData.header["average_daily_income"] +=
+                          parseFloat(data["fare"]);
+                      });
+
+                      //! Consider all the cancelled rides
+                      collectionRidesDeliveryDataCancelled
+                        .find({ taxi_id: driver.driver_fingerprint })
+                        .toArray(function (err, rideInfos) {
+                          if (err) {
+                            logger.error(err);
+                            resCompute(false);
+                          }
+                          //...
+                          if (rideInfos !== undefined && rideInfos.length > 0) {
+                            //Has some rides
+                            rideInfos.map((data) => {
+                              tmpDriverWalletData.header[
+                                "average_daily_income"
+                              ] += parseFloat(data["fare"]);
+                            });
+
+                            //..
+                            tmpDriverWalletData.header[
+                              "average_daily_income"
+                            ] /= tmpDriverWalletData.header["total_trips"];
+                            tmpDriverWalletData.header[
+                              "average_daily_income"
+                            ] *= 10;
+                            //? DONE
+                            RETURN_DATA_MODEL.driversData.push(
+                              tmpDriverWalletData.header
+                            );
+                            //? Compute the general daily income
+                            let indexCount = 0;
+                            let total_avg = 0;
+                            RETURN_DATA_MODEL.driversData.map((ifo) => {
+                              if (ifo["average_daily_income"] > 100) {
+                                //Consider
+                                total_avg += parseFloat(
+                                  ifo["average_daily_income"]
+                                );
+                                indexCount += 1;
+                              }
+                            });
+                            //..Get the average
+                            RETURN_DATA_MODEL.header.average_daily_income =
+                              total_avg / indexCount;
+                            logger.info(tmpDriverWalletData.header);
+                            //...
+                            resCompute(true);
+                          } //No cancelled rides
+                          else {
+                            //..
+                            tmpDriverWalletData.header[
+                              "average_daily_income"
+                            ] /= tmpDriverWalletData.header["total_trips"];
+                            tmpDriverWalletData.header[
+                              "average_daily_income"
+                            ] *= 10;
+                            //? DONE
+                            RETURN_DATA_MODEL.driversData.push(
+                              tmpDriverWalletData.header
+                            );
+                            //...
+                            //? Compute the general daily income
+                            let indexCount = 0;
+                            let total_avg = 0;
+                            RETURN_DATA_MODEL.driversData.map((ifo) => {
+                              if (ifo["average_daily_income"] > 100) {
+                                //Consider
+                                total_avg += parseFloat(
+                                  ifo["average_daily_income"]
+                                );
+                                indexCount += 1;
+                              }
+                            });
+                            //..Get the average
+                            RETURN_DATA_MODEL.header.average_daily_income =
+                              total_avg / indexCount;
+                            logger.info(tmpDriverWalletData.header);
+                            //...
+                            resCompute(true);
+                          }
+                        });
+                    } //No rides
+                    else {
+                      //...
+                      RETURN_DATA_MODEL.driversData.push(
+                        tmpDriverWalletData.header
+                      );
+                      //...
+                      resCompute(true);
+                    }
+                  });
               })
               .catch((error) => {
                 logger.info(error);

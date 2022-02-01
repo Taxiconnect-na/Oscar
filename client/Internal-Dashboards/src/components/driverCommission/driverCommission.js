@@ -40,6 +40,7 @@ class driverCommission extends Component {
           response.stateHash !== undefined &&
           response.stateHash !== globalObject.state.distilledCoreData.stateHash
         ) {
+          console.log(response);
           globalObject.setState({
             distilledCoreData: response,
             isLoading: false,
@@ -162,6 +163,20 @@ class driverCommission extends Component {
             ).toLocaleTimeString()}`}</td>
             <td
               style={{
+                fontFamily: "MoveTextBold",
+                backgroundColor: "#f0f0f0",
+                color: "#000",
+              }}
+              title={
+                "The global daily income for the driver computed based on all the taken trips."
+              }
+            >
+              {driverInfos.average_daily_income !== undefined
+                ? Math.round(driverInfos.average_daily_income)
+                : 0}
+            </td>
+            <td
+              style={{
                 backgroundColor: driverInfos.driver_infos.is_suspended
                   ? "red"
                   : "#fff",
@@ -232,6 +247,20 @@ class driverCommission extends Component {
               .replace(/\//g, "-")} at ${new Date(
               driverInfos.scheduled_payment_date
             ).toLocaleTimeString()}`}</td>
+            <td
+              style={{
+                fontFamily: "MoveTextBold",
+                backgroundColor: "#f0f0f0",
+                color: "#000",
+              }}
+              title={
+                "The global daily income for the driver computed based on all the taken trips."
+              }
+            >
+              {driverInfos.average_daily_income !== undefined
+                ? Math.round(driverInfos.average_daily_income)
+                : 0}
+            </td>
             <td
               style={{
                 backgroundColor: driverInfos.driver_infos.is_suspended
@@ -349,6 +378,13 @@ class driverCommission extends Component {
                         .total_wallet_due
                     )}`,
                   },
+                  {
+                    title: "Average global daily income",
+                    value: `N$ ${Math.round(
+                      this.state.distilledCoreData.response.header
+                        .average_daily_income
+                    )}`,
+                  },
                 ]}
                 right={[
                   {
@@ -382,6 +418,7 @@ class driverCommission extends Component {
                     <th>Wallet balance (N$)</th>
                     <th>W-commission (N$)</th>
                     <th>Scheduled payment</th>
+                    <th>Daily income (N$)</th>
                     <th>Status</th>
                   </tr>
                 </thead>
