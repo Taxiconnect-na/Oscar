@@ -18,6 +18,7 @@ const DriverRow = (props) => {
   const redirectDriver = () => {
     window.location = `/drivers-update?driverID=${props.driver.driver_fingerprint}&taxi=${props.driver.taxi_number}&&dname=${props.driver.name}&&dsurname=${props.driver.surname}&&dplate_number=${props.driver.plate_number}&&brand=${props.driver.car_brand}&&contact=${props.driver.phone_number}&&taxipicture=${props.driver.taxi_picture}`;
   };
+  console.log(props.driver);
   return (
     <tr onClick={() => redirectDriver()}>
       <td>
@@ -32,7 +33,7 @@ const DriverRow = (props) => {
       <td
         style={{
           color: "white",
-          backgroundColor: props.index <= 100 ? "green" : "red",
+          backgroundColor: props.driver.status === "online" ? "green" : "red",
         }}
       >
         {props.driver.status}
@@ -40,7 +41,7 @@ const DriverRow = (props) => {
       <td
         style={{
           color: "white",
-          backgroundColor: props.index <= 100 ? "green" : "red",
+          backgroundColor: props.driver.isDriverSuspended ? "green" : "red",
         }}
       >
         {props.driver.isDriverSuspended ? "YES" : "NO"}
