@@ -925,6 +925,31 @@ io.on("connection", (socket) => {
     }
   });
 
+  //Cancel the ride for the driver
+  socket.on("CancellTrip_driverSide", (data) => {
+    if (data !== undefined && data !== null) {
+      axios
+        .post(`${process.env.JERRY}:9094/cancel_request_driver_io`, data)
+        .then((feedback) => {
+          logger.info(feedback.data);
+          // Return the server's response data to client
+          if (feedback.data.response == "successfully_cancelled") {
+            logger.info("successful trip cancellation");
+            socket.emit("CancellTrip_driverSide-response", { success: true });
+          } else if (feedback.data.error) {
+            logger.info("something went wrong while cancelling trip--");
+            socket.emit("CancellTrip_driverSide-response", { success: false });
+          }
+        })
+        .catch((error) => {
+          logger.info(error);
+          socket.emit("CancellTrip_driverSide-response", { success: false });
+        });
+    } else if (data !== undefined && data !== null) {
+      socket.emit("CancellTrip_driverSide-response", { success: false });
+    }
+  });
+
   /*
     *===================================================================================================
     //*                 Data Visualization related events

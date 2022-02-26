@@ -265,16 +265,41 @@ const RideRowProgress = (props) => {
       if (data.success) {
         // Show successful confirmation
         //setConfirmRideState(true)
-        console.log(
-          "inoinoinoinnoinnioninoiiiiiiiiiiiiiiiiiiiiiiiiiiooioiiooiiooinnioionnoinoiubbhjb"
-        );
+        alert("Ride successfully deleted.");
       } else if (data.success === false) {
         //Do not show progress and display error message
         //setShowConfirmState(false)
         //setConfirmRideError(true)
-        console.log(
-          "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-        );
+        alert("Was unable to delete the ride, please try again later.");
+      }
+    });
+
+    //console.log(props.ride.ride_id)
+  };
+
+  const cancellRideDriverSide = () => {
+    // show progress of confirmation request
+    //setShowConfirmState(true)
+    console.log(props.ride);
+
+    socket.emit("CancellTrip_driverSide", {
+      request_fp: props.ride.request_fp,
+      driver_fingerprint:
+        props.ride.driver_fingerprint !== null &&
+        props.ride.driver_fingerprint !== undefined
+          ? props.ride.driver_fingerprint
+          : props.ride.driver_fp,
+    });
+    socket.on("CancellTrip_driverSide-response", (data) => {
+      if (data.success) {
+        // Show successful confirmation
+        //setConfirmRideState(true)
+        alert("Ride successfully cancelled on the driver side.");
+      } else if (data.success === false) {
+        //Do not show progress and display error message
+        //setShowConfirmState(false)
+        //setConfirmRideError(true)
+        alert("Failed to cancel the ride on the driver's side.");
       }
     });
 
@@ -362,6 +387,14 @@ const RideRowProgress = (props) => {
                           style={{ marginBottom: "9%" }}
                         >
                           confirm
+                        </button>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => {
+                            cancellRideDriverSide();
+                          }}
+                        >
+                          Cancel for the driver
                         </button>
                         <button
                           className="btn btn-primary btn-sm"
